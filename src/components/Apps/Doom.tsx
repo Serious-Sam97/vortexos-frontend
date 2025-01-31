@@ -1,8 +1,6 @@
-import { useState } from 'react';
 import { Button, Frame, Toolbar, Window, WindowContent, WindowHeader } from "react95";
 
 const Doom: React.FC = () => {
-    const [ selected, setSelected ] = useState(false);
 
     return (
         <>

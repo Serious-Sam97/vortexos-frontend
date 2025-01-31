@@ -47,6 +47,10 @@ const Desktop: React.FC = () => {
         setIcons(icons.map((row, rowIndex) => {
             return row.map((icon, iconIndex) => {
                 if (i === rowIndex && j === iconIndex) {
+                    if (icon.selected) {
+                        console.log('Clicked two times');
+                    }
+                    console.log('Clicked one times');
                     return {
                         ...icon,
                         selected: !icon.selected,
