@@ -1,28 +1,21 @@
 import { Button, Frame, Toolbar, Window, WindowContent, WindowHeader } from "react95";
 import { useProcessContext } from "../contexts/ProcessContext";
-import React, { useEffect } from "react";
+import React from "react";
 
 const WindowManager: React.FC = () => {
 
-    const { processes, setProcesses, changePriority } = useProcessContext();
-    const [ ordenatedProcesses, setOrdenatedProcesses ] = React.useState<any[]>([]);
-
-    const closeProcess = (uuid: string) => {
-        //Set Timeout Zero to run after the changePriority function
-        setTimeout(() => {
-            setProcesses(processes => processes.filter((p: any) => p.uuid !== uuid));
-        }, 0);
-    }
-
-    useEffect(() => {
-        setOrdenatedProcesses(processes.sort((a, b) => a.priority > b.priority));
-    }, [processes]);
+    const { processes, setProcesses, changePriority, closeProcess, ordenatedProcess } = useProcessContext();
 
     return (
         <>
             {
-                ordenatedProcesses.map((process, index) => (
-                    <Window onClick={() => changePriority(process, 0)} key={index} resizable className='window' style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+                ordenatedProcess.map((process, index) => (
+                    <Window
+                        onClick={() => changePriority(process, 0)}
+                        key={index} resizable
+                        className='window'
+                        style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: process.priority === 0 ? '9999' : '1' }}
+                    >
                         <WindowHeader className='window-title'>
                             <span>{process.name}</span>
                             <Button onClick={() => closeProcess(process.uuid)}>
@@ -44,7 +37,7 @@ const WindowManager: React.FC = () => {
                             {React.createElement(process.component, { propA: 'foo' })}
                         </WindowContent>
                         <Frame variant='well' className='footer'>
-                            Put some useful information here
+                            TEST
                         </Frame>
                     </Window>
                 ))
