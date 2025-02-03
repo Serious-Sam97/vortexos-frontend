@@ -5,10 +5,13 @@ import DoomIcon from '/doom.png'
 import Doom from "../components/Apps/Doom";
 import MyComputer from "../components/Apps/MyComputer";
 import RecycleBin from "../components/Apps/RecycleBin";
+import { useProcessContext } from "../contexts/ProcessContext";
+import { v4 as uuidv4 } from "uuid";
 
 const Desktop: React.FC = () => {
     const desktop = useRef<HTMLDivElement | null>(null);
     const [blocksHeight, setHeight] = useState(0);
+    const { processes, setProcesses } = useProcessContext();
 
     const updateHeight = () => {
         if (desktop.current) {
@@ -23,6 +26,7 @@ const Desktop: React.FC = () => {
                 icon: TrashIcon,
                 selected: false,
                 component: RecycleBin,
+                priority: 0,
             },
         ],
         [
@@ -31,6 +35,7 @@ const Desktop: React.FC = () => {
                 icon: MyComputerIcon,
                 selected: false,
                 component: MyComputer,
+                priority: 0,
             },
         ],
         [
@@ -39,6 +44,7 @@ const Desktop: React.FC = () => {
                 icon: DoomIcon,
                 selected: false,
                 component: Doom,
+                priority: 0,
             },
         ]
     ]);
@@ -48,9 +54,12 @@ const Desktop: React.FC = () => {
             return row.map((icon, iconIndex) => {
                 if (i === rowIndex && j === iconIndex) {
                     if (icon.selected) {
-                        console.log('Clicked two times');
+                        setProcesses([...processes, {
+                            ...icon,
+                            uuid: uuidv4(),
+                            priority: 0,
+                        }]);
                     }
-                    console.log('Clicked one times');
                     return {
                         ...icon,
                         selected: !icon.selected,
