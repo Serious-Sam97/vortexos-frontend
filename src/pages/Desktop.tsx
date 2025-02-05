@@ -6,12 +6,11 @@ import Doom from "../components/Apps/Doom";
 import MyComputer from "../components/Apps/MyComputer";
 import RecycleBin from "../components/Apps/RecycleBin";
 import { useProcessContext } from "../contexts/ProcessContext";
-import { v4 as uuidv4 } from "uuid";
 
 const Desktop: React.FC = () => {
     const desktop = useRef<HTMLDivElement | null>(null);
     const [blocksHeight, setHeight] = useState(0);
-    const { processes, setProcesses } = useProcessContext();
+    const { processes, setProcesses, changePriority, addProcess } = useProcessContext();
 
     const updateHeight = () => {
         if (desktop.current) {
@@ -54,11 +53,7 @@ const Desktop: React.FC = () => {
             return row.map((icon, iconIndex) => {
                 if (i === rowIndex && j === iconIndex) {
                     if (icon.selected) {
-                        setProcesses([...processes, {
-                            ...icon,
-                            uuid: uuidv4(),
-                            priority: 0,
-                        }]);
+                        addProcess(icon);
                     }
                     return {
                         ...icon,

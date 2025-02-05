@@ -1,5 +1,5 @@
 import Desktop from "./Desktop";
-import WMenu from "./WMenu";
+import WMenu from "../components/WMenu";
 import WindowManager from "../components/WindowManager";
 
 const Windows: React.FC = () => {
