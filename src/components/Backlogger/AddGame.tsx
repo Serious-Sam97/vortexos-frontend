@@ -1,11 +1,37 @@
 import { useEffect, useState } from "react";
-import { Button, GroupBox, Select, TextInput } from "react95";
+import { Button, GroupBox, ProgressBar, Select, TextInput } from "react95";
 import axios from 'axios';
 
-const AddGame: React.FC = () => {
+interface AddGameProps {
+    saveAndGoBack: () => void,
+}
+
+const AddGame: React.FC<AddGameProps> = ({saveAndGoBack}) => {
     const [platforms, setPlatforms] = useState([]);
     const [selectedPlatform, setSelectedPlatform] = useState({});
     const [ game, setGame ] = useState('');
+    const [ percent, setPercent ] = useState(0);
+
+    useEffect(() => {
+        if (percent === 100) {
+            saveAndGoBack();
+        }
+    }, [percent])
+  
+    const startTimer = () => {
+        const timer = setInterval(() => {
+            setPercent(previousPercent => {
+              if (previousPercent === 100) {
+                return 0;
+              }
+              const diff = Math.random() * 50;
+              return Math.min(previousPercent + diff, 100);
+            });
+          }, 500);
+          return () => {
+            clearInterval(timer);
+          };
+    };
 
     useEffect(() => {
         axios.get('http://localhost:8080/platforms')
@@ -20,9 +46,11 @@ const AddGame: React.FC = () => {
     }, []);
 
     const saveGame = () => {
+        startTimer();
         axios.post('http://localhost:8080/games', {
-            
-        })
+            platform_id: selectedPlatform.id,
+            title: game
+        });
     };
 
     return (
@@ -44,7 +72,7 @@ const AddGame: React.FC = () => {
                     />
                 </div>
                 <div style={{marginTop: '5px'}}>
-                    <p>Name</p>
+                    <p>Title</p>
                     <TextInput
                         value={game}
                         placeholder='Type here...'
@@ -54,7 +82,11 @@ const AddGame: React.FC = () => {
                 </div>
             </GroupBox>
             <div style={{width: '100%', display: 'flex', justifyContent: 'center', marginTop: '15px'}}>
-                <Button style={{textAlign: 'center'}}>Save new game</Button>
+                {
+                    percent > 0 
+                        ? (<ProgressBar value={Math.floor(percent)} />)
+                        : (<Button onClick={() => saveGame()} style={{textAlign: 'center'}}>Save new game</Button>)
+                }
             </div>
         </>  
     );

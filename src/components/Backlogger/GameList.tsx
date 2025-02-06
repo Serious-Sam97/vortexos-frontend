@@ -3,11 +3,11 @@ import { Button, Table, TableBody, TableDataCell, TableHead, TableHeadCell, Tabl
 
 interface GameListProps {
     setAddGame: (value: boolean) => void;
+    games: any[];
 }
 
-const GameList: React.FC<GameListProps> = ({ setAddGame }) => {
-    const headers = ['Platform', 'Title', 'Completed', 'Started Date', 'Completed Date'];
-    const games: any[] = [];
+const GameList: React.FC<GameListProps> = ({ setAddGame, games }) => {
+    const headers = ['Platform', 'Title', 'Started Date', 'Completed', 'Completed Date'];
 
     return (
         <>
@@ -27,12 +27,12 @@ const GameList: React.FC<GameListProps> = ({ setAddGame }) => {
                         games.map((game, index) => (
                             <TableRow key={index}>
                                 <TableDataCell style={{ textAlign: 'center' }}>
-                                    { game.platform }
+                                    { game.platform.name }
                                 </TableDataCell>
-                                <TableDataCell>{game.title}</TableDataCell>
-                                <TableDataCell>{game.completed}</TableDataCell>
-                                <TableDataCell>{game.started_date}</TableDataCell>
-                                <TableDataCell>{game.completed_date}</TableDataCell>
+                                <TableDataCell style={{ textAlign: 'center' }}>{game.title}</TableDataCell>
+                                <TableDataCell style={{ textAlign: 'center' }}>{game.startedDate}</TableDataCell>
+                                <TableDataCell style={{ textAlign: 'center' }}>{game.completed}</TableDataCell>
+                                <TableDataCell style={{ textAlign: 'center' }}>{game.completedDate}</TableDataCell>
                             </TableRow>
                         ))
                     }
