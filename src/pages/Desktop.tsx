@@ -5,6 +5,8 @@ import DoomIcon from '/doom.png'
 import Doom from "../components/Apps/Doom";
 import MyComputer from "../components/Apps/MyComputer";
 import RecycleBin from "../components/Apps/RecycleBin";
+import Backlogger from "../components/Apps/Backlogger";
+import BackloggerIcon from '/backlogger.png';
 import { useProcessContext } from "../contexts/ProcessContext";
 
 const Desktop: React.FC = () => {
@@ -45,7 +47,16 @@ const Desktop: React.FC = () => {
                 component: Doom,
                 priority: 0,
             },
-        ]
+        ],
+        [
+            {
+                name: "Backlogger",
+                icon: BackloggerIcon,
+                selected: false,
+                component: Backlogger,
+                priority: 0,
+            },
+        ],
     ]);
 
     const selectIcon = (i: number, j: number) => {
