@@ -16,29 +16,14 @@ const WindowManager: React.FC = () => {
                         className='window'
                         style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: process.priority === 0 ? '9999' : '1' }}
                     >
-                        <WindowHeader className='window-title'>
+                        <WindowHeader className='window-title' style={{display: 'flex', justifyContent: 'space-between'}}>
                             <span>{process.name}</span>
-                            <Button onClick={() => closeProcess(process.uuid)}>
-                                <span className='close-icon' />
+                            <Button style={{alignSelf: 'center'}} onClick={() => closeProcess(process.uuid)}>
+                                {/* <span className='close-icon' /> */}
+                                <p style={{fontWeight: 'bold'}}>X</p>
                             </Button>
                         </WindowHeader>
-                        <Toolbar>
-                            <Button variant='menu' size='sm'>
-                                File
-                            </Button>
-                            <Button variant='menu' size='sm'>
-                                Edit
-                            </Button>
-                            <Button variant='menu' size='sm' disabled>
-                                Save
-                            </Button>
-                        </Toolbar>
-                        <WindowContent>
-                            {React.createElement(process.component, { propA: 'foo' })}
-                        </WindowContent>
-                        <Frame variant='well' className='footer'>
-                            TEST
-                        </Frame>
+                        {React.createElement(process.component, { propA: 'foo' })}
                     </Window>
                 ))
             }

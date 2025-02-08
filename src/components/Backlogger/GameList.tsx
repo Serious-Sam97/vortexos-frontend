@@ -49,7 +49,6 @@ const GameList: React.FC<GameListProps> = ({ setAddGame, games, fetchGames }) =>
 
     return (
         <>
-            <Button style={{marginBottom: '20px'}} onClick={() => setAddGame(true)}>New Game</Button>
             <Table style={{width: '50vw'}}>
                 <TableHead>
                     <TableRow>

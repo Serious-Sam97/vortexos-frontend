@@ -45,32 +45,32 @@ const WMenu: React.FC = () => {
                 </Button>
                 {open && (
                     <MenuList
-                    style={{
-                        position: 'absolute',
-                        left: '0',
-                        top: '-430%'
-                    }}
-                    onClick={() => setOpen(false)}
+                        style={{
+                            position: 'absolute',
+                            left: '0',
+                            top: '-430%'
+                        }}
+                        onClick={() => setOpen(false)}
                     >
-                    <MenuListItem>
-                        <span role='img' aria-label='👨‍💻'>
-                        👨‍💻
-                        </span>
-                        Profile
-                    </MenuListItem>
-                    <MenuListItem>
-                        <span role='img' aria-label='📁'>
-                        📁
-                        </span>
-                        My account
-                    </MenuListItem>
-                    <Separator />
-                    <MenuListItem disabled>
-                        <span role='img' aria-label='🔙'>
-                        🔙
-                        </span>
-                        Logout
-                    </MenuListItem>
+                        <MenuListItem>
+                            <span role='img' aria-label='👨‍💻'>
+                            👨‍💻
+                            </span>
+                            Profile
+                        </MenuListItem>
+                        <MenuListItem>
+                            <span role='img' aria-label='📁'>
+                            📁
+                            </span>
+                            My account
+                        </MenuListItem>
+                        <Separator />
+                        <MenuListItem disabled>
+                            <span role='img' aria-label='🔙'>
+                            🔙
+                            </span>
+                            Logout
+                        </MenuListItem>
                     </MenuList>
                 )}
                 </div>

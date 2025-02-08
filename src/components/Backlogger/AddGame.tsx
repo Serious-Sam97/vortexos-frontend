@@ -88,7 +88,6 @@ const AddGame: React.FC<AddGameProps> = ({saveAndGoBack, goBack}) => {
                         ? (<ProgressBar value={Math.floor(percent)} />)
                         : (
                             <>
-                                <Button onClick={() => goBack()} style={{textAlign: 'center', marginRight: '5px'}}>Back</Button>
                                 <Button onClick={() => saveGame()} style={{textAlign: 'center'}}>Save new game</Button>
                             </>
                         )
