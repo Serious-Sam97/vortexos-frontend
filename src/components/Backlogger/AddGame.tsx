@@ -4,9 +4,10 @@ import axios from 'axios';
 
 interface AddGameProps {
     saveAndGoBack: () => void,
+    goBack: () => void,
 }
 
-const AddGame: React.FC<AddGameProps> = ({saveAndGoBack}) => {
+const AddGame: React.FC<AddGameProps> = ({saveAndGoBack, goBack}) => {
     const [platforms, setPlatforms] = useState([]);
     const [selectedPlatform, setSelectedPlatform] = useState({});
     const [ game, setGame ] = useState('');
@@ -85,7 +86,12 @@ const AddGame: React.FC<AddGameProps> = ({saveAndGoBack}) => {
                 {
                     percent > 0 
                         ? (<ProgressBar value={Math.floor(percent)} />)
-                        : (<Button onClick={() => saveGame()} style={{textAlign: 'center'}}>Save new game</Button>)
+                        : (
+                            <>
+                                <Button onClick={() => goBack()} style={{textAlign: 'center', marginRight: '5px'}}>Back</Button>
+                                <Button onClick={() => saveGame()} style={{textAlign: 'center'}}>Save new game</Button>
+                            </>
+                        )
                 }
             </div>
         </>  

@@ -25,8 +25,8 @@ const Backlogger: React.FC = () => {
         <>
             {
                 addGame
-                    ? (<AddGame saveAndGoBack={saveAndGoBack}/>)
-                    : (<GameList games={games} setAddGame={setAddGame}/>)
+                    ? (<AddGame goBack={() => setAddGame(false)} saveAndGoBack={saveAndGoBack}/>)
+                    : (<GameList fetchGames={fetchGames} games={games} setAddGame={setAddGame}/>)
             }
         </>
     )
