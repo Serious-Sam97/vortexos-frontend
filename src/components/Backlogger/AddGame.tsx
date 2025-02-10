@@ -84,7 +84,7 @@ const AddGame: React.FC<AddGameProps> = ({saveAndGoBack, goBack}) => {
             </GroupBox>
             <div style={{width: '100%', display: 'flex', justifyContent: 'center', marginTop: '15px'}}>
                 {
-                    percent > 0 
+                    percent > 0
                         ? (<ProgressBar value={Math.floor(percent)} />)
                         : (
                             <>

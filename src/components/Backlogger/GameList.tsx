@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Button, ProgressBar, Table, TableBody, TableDataCell, TableHead, TableHeadCell, TableRow } from "react95";
+import { ProgressBar, Table, TableBody, TableDataCell, TableHead, TableHeadCell, TableRow } from "react95";
 import Error from '/error.png';
+import Trust from '/trust.png';
 import axios from 'axios';
 
 interface GameListProps {
@@ -41,6 +42,16 @@ const GameList: React.FC<GameListProps> = ({ setAddGame, games, fetchGames }) =>
             .then(() => fetchGames());
     }
 
+    const completeGame = (game) => {
+        setLoading(true);
+        axios.post(`http://localhost:8080/games/${game.id}`, {
+            ...game,
+            completed: true,
+            completedDate: new Date().toLocaleString(),
+        })
+            .then(() => fetchGames());
+    }
+
     if (loading) {
         return (
             <ProgressBar value={Math.floor(percent)} />
@@ -72,6 +83,11 @@ const GameList: React.FC<GameListProps> = ({ setAddGame, games, fetchGames }) =>
                                 <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.completed}</TableDataCell>
                                 <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.completedDate}</TableDataCell>
                                 <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                                    <img
+                                        onClick={() => completeGame(game)}
+                                        src={Trust}
+                                        style={{ height: '25px', cursor: 'pointer', marginTop: '10px', marginRight: '20px'}}
+                                    />
                                     <img
                                         onClick={() => deleteGame(game)}
                                         src={Error}

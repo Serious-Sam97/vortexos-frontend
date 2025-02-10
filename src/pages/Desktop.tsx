@@ -7,6 +7,8 @@ import MyComputer from "../components/Apps/MyComputer";
 import RecycleBin from "../components/Apps/RecycleBin";
 import Backlogger from "../components/Apps/Backlogger";
 import BackloggerIcon from '/backlogger.png';
+import TaskManager from "../components/Apps/TaskManager";
+import TaskManagerIcon from '/task_manager.png';
 import { useProcessContext } from "../contexts/ProcessContext";
 
 const Desktop: React.FC = () => {
@@ -36,6 +38,15 @@ const Desktop: React.FC = () => {
                 icon: MyComputerIcon,
                 selected: false,
                 component: MyComputer,
+                priority: 0,
+            },
+        ],
+        [
+            {
+                name: "Task Manager",
+                icon: TaskManagerIcon,
+                selected: false,
+                component: TaskManager,
                 priority: 0,
             },
         ],
@@ -112,9 +123,9 @@ const Desktop: React.FC = () => {
                                         (icons[i] && icons[i][j]) && (
                                             <div onClick={() => selectIcon(i, j)} style={{cursor: "pointer"}}>
                                                 <img
-                                                src={icons[i][j].icon}
-                                                alt={icons[i][j].name}
-                                                style={{ height: '70px', filter: icons[i][j].selected ? 'sepia(100%) saturate(500%) hue-rotate(220deg) brightness(60%)' : 'none',}}
+                                                    src={icons[i][j].icon}
+                                                    alt={icons[i][j].name}
+                                                    style={{ height: '70px', filter: icons[i][j].selected ? 'sepia(100%) saturate(500%) hue-rotate(220deg) brightness(60%)' : 'none',}}
                                                 />
                                                 <p style={{color: 'white', textAlign: 'center', backgroundColor: icons[i][j].selected ? '#000080' : 'transparent'}}>{icons[i][j].name}</p>
                                             </div>

@@ -19,7 +19,6 @@ const WindowManager: React.FC = () => {
                         <WindowHeader className='window-title' style={{display: 'flex', justifyContent: 'space-between'}}>
                             <span>{process.name}</span>
                             <Button style={{alignSelf: 'center'}} onClick={() => closeProcess(process.uuid)}>
-                                {/* <span className='close-icon' /> */}
                                 <p style={{fontWeight: 'bold'}}>X</p>
                             </Button>
                         </WindowHeader>

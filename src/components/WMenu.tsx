@@ -78,8 +78,12 @@ const WMenu: React.FC = () => {
                     {
                         processes.map(process => 
                             (
-                                <TaskbarButton style={process.priority === 0 ? {borderTopColor: '#808080', borderLeftColor: '#808080', borderRightColor: '#fff', borderBottomColor: '#fff'} : {}}>
-                                    <p style={{textAlign: 'center'}} onClick={() => changePriority(process, 0)}>{process.name}</p>
+                                <TaskbarButton style={process.priority === 0 ? {borderTopColor: '#808080', borderLeftColor: '#808080', borderRightColor: '#fff', borderBottomColor: '#fff', cursor: 'pointer', display: 'flex', justifyContent: 'center'} : {cursor: 'pointer', display: 'flex', justifyContent: 'center'}}>
+                                    <img
+                                        src={process.icon}
+                                        style={{ height: '25px', alignSelf: 'center', marginRight: '5px'}}
+                                    />
+                                    <p style={{textAlign: 'center', alignSelf: 'center'}} onClick={() => changePriority(process, 0)}>{process.name}</p>
                                 </TaskbarButton>
                             )
                         )

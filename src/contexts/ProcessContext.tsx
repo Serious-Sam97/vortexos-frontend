@@ -16,24 +16,25 @@ const ProcessContext = createContext<ProcessContextType | null>(null);
 
 export function ProcessContextProvider({children}: {children: ReactNode}) {
     const [processes, setProcesses] = useState<any[]>([]);
-    const [ ordenatedProcess, setOrdenatedProcess ] = React.useState<any[]>([]);
+    const [ ordenatedProcess, setOrdenatedProcess ] = React.useState<any[]>([]); 
 
     useEffect(() => {
         setOrdenatedProcess([...processes].sort((a, b) => a.priority > b.priority));
     }, [processes]);
 
-    const changePriority = (process,  priority) => {
-        console.log(ordenatedProcess);
+
+    const changePriority = (process,  priorityProp) => {
+        let priority = 0;
         setProcesses(processes.map(p => {
             if (p.uuid === process.uuid) {
                 return {
                     ...p,
-                    priority,
+                    priority: priorityProp,
                 };
             }
             return {
                 ...p,
-                priority: priority + 1,
+                priority: ++priority,
             };
         }));
     };

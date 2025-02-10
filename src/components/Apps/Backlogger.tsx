@@ -44,16 +44,16 @@ const Backlogger: React.FC = () => {
                                 zIndex: '99999'
                             }}
                         >
-                            <MenuListItem style={{cursor: 'pointer'}} onClick={() => fileOptions(false)}>
-                                <p>Game List</p>
-                            </MenuListItem>
                             <MenuListItem style={{cursor: 'pointer'}} onClick={() => fileOptions(true)}>
                                 New Game
+                            </MenuListItem>
+                            <MenuListItem style={{cursor: 'pointer'}} onClick={() => fileOptions(false)}>
+                                <p>Game List</p>
                             </MenuListItem>
                         </MenuList>
                     )
                 }
-                <Button variant='menu' size='sm' disabled>
+                <Button variant='menu' size='sm' onClick={() => setIsFileOpen(false)}>
                     Edit
                 </Button>
                 <Button variant='menu' size='sm' disabled>
@@ -62,13 +62,13 @@ const Backlogger: React.FC = () => {
             </Toolbar>
             <WindowContent>
                 {
-                    addGame
+                    addGame || !games.length
                         ? (<AddGame goBack={() => setAddGame(false)} saveAndGoBack={saveAndGoBack}/>)
                         : (<GameList fetchGames={fetchGames} games={games} setAddGame={setAddGame}/>)
                 }
             </WindowContent>
             <Frame variant='well' className='footer'>
-                {addGame ? 'Add new Game to your Backlog' : 'Game list'}
+                {addGame || !games.length ? 'Add new Game to your Backlog' : 'Game list'}
             </Frame>
         </>
     )
