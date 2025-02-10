@@ -121,12 +121,14 @@ const Desktop: React.FC = () => {
                                 <div onClick={() => checkIfItsEmpty(i, j)} key={j} style={{width: "10.2857%", display: "flex", justifyContent: "center", alignItems: "center"}}>
                                     {
                                         (icons[i] && icons[i][j]) && (
-                                            <div onClick={() => selectIcon(i, j)} style={{cursor: "pointer"}}>
-                                                <img
-                                                    src={icons[i][j].icon}
-                                                    alt={icons[i][j].name}
-                                                    style={{ height: '70px', filter: icons[i][j].selected ? 'sepia(100%) saturate(500%) hue-rotate(220deg) brightness(60%)' : 'none',}}
-                                                />
+                                            <div onClick={() => selectIcon(i, j)} style={{cursor: "pointer", display: "flex", justifyContent: "center", flexDirection: 'column'}}>
+                                                <div style={{display: 'flex', justifyContent: 'center'}}>
+                                                    <img
+                                                        src={icons[i][j].icon}
+                                                        alt={icons[i][j].name}
+                                                        style={{ height: '70px', filter: icons[i][j].selected ? 'sepia(100%) saturate(500%) hue-rotate(220deg) brightness(60%)' : 'none',}}
+                                                    />
+                                                </div>
                                                 <p style={{color: 'white', textAlign: 'center', backgroundColor: icons[i][j].selected ? '#000080' : 'transparent'}}>{icons[i][j].name}</p>
                                             </div>
                                         )
