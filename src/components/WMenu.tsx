@@ -4,13 +4,15 @@ import { useState } from 'react';
 import w95 from '/w95.png';
 import styled from "styled-components";
 import { useProcessContext } from '../contexts/ProcessContext';
+import TaskManager from "../components/Apps/TaskManager";
+import TaskManagerIcon from '/task_manager.png';
 
 const WMenu: React.FC = () => {
     const [open, setOpen] = useState(false);
     const StyledAppBar = styled(AppBar)`
         top: 94% !important;
     `;
-    const { ordenatedProcess, changePriority, processes } = useProcessContext();
+    const { changePriority, processes, addProcess } = useProcessContext();
 
     const TaskbarButton = styled.div`
         width: 20%;
@@ -26,6 +28,16 @@ const WMenu: React.FC = () => {
         border-right-color: #808080;
         border-bottom-color: #808080;
     `;
+
+    const [ icons, setIcons ] = useState([
+        {
+            name: "Task Manager",
+            icon: TaskManagerIcon,
+            selected: false,
+            component: TaskManager,
+            priority: 0,
+        },
+    ]);
 
     return (
         <StyledAppBar>
@@ -48,10 +60,18 @@ const WMenu: React.FC = () => {
                         style={{
                             position: 'absolute',
                             left: '0',
-                            top: '-430%'
+                            top: '-550%'
                         }}
                         onClick={() => setOpen(false)}
                     >
+                        {
+                            icons.map(icon => (
+                                <MenuListItem style={{cursor: 'pointer'}} onClick={() => addProcess(icon)}>
+                                    <img src={icon.icon} style={{width: '20px', marginRight: '5px'}}/>
+                                    <p>{icon.name}</p>
+                                </MenuListItem>
+                            ))
+                        }
                         <MenuListItem>
                             <span role='img' aria-label='👨‍💻'>
                             👨‍💻
