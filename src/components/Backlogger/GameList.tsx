@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ProgressBar, Table, TableBody, TableDataCell, TableHead, TableHeadCell, TableRow } from "react95";
+import { ProgressBar, Table, TableBody, TableDataCell, TableHead, TableHeadCell, TableRow, TextInput } from "react95";
 import Error from '/error.png';
 import Trust from '/trust.png';
 import axios from 'axios';
@@ -7,10 +7,11 @@ import axios from 'axios';
 interface GameListProps {
     setAddGame: (value: boolean) => void;
     games: any[];
+    setGames: (values: any) => void;
     fetchGames: () => void;
 }
 
-const GameList: React.FC<GameListProps> = ({ setAddGame, games, fetchGames }) => {
+const GameList: React.FC<GameListProps> = ({ setAddGame, games, fetchGames, setGames }) => {
     const headers = ['Platform', 'Title', 'Started Date', 'Notes','Completed', 'Completed Date', ''];
     const [ percent, setPercent ] = useState(0);
     const [ loading, setLoading ] = useState(true);
@@ -35,6 +36,18 @@ const GameList: React.FC<GameListProps> = ({ setAddGame, games, fetchGames }) =>
           };
     };
 
+    const onChangeNotes = (event: React.ChangeEvent<HTMLTextAreaElement>, index: number) => {
+        setGames(games.map((game, gameIndex) => {
+            if (gameIndex === index) {
+                return {
+                    ...game,
+                    notes: event.target.value
+                }
+            }
+            return game;
+        }))
+    }
+
 
     const deleteGame = (game) => {
         setLoading(true);
@@ -44,12 +57,14 @@ const GameList: React.FC<GameListProps> = ({ setAddGame, games, fetchGames }) =>
 
     const completeGame = (game) => {
         setLoading(true);
-        axios.post(`http://localhost:8080/games/${game.id}`, {
-            ...game,
-            completed: true,
-            completedDate: new Date().toLocaleString(),
-        })
+        axios.post(`http://localhost:8080/games/${game.id}/complete`)
             .then(() => fetchGames());
+    }
+
+    const updateNotes = (event: React.ChangeEvent<HTMLTextAreaElement>, game) => {
+        axios.put(`http://localhost:8080/games/${game.id}`, {
+            notes: event.target.value
+        });
     }
 
     if (loading) {
@@ -59,8 +74,8 @@ const GameList: React.FC<GameListProps> = ({ setAddGame, games, fetchGames }) =>
     }
 
     return (
-        <>
-            <Table style={{width: '50vw'}}>
+        <div style={{maxHeight: '50vh', overflowY: 'auto', }}>
+            <Table>
                 <TableHead>
                     <TableRow>
                         {
@@ -79,27 +94,40 @@ const GameList: React.FC<GameListProps> = ({ setAddGame, games, fetchGames }) =>
                                 </TableDataCell>
                                 <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.title}</TableDataCell>
                                 <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.startedDate}</TableDataCell>
-                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.notes}</TableDataCell>
-                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.completed}</TableDataCell>
-                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.completedDate}</TableDataCell>
                                 <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                                    <img
-                                        onClick={() => completeGame(game)}
-                                        src={Trust}
-                                        style={{ height: '25px', cursor: 'pointer', marginTop: '10px', marginRight: '20px'}}
-                                    />
-                                    <img
-                                        onClick={() => deleteGame(game)}
-                                        src={Error}
-                                        style={{ height: '25px', cursor: 'pointer', marginTop: '10px'}}
-                                    />
+                                    { game.completed ?
+                                        (
+                                            <TextInput style={{minWidth: '20vw'}} onChange={(event) => onChangeNotes(event, index)} value={game.notes} onBlur={(event) => updateNotes(event, game)} multiline rows={4} fullWidth />
+                                        )
+                                        : game.notes
+                                    }
+                                </TableDataCell>
+                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.completed ? 'Yes!' : 'No'}</TableDataCell>
+                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.completedDate}</TableDataCell>
+                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle'}}>
+                                    {
+                                        !game.completed && (
+                                            <div style={{width: '70px' }}>
+                                                <img
+                                                    onClick={() => completeGame(game)}
+                                                    src={Trust}
+                                                    style={{ height: '25px', cursor: 'pointer', marginTop: '10px', marginRight: '20px'}}
+                                                />
+                                                <img
+                                                    onClick={() => deleteGame(game)}
+                                                    src={Error}
+                                                    style={{ height: '25px', cursor: 'pointer', marginTop: '10px'}}
+                                                />
+                                            </div>
+                                        )
+                                    }
                                 </TableDataCell>
                             </TableRow>
                         ))
                     }
                 </TableBody>
             </Table>
-        </>
+        </div>
     );
 };
 

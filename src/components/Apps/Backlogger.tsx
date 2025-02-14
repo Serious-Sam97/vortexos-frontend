@@ -14,6 +14,7 @@ const Backlogger: React.FC = () => {
     }, []);
 
     const fetchGames = () => {
+        setGames([]);
         axios.get('http://localhost:8080/games')
             .then(data => setGames(data.data));
     }
@@ -64,7 +65,7 @@ const Backlogger: React.FC = () => {
                 {
                     addGame || !games.length
                         ? (<AddGame goBack={() => setAddGame(false)} saveAndGoBack={saveAndGoBack}/>)
-                        : (<GameList fetchGames={fetchGames} games={games} setAddGame={setAddGame}/>)
+                        : (<GameList setGames={setGames} fetchGames={fetchGames} games={games} setAddGame={setAddGame}/>)
                 }
             </WindowContent>
             <Frame variant='well' className='footer'>

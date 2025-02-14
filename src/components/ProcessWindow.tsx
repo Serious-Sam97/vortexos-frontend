@@ -55,7 +55,7 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({process}) => {
             onClick={() => changePriority(process, 0)}
             key={processes.uuid} resizable
             className='window'
-            style={{ position: 'absolute', top: `${properties.y}px`, left: `${properties.x}px`, transform: 'translate(-50%, -50%)', zIndex: process.priority === 0 ? '9999' : process.priority + 1 }}
+            style={{ position: 'absolute', top: `${properties.y}px`, left: `${properties.x}px`, transform: 'translate(-50%, -50%)', zIndex: process.priority === 0 ? '9999' : process.priority + 1, userSelect: 'none' }}
         >
             <WindowHeader onMouseDown={handleMouseDown} className='window-title' style={{display: 'flex', justifyContent: 'space-between', backgroundColor: process.priority !== 0 ? 'grey' : ''}}>
                 <div style={{display: 'flex'}}>
