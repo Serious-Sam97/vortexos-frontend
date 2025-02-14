@@ -14,7 +14,7 @@ import { useProcessContext } from "../contexts/ProcessContext";
 const Desktop: React.FC = () => {
     const desktop = useRef<HTMLDivElement | null>(null);
     const [blocksHeight, setHeight] = useState(0);
-    const { processes, setProcesses, changePriority, addProcess } = useProcessContext();
+    const { addProcess } = useProcessContext();
 
     const updateHeight = () => {
         if (desktop.current) {

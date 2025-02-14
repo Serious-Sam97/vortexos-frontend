@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Button, Frame, Toolbar, WindowContent } from 'react95';
 
 const RecycleBin: React.FC = () => {

@@ -3,15 +3,15 @@ import { ProgressBar, Table, TableBody, TableDataCell, TableHead, TableHeadCell,
 import Error from '/error.png';
 import Trust from '/trust.png';
 import axios from 'axios';
+import { Game } from '../../interfaces/Game';
 
 interface GameListProps {
-    setAddGame: (value: boolean) => void;
-    games: any[];
-    setGames: (values: any) => void;
+    games: Game[];
+    setGames: (values: Game[]) => void;
     fetchGames: () => void;
 }
 
-const GameList: React.FC<GameListProps> = ({ setAddGame, games, fetchGames, setGames }) => {
+const GameList: React.FC<GameListProps> = ({ games, fetchGames, setGames }) => {
     const headers = ['Platform', 'Title', 'Started Date', 'Notes','Completed', 'Completed Date', ''];
     const [ percent, setPercent ] = useState(0);
     const [ loading, setLoading ] = useState(true);
@@ -45,23 +45,23 @@ const GameList: React.FC<GameListProps> = ({ setAddGame, games, fetchGames, setG
                 }
             }
             return game;
-        }))
+        }));
     }
 
 
-    const deleteGame = (game) => {
+    const deleteGame = (game: Game) => {
         setLoading(true);
         axios.delete(`http://localhost:8080/games/${game.id}`)
             .then(() => fetchGames());
     }
 
-    const completeGame = (game) => {
+    const completeGame = (game: Game) => {
         setLoading(true);
         axios.post(`http://localhost:8080/games/${game.id}/complete`)
             .then(() => fetchGames());
     }
 
-    const updateNotes = (event: React.ChangeEvent<HTMLTextAreaElement>, game) => {
+    const updateNotes = (event: React.ChangeEvent<HTMLTextAreaElement>, game: Game) => {
         axios.put(`http://localhost:8080/games/${game.id}`, {
             notes: event.target.value
         });
@@ -97,7 +97,7 @@ const GameList: React.FC<GameListProps> = ({ setAddGame, games, fetchGames, setG
                                 <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>
                                     { game.completed ?
                                         (
-                                            <TextInput style={{minWidth: '20vw'}} onChange={(event) => onChangeNotes(event, index)} value={game.notes} onBlur={(event) => updateNotes(event, game)} multiline rows={4} fullWidth />
+                                            <TextInput style={{minWidth: '20vw'}} onChange={(event) => onChangeNotes(event, index)} value={game.notes || ''} onBlur={(event) => updateNotes(event, game)} multiline rows={4} fullWidth />
                                         )
                                         : game.notes
                                     }

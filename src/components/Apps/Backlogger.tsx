@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import GameList from "../Backlogger/GameList";
 import AddGame from "../Backlogger/AddGame";
 import axios from 'axios';
-import { Button, Frame, MenuList, MenuListItem, Separator, Toolbar, WindowContent } from "react95";
+import { Button, Frame, MenuList, MenuListItem, Toolbar, WindowContent } from "react95";
+import { Game } from "../../interfaces/Game";
 
 const Backlogger: React.FC = () => {
     const [addGame, setAddGame] = useState(false);
-    const [ games, setGames ] = useState([]);
+    const [ games, setGames ] = useState<Game[]>([]);
     const [ isFileOpen, setIsFileOpen ] = useState(false);
 
     useEffect(() => {
@@ -19,7 +20,7 @@ const Backlogger: React.FC = () => {
             .then(data => setGames(data.data));
     }
 
-    const fileOptions = (addGame) => {
+    const fileOptions = (addGame: boolean) => {
         setAddGame(addGame);
         setIsFileOpen(false);
     }
@@ -64,7 +65,7 @@ const Backlogger: React.FC = () => {
             <WindowContent>
                 {
                     addGame || !games.length
-                        ? (<AddGame goBack={() => setAddGame(false)} saveAndGoBack={saveAndGoBack}/>)
+                        ? (<AddGame saveAndGoBack={saveAndGoBack}/>)
                         : (<GameList setGames={setGames} fetchGames={fetchGames} games={games} setAddGame={setAddGame}/>)
                 }
             </WindowContent>

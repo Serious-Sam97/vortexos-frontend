@@ -1,7 +1,7 @@
 import React from 'react';
 import bgImage from '/clouds.jpg';
 import w95 from '/w95.png';
-import { MenuList, MenuListItem, Separator, styleReset, Button } from 'react95';
+import { Button } from 'react95';
 import styled from 'styled-components';
 import { Link } from 'react-router';
 

@@ -1,6 +1,5 @@
 interface IconProps {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    icon: any;
+    icon: string;
     name: string;
     selected: boolean;
     selectIcon: () => void;

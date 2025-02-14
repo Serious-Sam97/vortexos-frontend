@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { Button, GroupBox, ProgressBar, Select, TextInput } from "react95";
 import axios from 'axios';
+import { Platform } from "../../interfaces/Platform";
 
 interface AddGameProps {
     saveAndGoBack: () => void,
-    goBack: () => void,
 }
 
-const AddGame: React.FC<AddGameProps> = ({saveAndGoBack, goBack}) => {
+const AddGame: React.FC<AddGameProps> = ({saveAndGoBack}) => {
     const [platforms, setPlatforms] = useState([]);
     const [selectedPlatform, setSelectedPlatform] = useState({});
     const [ game, setGame ] = useState('');
@@ -37,7 +37,7 @@ const AddGame: React.FC<AddGameProps> = ({saveAndGoBack, goBack}) => {
     useEffect(() => {
         axios.get('http://localhost:8080/platforms')
             .then(data => {
-                setPlatforms(data.data.map(plat => {
+                setPlatforms(data.data.map((plat: Platform) => {
                     return {
                         ...plat,
                         label: plat.name,

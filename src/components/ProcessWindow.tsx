@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useProcessContext } from "../contexts/ProcessContext";
 import { Button, Window, WindowHeader } from "react95";
+import { Process } from "../interfaces/Process";
 
 interface ProcessWindowProp {
-    process: any
+    process: Process
 }
 
 const ProcessWindow: React.FC<ProcessWindowProp> = ({process}) => {
@@ -27,7 +28,7 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({process}) => {
         }
     }, [dragging]);
 
-    const handleMouseDown = (event) => {
+    const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
         setDragging(true);
 
         offset.current = {
@@ -36,8 +37,8 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({process}) => {
         };
     };
 
-    const handleMouseMove = (event) => {
-        if (! dragging) {
+    const handleMouseMove = (event: MouseEvent) => {
+        if (!dragging) {
             return;
         }
 
@@ -45,11 +46,8 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({process}) => {
             x: event.clientX - offset.current.x,
             y: event.clientY - offset.current.y,
         });
-    }
-
-    
+    };
    
-
     return (
         <Window
             onClick={() => changePriority(process, 0)}
@@ -66,7 +64,7 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({process}) => {
                     <p style={{fontWeight: 'bold'}}>X</p>
                 </Button>
             </WindowHeader>
-            {React.createElement(process.component, { propA: 'foo' })}
+            {React.createElement(process.component)}
         </Window>
     );
 };

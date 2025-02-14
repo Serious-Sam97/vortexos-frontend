@@ -1,4 +1,4 @@
-import { Button, Frame, Toolbar, Window, WindowContent, WindowHeader } from "react95";
+import { Button, Frame, Toolbar, WindowContent } from "react95";
 
 const Doom: React.FC = () => {
 

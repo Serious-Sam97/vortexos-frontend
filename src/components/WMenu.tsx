@@ -6,6 +6,7 @@ import styled from "styled-components";
 import { useProcessContext } from '../contexts/ProcessContext';
 import TaskManager from "../components/Apps/TaskManager";
 import TaskManagerIcon from '/task_manager.png';
+import { Process } from '../interfaces/Process';
 
 const WMenu: React.FC = () => {
     const [open, setOpen] = useState(false);
@@ -29,7 +30,7 @@ const WMenu: React.FC = () => {
         border-bottom-color: #808080;
     `;
 
-    const [ icons, setIcons ] = useState([
+    const [ icons ] = useState([
         {
             name: "Task Manager",
             icon: TaskManagerIcon,
@@ -96,7 +97,7 @@ const WMenu: React.FC = () => {
                 </div>
                 <div style={{width: '100%', display: 'flex'}}>
                     {
-                        processes.map(process => 
+                        processes.map((process: Process) => 
                             (
                                 <TaskbarButton style={process.priority === 0 ? {borderTopColor: '#808080', borderLeftColor: '#808080', borderRightColor: '#fff', borderBottomColor: '#fff', cursor: 'pointer', display: 'flex', justifyContent: 'center'} : {cursor: 'pointer', display: 'flex', justifyContent: 'center'}} onClick={() => changePriority(process, 0)}>
                                     <img
