@@ -34,7 +34,7 @@ const Intro: React.FC = () => {
             <div>
                 <img src={w95} width={200} className="logo" />
             </div>
-            <h1>GameCache</h1>
+            <h1>VortexOS</h1>
             <div className="card">
                 <Link to="/windows"><Button primary>Are you ready?</Button></Link>
             </div>

@@ -1,29 +1,22 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { ReactNode } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { IProcessContext } from "../interfaces/IProcessContext";
+import { Process } from "../interfaces/Process";
 
-interface ProcessContextType {
-    processes: any[];
-    setProcesses: React.Dispatch<React.SetStateAction<any[]>>;
-    changePriority: (process: any, priority: any) => void;
-    closeProcess: (uuid: string) => void;
-    ordenatedProcess: any[];
-    addProcess: (tempProcess: any) => void;
-}
 
-const ProcessContext = createContext<ProcessContextType | null>(null);
+const ProcessContext = createContext<IProcessContext | null>(null);
 
 export function ProcessContextProvider({children}: {children: ReactNode}) {
-    const [processes, setProcesses] = useState<any[]>([]);
-    const [ ordenatedProcess, setOrdenatedProcess ] = React.useState<any[]>([]); 
+    const [processes, setProcesses] = useState<Process[]>([]);
+    const [ ordenatedProcess, setOrdenatedProcess ] = React.useState<Process[]>([]); 
 
     useEffect(() => {
-        setOrdenatedProcess([...processes].sort((a, b) => a.priority > b.priority));
+        setOrdenatedProcess([...processes].sort((a: Process, b: Process) => a.priority - b.priority));
     }, [processes]);
 
 
-    const changePriority = (process,  priorityProp) => {
+    const changePriority = (process: Process,  priorityProp: number) => {
         let priority = 0;
         setProcesses(processes.map(p => {
             if (p.uuid === process.uuid) {
@@ -39,7 +32,7 @@ export function ProcessContextProvider({children}: {children: ReactNode}) {
         }));
     };
 
-    const addProcess = (tempProcess) => {
+    const addProcess = (tempProcess: Process) => {
         const process = {
             ...tempProcess,
             uuid: uuidv4(),
@@ -68,5 +61,9 @@ export function ProcessContextProvider({children}: {children: ReactNode}) {
 }
 
 export function useProcessContext() {
+    if (!ProcessContext) {
+        throw new Error("useProcessContext must be used within a ProcessContextProvider");
+    }
+
     return useContext(ProcessContext);
 }
