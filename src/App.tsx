@@ -5,7 +5,7 @@ import ms_sans_serif from 'react95/dist/fonts/ms_sans_serif.woff2';
 import ms_sans_serif_bold from 'react95/dist/fonts/ms_sans_serif_bold.woff2';
 import { BrowserRouter, Routes, Route } from "react-router";
 import Intro from './pages/Intro';
-import Windows from './pages/Windows';
+import Windows from './pages/Vortex';
 import { ProcessContextProvider } from './contexts/ProcessContext';
 
 const GlobalStyles = createGlobalStyle`
@@ -52,7 +52,7 @@ const App = () => (
         <ProcessContextProvider>
           <Routes>
             <Route path="/" element={<Intro />} />
-            <Route path="/windows" element={<Windows />} />
+            <Route path="/vortex" element={<Windows />} />
           </Routes>
         </ProcessContextProvider>
       </ThemeProvider>

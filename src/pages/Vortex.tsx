@@ -2,7 +2,7 @@ import Desktop from "./Desktop";
 import WMenu from "../components/WMenu";
 import WindowManager from "../components/WindowManager";
 
-const Windows: React.FC = () => {
+const Vortex: React.FC = () => {
     return (
         <div>
             <Desktop/>
@@ -12,4 +12,4 @@ const Windows: React.FC = () => {
     );
 }
 
-export default Windows;
+export default Vortex;
