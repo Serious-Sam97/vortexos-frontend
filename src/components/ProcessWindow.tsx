@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useProcessContext } from "../contexts/ProcessContext";
 import { Button, Window, WindowHeader } from "react95";
 import { Process } from "../interfaces/Process";
+import { useOSContext } from "../contexts/OSContext";
 
 interface ProcessWindowProp {
     process: Process
@@ -9,15 +10,18 @@ interface ProcessWindowProp {
 
 const ProcessWindow: React.FC<ProcessWindowProp> = ({process}) => {
     const { processes, changePriority, closeProcess, handleProceessLocationChange } = useProcessContext();
+    const { changeCursor } = useOSContext();
     const [ properties, setProperties ] = useState({x: process.location.x, y: process.location.y});
     const offset = useRef({x: 0, y: 0});
     const [ dragging, setDragging ] = useState(false);
 
     useEffect(() => {
         if (dragging) {
+            changeCursor('Grabbing.cur');
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
         } else {
+            changeCursor('arrow.cur');
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
         }

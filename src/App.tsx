@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router";
 import Intro from './pages/Intro';
 import Windows from './pages/Vortex';
 import { ProcessContextProvider } from './contexts/ProcessContext';
+import { OSContextProvider } from './contexts/OSContext';
 
 const GlobalStyles = createGlobalStyle`
   ${styleReset}
@@ -41,20 +42,18 @@ const GlobalStyles = createGlobalStyle`
   }
 `;
 
-
-
-
-
 const App = () => (
   <BrowserRouter>
       <GlobalStyles />
       <ThemeProvider theme={original}>
-        <ProcessContextProvider>
-          <Routes>
-            <Route path="/" element={<Intro />} />
-            <Route path="/vortex" element={<Windows />} />
-          </Routes>
-        </ProcessContextProvider>
+        <OSContextProvider>
+          <ProcessContextProvider>
+            <Routes>
+              <Route path="/" element={<Intro />} />
+              <Route path="/vortex" element={<Windows />} />
+            </Routes>
+          </ProcessContextProvider>
+        </OSContextProvider>
       </ThemeProvider>
     </BrowserRouter>
 );
