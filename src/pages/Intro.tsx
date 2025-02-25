@@ -36,7 +36,7 @@ const Intro: React.FC = () => {
             </div>
             <h1>VortexOS</h1>
             <div className="card">
-                <Link to="/windows"><Button primary>Are you ready?</Button></Link>
+                <Link to="/vortex"><Button primary>Are you ready?</Button></Link>
             </div>
             <p className="read-the-docs">
                 By Serious Sam

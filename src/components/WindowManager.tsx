@@ -10,9 +10,9 @@ const WindowManager: React.FC = () => {
     return (
         <>
             {
-                processes.map((process: Process) => (
-                    <ProcessWindow process={process} />
-                ))
+            processes.map((process: Process) => (
+                <ProcessWindow key={process.uuid} process={process} />
+            ))
             }
         </>
     );

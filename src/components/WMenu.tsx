@@ -35,6 +35,7 @@ const WMenu: React.FC = () => {
             name: "Task Manager",
             icon: TaskManagerIcon,
             selected: false,
+            componentName: 'task_manager',
             component: TaskManager,
             priority: 0,
         },
