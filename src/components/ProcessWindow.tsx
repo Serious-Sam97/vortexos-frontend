@@ -8,23 +8,23 @@ interface ProcessWindowProp {
 }
 
 const ProcessWindow: React.FC<ProcessWindowProp> = ({process}) => {
-    const { processes, changePriority, closeProcess } = useProcessContext();
-    const [ properties, setProperties ] = useState({x: window.innerWidth/2, y: window.innerHeight/2});
+    const { processes, changePriority, closeProcess, handleProceessLocationChange } = useProcessContext();
+    const [ properties, setProperties ] = useState({x: process.location.x, y: process.location.y});
     const offset = useRef({x: 0, y: 0});
     const [ dragging, setDragging ] = useState(false);
 
     useEffect(() => {
         if (dragging) {
             document.addEventListener('mousemove', handleMouseMove);
-            document.addEventListener('mouseup', () => setDragging(false));
+            document.addEventListener('mouseup', handleMouseUp);
         } else {
             document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('mouseup', () => setDragging(false));
+            document.removeEventListener('mouseup', handleMouseUp);
         }
 
         return () => {
             document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('mouseup', () => setDragging(false));
+            document.removeEventListener('mouseup', handleMouseUp);
         }
     }, [dragging]);
 
@@ -37,15 +37,27 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({process}) => {
         };
     };
 
+    const handleMouseUp = (event: MouseEvent) => {
+        setDragging(false);
+
+        const location = {
+            x: event.clientX - offset.current.x,
+            y: event.clientY - offset.current.y,
+        };
+        handleProceessLocationChange(process.uuid, location);
+    };
+
     const handleMouseMove = (event: MouseEvent) => {
         if (!dragging) {
             return;
         }
 
-        setProperties({
+        const location = {
             x: event.clientX - offset.current.x,
             y: event.clientY - offset.current.y,
-        });
+        };
+
+        setProperties(location);
     };
    
     return (
@@ -64,7 +76,12 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({process}) => {
                     <p style={{fontWeight: 'bold'}}>X</p>
                 </Button>
             </WindowHeader>
-            {React.createElement(process.component)}
+            {
+                process.component
+                    ? (
+                        React.createElement(process.component)
+                    ) : ''
+            }
         </Window>
     );
 };

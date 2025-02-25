@@ -7,4 +7,5 @@ export interface IProcessContext {
     closeProcess: (uuid: string) => void;
     ordenatedProcess: Process[];
     addProcess: (tempProcess: Process) => void;
+    handleProceessLocationChange: (uuid: string, location: any) => void;
 }

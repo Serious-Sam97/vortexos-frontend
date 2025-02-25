@@ -55,6 +55,10 @@ export function ProcessContextProvider({children}: {children: ReactNode}) {
         const process = {
             ...tempProcess,
             uuid: uuidv4(),
+            location: {
+                x: window.innerWidth/2,
+                y: window.innerHeight/2
+            },
             priority: 0,
         };
         const allProcess = [...processes.map(p => {
@@ -91,14 +95,39 @@ export function ProcessContextProvider({children}: {children: ReactNode}) {
             case 'doom':
                 return Doom;
                 break;
-            case 'Backlogger':
+            case 'backlogger':
                 return Backlogger;
                 break;
         }
     }
 
+    const handleProceessLocationChange = (uuid: string, location: any) => {
+
+        const lsProcess = localStorage.getItem('process');
+
+        if (!lsProcess) {
+            return;
+        }
+
+        const allProcess = [
+            ...JSON.parse(lsProcess).map((process: Process) => {
+                if (process.uuid === uuid) {
+                    return {
+                        ...process,
+                        location
+                    }
+                }
+
+                return process;
+            })
+        ];
+
+        localStorage.removeItem('process');
+        localStorage.setItem('process', JSON.stringify(allProcess));
+    }
+
     return (
-        <ProcessContext.Provider value={{processes, setProcesses, changePriority, closeProcess, ordenatedProcess, addProcess}}>
+        <ProcessContext.Provider value={{processes, setProcesses, changePriority, closeProcess, ordenatedProcess, addProcess, handleProceessLocationChange}}>
             {children}
         </ProcessContext.Provider>
     )
