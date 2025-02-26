@@ -4,6 +4,7 @@ import Error from '/error.png';
 import Trust from '/trust.png';
 import axios from 'axios';
 import { Game } from '../../interfaces/Game';
+import { useOSContext } from '../../contexts/OSContext';
 
 interface GameListProps {
     games: Game[];
@@ -12,6 +13,7 @@ interface GameListProps {
 }
 
 const GameList: React.FC<GameListProps> = ({ games, fetchGames, setGames }) => {
+    const { changeCursor } = useOSContext();
     const headers = ['Platform', 'Title', 'Started Date', 'Notes','Completed', 'Completed Date', ''];
     const [ percent, setPercent ] = useState(0);
     const [ loading, setLoading ] = useState(true);
@@ -21,10 +23,12 @@ const GameList: React.FC<GameListProps> = ({ games, fetchGames, setGames }) => {
     }, []);
 
     const startTimer = () => {
+        changeCursor('loading.cur');
         const timer = setInterval(() => {
             setPercent(previousPercent => {
               if (previousPercent === 100) {
                 setLoading(false);
+                changeCursor('arrow.cur');
                 return 0;
               }
               const diff = Math.random() * 20;
@@ -90,9 +94,13 @@ const GameList: React.FC<GameListProps> = ({ games, fetchGames, setGames }) => {
                         games.map((game, index) => (
                             <TableRow key={index}>
                                 <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                                    { game.platform.name }
+                                    <p>{ game.platform.name }</p>
                                 </TableDataCell>
-                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.title}</TableDataCell>
+                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                                    <div style={{ minWidth: '150px' }}>
+                                        <p>{game.title}</p>
+                                    </div>
+                                </TableDataCell>
                                 <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.startedDate}</TableDataCell>
                                 <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>
                                     { game.completed ?

@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { Button, GroupBox, ProgressBar, Select, TextInput } from "react95";
 import axios from 'axios';
 import { Platform } from "../../interfaces/Platform";
+import { useOSContext } from "../../contexts/OSContext";
 
 interface AddGameProps {
     saveAndGoBack: () => void,
 }
 
 const AddGame: React.FC<AddGameProps> = ({saveAndGoBack}) => {
+    const { changeCursor } = useOSContext();
     const [platforms, setPlatforms] = useState([]);
     const [selectedPlatform, setSelectedPlatform] = useState({});
     const [ game, setGame ] = useState('');
@@ -20,6 +22,7 @@ const AddGame: React.FC<AddGameProps> = ({saveAndGoBack}) => {
     }, [percent])
   
     const startTimer = () => {
+        changeCursor('loading.cur');
         const timer = setInterval(() => {
             setPercent(previousPercent => {
               if (previousPercent === 100) {
