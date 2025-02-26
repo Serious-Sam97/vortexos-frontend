@@ -12,7 +12,7 @@ interface GameListProps {
     fetchGames: () => void;
 }
 
-const GameList: React.FC<GameListProps> = ({ games, fetchGames, setGames }) => {
+const PendingList: React.FC<GameListProps> = ({ games, fetchGames, setGames }) => {
     const { changeCursor } = useOSContext();
     const headers = ['Platform', 'Title', 'Started Date', 'Notes','Completed', 'Completed Date', ''];
     const [ percent, setPercent ] = useState(0);
@@ -79,7 +79,6 @@ const GameList: React.FC<GameListProps> = ({ games, fetchGames, setGames }) => {
 
     return (
         <div style={{maxHeight: '50vh', overflowY: 'auto', }}>
-            <h1>Game List</h1>
             <Table>
                 <TableHead>
                     <TableRow>
@@ -140,4 +139,4 @@ const GameList: React.FC<GameListProps> = ({ games, fetchGames, setGames }) => {
     );
 };
 
-export default GameList;
+export default PendingList;
