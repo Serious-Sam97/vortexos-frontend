@@ -38,9 +38,9 @@ const Backlogger: React.FC = () => {
         setIsFileOpen(false);
     }
 
-    const saveAndGoBack = () => {
-        setPage(1);
-        fetchGames(false);
+    const saveAndGoBack = (page: number) => {
+        setPage(page);
+        fetchGames(page === 2);
     }
 
     const pageFlow = [

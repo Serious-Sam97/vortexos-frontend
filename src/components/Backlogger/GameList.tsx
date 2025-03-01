@@ -5,6 +5,7 @@ import Trust from '/trust.png';
 import axios from 'axios';
 import { Game } from '../../interfaces/Game';
 import { useOSContext } from '../../contexts/OSContext';
+import styled from 'styled-components';
 
 interface GameListProps {
     games: Game[];
@@ -74,68 +75,79 @@ const GameList: React.FC<GameListProps> = ({ games, fetchGames, setGames }) => {
     if (loading) {
         return (
             <ProgressBar value={Math.floor(percent)} />
-        );
+        )
     }
 
     return (
-        <div style={{maxHeight: '50vh', overflowY: 'auto', }}>
-            <h1>Game List</h1>
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        {
-                            headers.map(header => (
-                                <TableHeadCell key={header}>{header}</TableHeadCell>
-                            ))
-                        }
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {
-                        games.map((game, index) => (
-                            <TableRow key={index}>
-                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                                    <p>{ game.platform.name }</p>
-                                </TableDataCell>
-                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                                    <div style={{ minWidth: '150px' }}>
-                                        <p>{game.title}</p>
-                                    </div>
-                                </TableDataCell>
-                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.startedDate}</TableDataCell>
-                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                                    { game.completed ?
-                                        (
-                                            <TextInput style={{minWidth: '20vw'}} onChange={(event) => onChangeNotes(event, index)} value={game.notes || ''} onBlur={(event) => updateNotes(event, game)} multiline rows={4} fullWidth />
-                                        )
-                                        : game.notes
-                                    }
-                                </TableDataCell>
-                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.completed ? 'Yes!' : 'No'}</TableDataCell>
-                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.completedDate}</TableDataCell>
-                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle'}}>
+        <div>
+            <p style={{textAlign: 'center', fontSize: '18px', fontWeight: 'bold', marginBottom: '10px'}}>GAMES!</p>
+            {
+                !games.length ?
+                    (
+                        <p>NO GAMES AVAILABLE, Go registry some!</p>
+                    )
+                    :
+                    (
+                        <div style={{maxHeight: '50vh', overflowY: 'auto'}}>
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        {
+                                            headers.map(header => (
+                                                <TableHeadCell key={header}>{header}</TableHeadCell>
+                                            ))
+                                        }
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
                                     {
-                                        !game.completed && (
-                                            <div style={{width: '70px' }}>
-                                                <img
-                                                    onClick={() => completeGame(game)}
-                                                    src={Trust}
-                                                    style={{ height: '25px', cursor: 'pointer', marginTop: '10px', marginRight: '20px'}}
-                                                />
-                                                <img
-                                                    onClick={() => deleteGame(game)}
-                                                    src={Error}
-                                                    style={{ height: '25px', cursor: 'pointer', marginTop: '10px'}}
-                                                />
-                                            </div>
-                                        )
+                                        games.map((game, index) => (
+                                            <TableRow key={index}>
+                                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                                                    <p>{ game.platform.name }</p>
+                                                </TableDataCell>
+                                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                                                    <div style={{ minWidth: '150px' }}>
+                                                        <p>{game.title}</p>
+                                                    </div>
+                                                </TableDataCell>
+                                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.startedDate}</TableDataCell>
+                                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                                                    { game.completed ?
+                                                        (
+                                                            <TextInput style={{minWidth: '20vw'}} onChange={(event) => onChangeNotes(event, index)} value={game.notes || ''} onBlur={(event) => updateNotes(event, game)} multiline rows={4} fullWidth />
+                                                        )
+                                                        : game.notes
+                                                    }
+                                                </TableDataCell>
+                                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.completed ? 'Yes!' : 'No'}</TableDataCell>
+                                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.completedDate}</TableDataCell>
+                                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle'}}>
+                                                    {
+                                                        !game.completed && (
+                                                            <div style={{width: '70px' }}>
+                                                                <img
+                                                                    onClick={() => completeGame(game)}
+                                                                    src={Trust}
+                                                                    style={{ height: '25px', cursor: 'pointer', marginTop: '10px', marginRight: '20px'}}
+                                                                />
+                                                                <img
+                                                                    onClick={() => deleteGame(game)}
+                                                                    src={Error}
+                                                                    style={{ height: '25px', cursor: 'pointer', marginTop: '10px'}}
+                                                                />
+                                                            </div>
+                                                        )
+                                                    }
+                                                </TableDataCell>
+                                            </TableRow>
+                                        ))
                                     }
-                                </TableDataCell>
-                            </TableRow>
-                        ))
-                    }
-                </TableBody>
-            </Table>
+                                </TableBody>
+                            </Table>
+                        </div>
+                    )
+            }
         </div>
     );
 };

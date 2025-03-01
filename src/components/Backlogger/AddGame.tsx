@@ -5,7 +5,7 @@ import { Platform } from "../../interfaces/Platform";
 import { useOSContext } from "../../contexts/OSContext";
 
 interface AddGameProps {
-    saveAndGoBack: () => void,
+    saveAndGoBack: (page: number) => void,
 }
 
 const AddGame: React.FC<AddGameProps> = ({saveAndGoBack}) => {
@@ -15,10 +15,11 @@ const AddGame: React.FC<AddGameProps> = ({saveAndGoBack}) => {
     const [ game, setGame ] = useState('');
     const [ percent, setPercent ] = useState(0);
     const [ backlog, setBacklog ] = useState(false);
+    const [ page, setPage ] = useState(1);
 
     useEffect(() => {
         if (percent === 100) {
-            saveAndGoBack();
+            saveAndGoBack(page);
         }
     }, [percent])
   
@@ -51,10 +52,12 @@ const AddGame: React.FC<AddGameProps> = ({saveAndGoBack}) => {
     }, []);
 
     const saveGame = () => {
+        setPage(backlog ? 2 : 1);
         startTimer();
         axios.post('http://localhost:8080/games', {
             platform_id: selectedPlatform.id,
-            title: game
+            title: game,
+            backlog,
         });
     };
 
