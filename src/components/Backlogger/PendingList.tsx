@@ -14,7 +14,7 @@ interface GameListProps {
 
 const PendingList: React.FC<GameListProps> = ({ games, fetchGames, setGames }) => {
     const { changeCursor } = useOSContext();
-    const headers = ['Platform', 'Title', 'Started Date', 'Notes','Completed', 'Completed Date', ''];
+    const headers = ['Platform', 'Title', 'Logged Date', 'Notes', ''];
     const [ percent, setPercent ] = useState(0);
     const [ loading, setLoading ] = useState(true);
 
@@ -106,21 +106,14 @@ const PendingList: React.FC<GameListProps> = ({ games, fetchGames, setGames }) =
                                                     <p>{ game.platform.name }</p>
                                                 </TableDataCell>
                                                 <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                                                    <div style={{ minWidth: '150px' }}>
+                                                    <div style={{ minWidth: '300px' }}>
                                                         <p>{game.title}</p>
                                                     </div>
                                                 </TableDataCell>
                                                 <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.startedDate}</TableDataCell>
                                                 <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                                                    { game.completed ?
-                                                        (
-                                                            <TextInput style={{minWidth: '20vw'}} onChange={(event) => onChangeNotes(event, index)} value={game.notes || ''} onBlur={(event) => updateNotes(event, game)} multiline rows={4} fullWidth />
-                                                        )
-                                                        : game.notes
-                                                    }
+                                                    <TextInput style={{minWidth: '20vw'}} onChange={(event) => onChangeNotes(event, index)} value={game.notes || ''} onBlur={(event) => updateNotes(event, game)} multiline rows={2} fullWidth />
                                                 </TableDataCell>
-                                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.completed ? 'Yes!' : 'No'}</TableDataCell>
-                                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.completedDate}</TableDataCell>
                                                 <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle'}}>
                                                     {
                                                         !game.completed && (
