@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, GroupBox, ProgressBar, Select, TextInput } from "react95";
+import { Button, Checkbox, GroupBox, ProgressBar, Select, TextInput } from "react95";
 import axios from 'axios';
 import { Platform } from "../../interfaces/Platform";
 import { useOSContext } from "../../contexts/OSContext";
@@ -14,6 +14,7 @@ const AddGame: React.FC<AddGameProps> = ({saveAndGoBack}) => {
     const [selectedPlatform, setSelectedPlatform] = useState({});
     const [ game, setGame ] = useState('');
     const [ percent, setPercent ] = useState(0);
+    const [ backlog, setBacklog ] = useState(false);
 
     useEffect(() => {
         if (percent === 100) {
@@ -65,14 +66,13 @@ const AddGame: React.FC<AddGameProps> = ({saveAndGoBack}) => {
                     <Select
                         formatDisplay={() => selectedPlatform.name}
                         labelId={'opt.name'}
-                        options={platforms}
+                        options={[
+                            {},
+                            ...platforms
+                        ]}
                         menuMaxHeight={160}
                         width={160}
                         onChange={value => setSelectedPlatform(value)}
-                        onOpen={e => console.log('open', e)}
-                        onClose={e => console.log('close', e)}
-                        onBlur={e => console.log('blur', e)}
-                        onFocus={e => console.log('focus', e)}
                     />
                 </div>
                 <div style={{marginTop: '5px'}}>
@@ -84,6 +84,14 @@ const AddGame: React.FC<AddGameProps> = ({saveAndGoBack}) => {
                         fullWidth
                     />
                 </div>
+                <div style={{marginTop: '5px', display: 'flex'}}>
+                    <Checkbox
+                        value={backlog}
+                        onChange={() => setBacklog(!backlog)}
+                        style={{marginTop: '2px'}}
+                    />
+                    <p>Backlog</p>
+                </div>
             </GroupBox>
             <div style={{width: '100%', display: 'flex', justifyContent: 'center', marginTop: '15px'}}>
                 {
@@ -91,7 +99,7 @@ const AddGame: React.FC<AddGameProps> = ({saveAndGoBack}) => {
                         ? (<ProgressBar value={Math.floor(percent)} />)
                         : (
                             <>
-                                <Button onClick={() => saveGame()} style={{textAlign: 'center'}}>Save new game</Button>
+                                <Button disabled={Object.keys(selectedPlatform).length === 0 || !game} onClick={() => saveGame()} style={{textAlign: 'center'}}>Save new game</Button>
                             </>
                         )
                 }

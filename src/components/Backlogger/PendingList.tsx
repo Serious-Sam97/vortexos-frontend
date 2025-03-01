@@ -79,6 +79,7 @@ const PendingList: React.FC<GameListProps> = ({ games, fetchGames, setGames }) =
 
     return (
         <div style={{maxHeight: '50vh', overflowY: 'auto', }}>
+            <p>BACKLOG</p>
             <Table>
                 <TableHead>
                     <TableRow>

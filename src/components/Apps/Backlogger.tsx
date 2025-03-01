@@ -7,7 +7,7 @@ import { Game } from "../../interfaces/Game";
 import PendingList from "../Backlogger/PendingList";
 
 const Backlogger: React.FC = () => {
-    const [ page, setPage ] = useState(0);
+    const [ page, setPage ] = useState(1);
     const [ games, setGames ] = useState<Game[]>([]);
     const [ isFileOpen, setIsFileOpen ] = useState(false);
 
@@ -15,9 +15,21 @@ const Backlogger: React.FC = () => {
         fetchGames();
     }, []);
 
-    const fetchGames = () => {
+    useEffect(() => {
+        localStorage.setItem('system.gamecache.page', String(page));
+        switch(page) {
+            case 1:
+                fetchGames(false);
+                break;
+            case 2:
+                fetchGames(true);
+                break;
+        }
+    }, [page]);
+
+    const fetchGames = (pending: boolean) => {
         setGames([]);
-        axios.get('http://localhost:8080/games')
+        axios.get(`http://localhost:8080/games${pending ? '/backlog' : ''}`)
             .then(data => setGames(data.data));
     }
 
@@ -27,21 +39,21 @@ const Backlogger: React.FC = () => {
     }
 
     const saveAndGoBack = () => {
-        setPage(0);
-        fetchGames();
+        setPage(1);
+        fetchGames(false);
     }
 
     const pageFlow = [
-        {
-            component: (<GameList setGames={setGames} fetchGames={fetchGames} games={games}/>),
-            text: 'Game list',
-        },
         {
             component: (<AddGame saveAndGoBack={saveAndGoBack}/>),
             text: 'Add new Game to your Backlog',
         },
         {
-            component: (<PendingList setGames={setGames} fetchGames={fetchGames} games={games}/>),
+            component: (<GameList setGames={setGames} fetchGames={() => fetchGames(false)} games={games}/>),
+            text: 'Game list',
+        },
+        {
+            component: (<PendingList setGames={setGames} fetchGames={() => fetchGames(true)} games={games}/>),
             text: 'Backloged games, ready to play!',
         },
     ];
@@ -62,10 +74,10 @@ const Backlogger: React.FC = () => {
                                 zIndex: '99999'
                             }}
                         >
-                            <MenuListItem style={{cursor: 'pointer'}} onClick={() => fileOptions(1)}>
+                            <MenuListItem style={{cursor: 'pointer'}} onClick={() => fileOptions(0)}>
                                 New Game
                             </MenuListItem>
-                            <MenuListItem style={{cursor: 'pointer'}} onClick={() => fileOptions(0)}>
+                            <MenuListItem style={{cursor: 'pointer'}} onClick={() => fileOptions(1)}>
                                 <p>Game List</p>
                             </MenuListItem>
                             <MenuListItem style={{cursor: 'pointer'}} onClick={() => fileOptions(2)}>

@@ -10,6 +10,8 @@ import BackloggerIcon from '/backlogger.png';
 import TaskManager from "../components/Apps/TaskManager";
 import TaskManagerIcon from '/task_manager.png';
 import { useProcessContext } from "../contexts/ProcessContext";
+import NotesIcon from '/notes.png';
+import Notes from "../components/Apps/Notes";
 
 const Desktop: React.FC = () => {
     const desktop = useRef<HTMLDivElement | null>(null);
@@ -65,11 +67,21 @@ const Desktop: React.FC = () => {
         ],
         [
             {
-                name: "Backlogger",
+                name: "GameCache",
                 icon: BackloggerIcon,
                 selected: false,
                 componentName: 'backlogger',
                 component: Backlogger,
+                priority: 0,
+            },
+        ],
+        [
+            {
+                name: "Notes",
+                icon: NotesIcon,
+                selected: false,
+                componentName: 'notes',
+                component: Notes,
                 priority: 0,
             },
         ],
