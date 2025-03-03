@@ -8,6 +8,7 @@ import MyComputer from "../components/Apps/MyComputer";
 import TaskManager from "../components/Apps/TaskManager";
 import Doom from "../components/Apps/Doom";
 import Backlogger from "../components/Apps/Backlogger";
+import Notes from "../components/Apps/Notes";
 
 
 const ProcessContext = createContext<IProcessContext | null>(null);
@@ -81,6 +82,7 @@ export function ProcessContextProvider({children}: {children: ReactNode}) {
         }, 0);
     }
 
+    //TODO: Move this to a separated file and improve logic && flow
     const fetchComponent = (componentName: string) => {
         switch(componentName) {
             case 'recycle_bin':
@@ -97,6 +99,9 @@ export function ProcessContextProvider({children}: {children: ReactNode}) {
                 break;
             case 'backlogger':
                 return Backlogger;
+                break;
+            case 'notes':
+                return Notes;
                 break;
         }
     }
