@@ -12,6 +12,8 @@ import TaskManagerIcon from '/task_manager.png';
 import { useProcessContext } from "../contexts/ProcessContext";
 import NotesIcon from '/notes.png';
 import Notes from "../components/Apps/Notes";
+import ExplorerIcon from '/explorer.png';
+import Explorer from "../components/Apps/Explorer";
 
 const Desktop: React.FC = () => {
     const desktop = useRef<HTMLDivElement | null>(null);
@@ -32,6 +34,14 @@ const Desktop: React.FC = () => {
                 selected: false,
                 componentName: 'recycle_bin',
                 component: RecycleBin,
+                priority: 0,
+            },
+            {
+                name: "Doom",
+                icon: DoomIcon,
+                selected: false,
+                componentName: 'doom',
+                component: Doom,
                 priority: 0,
             },
         ],
@@ -57,11 +67,11 @@ const Desktop: React.FC = () => {
         ],
         [
             {
-                name: "Doom",
-                icon: DoomIcon,
+                name: "Explorer",
+                icon: ExplorerIcon,
                 selected: false,
-                componentName: 'doom',
-                component: Doom,
+                componentName: 'explorer',
+                component: Explorer,
                 priority: 0,
             },
         ],
