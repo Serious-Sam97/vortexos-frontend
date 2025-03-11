@@ -14,6 +14,8 @@ import NotesIcon from '/notes.png';
 import Notes from "../components/Apps/Notes";
 import ExplorerIcon from '/explorer.png';
 import Explorer from "../components/Apps/Explorer";
+import BrowserIcon from '/browser.png';
+import Browser from "../components/Apps/Browser";
 
 const Desktop: React.FC = () => {
     const desktop = useRef<HTMLDivElement | null>(null);
@@ -52,6 +54,14 @@ const Desktop: React.FC = () => {
                 selected: false,
                 componentName: 'my_computer',
                 component: MyComputer,
+                priority: 0,
+            },
+            {
+                name: "Browser",
+                icon: BrowserIcon,
+                selected: false,
+                componentName: 'browser',
+                component: Browser,
                 priority: 0,
             },
         ],
