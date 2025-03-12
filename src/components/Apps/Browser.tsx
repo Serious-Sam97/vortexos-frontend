@@ -8,12 +8,12 @@ const Browser: React.FC = () => {
                     width="680"
                     height="400"
                     frameborder="0"
-                    src="https://web.archive.org/web/20250307002700/https://www.google.com/web/20250307002700/https://www.google.com/"
+                    src="https://web.archive.org/web/20250307002700/https://www.google.com/web/20250307002700/https://www.google.com/x`x"
                     allowfullscreen="false">
                 </iframe>
             </WindowContent>
             <Frame variant='well' className='footer'>
-                    GABRIEL É GAY
+                    Browser
             </Frame>
         </>
     )
