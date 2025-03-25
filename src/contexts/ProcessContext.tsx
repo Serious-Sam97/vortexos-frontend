@@ -10,6 +10,7 @@ import Doom from "../components/Apps/Doom";
 import Backlogger from "../components/Apps/Backlogger";
 import Notes from "../components/Apps/Notes";
 import Browser from "../components/Apps/Browser";
+import Explorer from "../components/Apps/Explorer";
 
 
 const ProcessContext = createContext<IProcessContext | null>(null);
@@ -106,6 +107,9 @@ export function ProcessContextProvider({children}: {children: ReactNode}) {
                 break;
             case 'browser':
                 return Browser;
+                break;
+            case 'explorer':
+                return Explorer;
                 break;
         }
     }
