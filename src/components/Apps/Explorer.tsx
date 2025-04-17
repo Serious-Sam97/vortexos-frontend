@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import axios from 'axios';
 import ExplorerIcon from '/explorer.png';
 import NotesIcon from '/notes.png';
+import { useProcessContext } from "../../contexts/ProcessContext";
 
 const Explorer: React.FC = () => {
+    const { addProcess } = useProcessContext();
 
     const [storage, setStorage] = useState([
         [
@@ -15,6 +17,11 @@ const Explorer: React.FC = () => {
             {
                 type: 'notes',
                 name: 'Note test',
+                selected: false,
+            },
+            {
+                type: 'notes',
+                name: 'Cake',
                 selected: false,
             }
         ]
@@ -36,7 +43,7 @@ const Explorer: React.FC = () => {
             return row.map((file, fileIndex) => {
                 if (indexI === rowIndex && indexJ === fileIndex) {
                     if (file.selected) {
-                        // addProcess(icon);
+                        addProcess(file);
                     }
                     return {
                         ...file,

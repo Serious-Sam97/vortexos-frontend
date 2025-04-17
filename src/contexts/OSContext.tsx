@@ -7,6 +7,7 @@ const OSContext = createContext<IOSContext | null>(null);
 
 export function OSContextProvider({children}: {children: ReactNode}) {
     const [ cursor, setCursor ] = useState('url(/win-cursor/arrow.cur), auto');
+    //IMPLEMENT RIGHT CLICK HERE!!
 
     const changeCursor = (cursorType: string) => {
         setCursor(`url(/win-cursor/${cursorType}), auto`);
