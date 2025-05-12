@@ -1,4 +1,5 @@
 import { Process } from "./Process";
+import { Program } from "./Program";
 
 export interface IProcessContext {
     processes: Process[];
@@ -8,4 +9,7 @@ export interface IProcessContext {
     ordenatedProcess: Process[];
     addProcess: (tempProcess: Process) => void;
     handleProceessLocationChange: (uuid: string, location: any) => void;
+    fetchIcon: (type: string) => string;
+    fetchComponent: (type: string) => string;
+    programs: Program[];
 }

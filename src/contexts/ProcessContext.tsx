@@ -11,7 +11,8 @@ import Backlogger from "../components/Apps/Backlogger";
 import Notes from "../components/Apps/Notes";
 import Browser from "../components/Apps/Browser";
 import Explorer from "../components/Apps/Explorer";
-
+import ExplorerIcon from '/explorer.png';
+import NotesIcon from '/notes.png';
 
 const ProcessContext = createContext<IProcessContext | null>(null);
 
@@ -114,6 +115,17 @@ export function ProcessContextProvider({children}: {children: ReactNode}) {
         }
     }
 
+    const fetchIcon = (type: string) => {
+        switch(type) {
+            case 'folder':
+                return ExplorerIcon;
+                break;
+            case 'notes':
+                return NotesIcon;
+                break;
+        }
+    };
+
     const handleProceessLocationChange = (uuid: string, location: any) => {
 
         const lsProcess = localStorage.getItem('process');
@@ -139,8 +151,48 @@ export function ProcessContextProvider({children}: {children: ReactNode}) {
         localStorage.setItem('process', JSON.stringify(allProcess));
     }
 
+    //TODO: Move this to a separated file and improve logic && flow
+    const [ programs, setPrograms ] = useState([
+        {
+            name: 'Explorer',
+            icon: ExplorerIcon,
+            componentName: 'explorer',
+            component: Explorer,
+        },
+        {
+            name: 'Notes',
+            icon: NotesIcon,
+            componentName: 'notes',
+            component: Notes,
+        },
+        {
+            name: 'My Computer',
+            icon: ExplorerIcon,
+            componentName: 'my_computer',
+            component: MyComputer,
+        },
+        {
+            name: 'Task Manager',
+            icon: ExplorerIcon,
+            componentName: 'task_manager',
+            component: TaskManager,
+        },
+        {
+            name: 'Doom',
+            icon: ExplorerIcon,
+            componentName: 'doom',
+            component: Doom,
+        },
+        {
+            name: 'Backlogger',
+            icon: ExplorerIcon,
+            componentName: 'backlogger',
+            component: Backlogger,
+        }
+    ]);
+
     return (
-        <ProcessContext.Provider value={{processes, setProcesses, changePriority, closeProcess, ordenatedProcess, addProcess, handleProceessLocationChange}}>
+        <ProcessContext.Provider value={{processes, setProcesses, changePriority, closeProcess, ordenatedProcess, addProcess, handleProceessLocationChange, fetchIcon, fetchComponent, programs}}>
             {children}
         </ProcessContext.Provider>
     )
