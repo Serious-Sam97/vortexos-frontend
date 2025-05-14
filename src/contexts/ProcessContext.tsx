@@ -35,7 +35,7 @@ export function ProcessContextProvider({children}: {children: ReactNode}) {
     }, []);
 
     useEffect(() => {
-        setOrdenatedProcess([...processes].sort((a: Process, b: Process) => a.priority - b.priority));
+        // setOrdenatedProcess([...processes].sort((a: Process, b: Process) => a.priority - b.priority));
     }, [processes]);
 
 
@@ -72,7 +72,9 @@ export function ProcessContextProvider({children}: {children: ReactNode}) {
             };
         }), process];
 
-        setProcesses(allProcess);
+        setTimeout(() => {
+            setProcesses(allProcess);
+        }, 0);
         localStorage.setItem('process', JSON.stringify(allProcess));
     }
 
@@ -154,7 +156,7 @@ export function ProcessContextProvider({children}: {children: ReactNode}) {
     //TODO: Move this to a separated file and improve logic && flow
     const [ programs, setPrograms ] = useState([
         {
-            name: 'Explorer',
+            name: 'File',
             icon: ExplorerIcon,
             componentName: 'explorer',
             component: Explorer,
@@ -165,30 +167,6 @@ export function ProcessContextProvider({children}: {children: ReactNode}) {
             componentName: 'notes',
             component: Notes,
         },
-        {
-            name: 'My Computer',
-            icon: ExplorerIcon,
-            componentName: 'my_computer',
-            component: MyComputer,
-        },
-        {
-            name: 'Task Manager',
-            icon: ExplorerIcon,
-            componentName: 'task_manager',
-            component: TaskManager,
-        },
-        {
-            name: 'Doom',
-            icon: ExplorerIcon,
-            componentName: 'doom',
-            component: Doom,
-        },
-        {
-            name: 'Backlogger',
-            icon: ExplorerIcon,
-            componentName: 'backlogger',
-            component: Backlogger,
-        }
     ]);
 
     return (

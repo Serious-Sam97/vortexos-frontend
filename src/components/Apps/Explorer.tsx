@@ -1,18 +1,57 @@
 import { useEffect, useState } from "react";
-import axios from 'axios';
-import ExplorerIcon from '/explorer.png';
-import NotesIcon from '/notes.png';
 import { useProcessContext } from "../../contexts/ProcessContext";
 import { useOSContext } from "../../contexts/OSContext";
-import { Button, Frame, MenuList, MenuListItem, TextInput, Toolbar, WindowContent } from "react95";
+import { Button, Frame, MenuList, MenuListItem, Toolbar, WindowContent } from "react95";
+import { Program } from "../../interfaces/Program";
+import { IExplorer } from "../../interfaces/IExplorer";
 
-const Explorer: React.FC = () => {
-    const { addProcess, fetchIcon } = useProcessContext();
+const Explorer: React.FC<IExplorer> = ({level}) => {
+    const { addProcess, fetchIcon, programs } = useProcessContext();
     const { storage, setStorage } = useOSContext();
     const [ isFileOpen, setIsFileOpen ] = useState(false);
+    const [ newFileTemp, setNewFileTemp ] = useState('');
+    const [ isAddingFile, setIsAddingFile ] = useState(false);
 
-    // useEffect(() => {
+    useEffect(() => {
+        // setStorage([
+        //     [
+        //         programs[0],
+        //     ]
+        // ])
+    }, []);
 
+    const addFile = (program: Program) => {
+        let nextLvlAvailable = [0, 0];
+
+        for (let lvlIndex = 0; lvlIndex < storage.length; lvlIndex++) {
+            const line = storage[lvlIndex];
+            for (let columnIndex = 0; columnIndex < line.length; columnIndex++) {
+                const column = line[columnIndex];
+                if (column.length >= 4) {
+                    continue;
+                }
+                nextLvlAvailable = [lvlIndex, columnIndex];
+            }
+        }
+
+        console.log(nextLvlAvailable);
+
+        let tempStorage = storage;
+
+        if (!tempStorage[nextLvlAvailable[0]]) {
+            setStorage([
+                [
+                    program
+                ]
+            ]);
+        }
+
+        tempStorage[nextLvlAvailable[0]][nextLvlAvailable[1]] = program;
+        console.log(tempStorage);
+
+        setStorage(tempStorage);
+        setIsFileOpen(false);
+    };
 
     const selectFile = (indexI: number, indexJ: number) => {
         setStorage(storage.map((row, rowIndex) => {
@@ -34,14 +73,11 @@ const Explorer: React.FC = () => {
         }))
     };
 
-    useEffect(() => {
-        axios.get('http://localhost:8080/files');
-    }, []);
     return (
         <>
             <Toolbar>
                 <Button variant='menu' size='sm' onClick={() => setIsFileOpen(!isFileOpen)}>
-                    File
+                    New File
                 </Button>
                 {
                     isFileOpen && (
@@ -53,39 +89,31 @@ const Explorer: React.FC = () => {
                                 zIndex: '99999'
                             }}
                         >
-                            <MenuListItem style={{cursor: 'pointer'}}>
-                                New Note
-                            </MenuListItem>
-                            <MenuListItem style={{cursor: 'pointer'}}>
-                                <p>Save File</p>
-                            </MenuListItem>
-                            <MenuListItem style={{cursor: 'pointer'}}>
-                                <p>Load File</p>
-                            </MenuListItem>
+                            {
+                                programs.map((program, index) => (
+                                    <MenuListItem onClick={() => addFile(program)} key={index} style={{cursor: 'pointer', display: 'flex'}}>
+                                        <img src={program.icon} alt={program.name} style={{width: '20px', height: '20px', marginRight: '10px'}} />
+                                        <p>{program.name}</p>
+                                    </MenuListItem>
+                                ))
+                            }
                         </MenuList>
                     )
                 }
-                <Button variant='menu' size='sm' disabled>
-                    Save
-                </Button>
-                <Button variant='menu' size='sm'>
-                    About us
-                </Button>
             </Toolbar>
             <WindowContent style={{backgroundColor: 'white', border: '3px solid gray', borderRadius: '5px'}}>
                 <div style={{width: '700px'}}>
                     <div style={{width: '100%'}}>
                     {
                         Array.from({length: 7}).map((_, i) => (
-                            <div style={{display: 'flex', paddingLeft: '20px', paddingRight: '20px', paddingTop: '10px', paddingBottom: '10px', cursor: 'pointer'}}>
+                            <div style={{display: 'flex', paddingLeft: '20px', paddingRight: '20px', paddingTop: '10px', paddingBottom: '10px'}}>
                                 {
                                     Array.from({length: 7}).map((_, j) => (
                                         (storage[i] && storage[i][j] && (
                                             <div onClick={() => selectFile(i, j)} style={{cursor: "pointer", display: "flex", justifyContent: "center", flexDirection: 'column', paddingRight: '30px'}}>
                                                 <div style={{display: 'flex', justifyContent: 'center'}}>
                                                     <img
-                                                        src={fetchIcon(storage[i][j].type)}
-                                                        alt={storage[i][j].name}
+                                                        src={storage[i][j].icon}
                                                         style={{ height: '70px', filter: storage[i][j].selected ? 'sepia(100%) saturate(500%) hue-rotate(220deg) brightness(60%)' : 'none',}}
                                                     />
                                                 </div>
@@ -101,7 +129,7 @@ const Explorer: React.FC = () => {
                 </div>
             </WindowContent>
             <Frame variant='well' className='footer'>
-                <p>Notes App, the file name will appear here : )</p>
+                <p>Explorer</p>
             </Frame>
         </>
     )
