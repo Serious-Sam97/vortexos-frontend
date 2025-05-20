@@ -13,18 +13,19 @@ import Browser from "../components/Apps/Browser";
 import Explorer from "../components/Apps/Explorer";
 import ExplorerIcon from '/explorer.png';
 import NotesIcon from '/notes.png';
+import { Program } from "../interfaces/Program";
 
-const ProcessContext = createContext<IProcessContext | null>(null);
+const ProcessContext = createContext<IProcessContext>({} as IProcessContext);
 
 export function ProcessContextProvider({children}: {children: ReactNode}) {
     const [processes, setProcesses] = useState<Process[]>([]);
-    const [ ordenatedProcess, setOrdenatedProcess ] = React.useState<Process[]>([]);
+    const [ ordenatedProcess ] = React.useState<Process[]>([]);
 
     useEffect(() => {
         const storedProcesses = localStorage.getItem('process');
         if (storedProcesses) {
             setProcesses([
-                ...JSON.parse(storedProcesses).map(process => {
+                ...JSON.parse(storedProcesses).map((process: Program) => {
                     return {
                         ...process,
                         component: fetchComponent(process.componentName)
@@ -154,7 +155,7 @@ export function ProcessContextProvider({children}: {children: ReactNode}) {
     }
 
     //TODO: Move this to a separated file and improve logic && flow
-    const [ programs, setPrograms ] = useState([
+    const [ programs ] = useState([
         {
             name: 'File',
             icon: ExplorerIcon,

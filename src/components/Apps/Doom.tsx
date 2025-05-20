@@ -19,9 +19,9 @@ const Doom: React.FC = () => {
                 <iframe
                     width="680"
                     height="400"
-                    frameborder="0"
+                    frameBorder="0"
                     src="https://dos.zone/doom-ii-oct-10-1994"
-                    allowfullscreen>
+                    allowFullScreen>
                 </iframe>
             </WindowContent>
             <Frame variant='well' className='footer'>

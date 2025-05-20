@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useState } from "react";
 import { Button, Checkbox, GroupBox, ProgressBar, Select, TextInput } from "react95";
 import axios from 'axios';

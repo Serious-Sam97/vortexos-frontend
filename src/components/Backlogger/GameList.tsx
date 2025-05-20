@@ -5,7 +5,6 @@ import Trust from '/trust.png';
 import axios from 'axios';
 import { Game } from '../../interfaces/Game';
 import { useOSContext } from '../../contexts/OSContext';
-import styled from 'styled-components';
 
 interface GameListProps {
     games: Game[];

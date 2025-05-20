@@ -9,7 +9,7 @@ export interface IProcessContext {
     ordenatedProcess: Process[];
     addProcess: (tempProcess: Process) => void;
     handleProceessLocationChange: (uuid: string, location: any) => void;
-    fetchIcon: (type: string) => string;
-    fetchComponent: (type: string) => string;
+    fetchIcon: (type: string) => string|undefined;
+    fetchComponent: (type: string) => React.FC<any> | undefined;
     programs: Program[];
 }

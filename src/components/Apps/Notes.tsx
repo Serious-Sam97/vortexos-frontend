@@ -6,7 +6,18 @@ const Notes: React.FC = () => {
     const [ isFileOpen, setIsFileOpen ] = useState(false);
 
     const fileOptions = (option: number) => {
-
+        switch(option) {
+            case 0:
+                setNote('');
+                break;
+            case 1:
+                alert('Save file');
+                break;
+            case 2:
+                alert('Load file');
+                break;
+        }
+        setIsFileOpen(false);
     };
 
     useEffect(() => {

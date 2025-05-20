@@ -9,9 +9,12 @@ interface ProcessWindowProp {
 }
 
 const ProcessWindow: React.FC<ProcessWindowProp> = ({process}) => {
-    const { processes, changePriority, closeProcess, handleProceessLocationChange } = useProcessContext();
+    const { changePriority, closeProcess, handleProceessLocationChange } = useProcessContext();
     const { changeCursor } = useOSContext();
-    const [ properties, setProperties ] = useState({x: process.location.x, y: process.location.y});
+    const [ properties, setProperties ] = useState({
+        x: process.location?.x ?? 0,
+        y: process.location?.y ?? 0
+    });
     const offset = useRef({x: 0, y: 0});
     const [ dragging, setDragging ] = useState(false);
 
@@ -36,8 +39,8 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({process}) => {
         setDragging(true);
 
         offset.current = {
-            x: event.clientX - properties.x,
-            y: event.clientY - properties.y,
+            x: event.clientX - (properties.x ?? 0),
+            y: event.clientY - (properties.y ?? 0),
         };
     };
 
@@ -48,7 +51,9 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({process}) => {
             x: event.clientX - offset.current.x,
             y: event.clientY - offset.current.y,
         };
-        handleProceessLocationChange(process.uuid, location);
+        if (process.uuid) {
+            handleProceessLocationChange(process.uuid, location);
+        }
     };
 
     const handleMouseMove = (event: MouseEvent) => {
@@ -67,7 +72,7 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({process}) => {
     return (
         <Window
             onClick={() => changePriority(process, 0)}
-            key={processes.uuid} resizable
+            key={process.uuid} resizable
             className='window'
             style={{ position: 'absolute', top: `${properties.y}px`, left: `${properties.x}px`, transform: 'translate(-50%, -50%)', zIndex: process.priority === 0 ? '9999' : process.priority + 1, userSelect: 'none' }}
         >
@@ -76,7 +81,11 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({process}) => {
                     <img src={process.icon} style={{width: '20px',height: '80%', marginRight: '5px', alignSelf: 'center'}}/>
                     <p>{process.name}</p>
                 </div>
-                <Button style={{alignSelf: 'center'}} onClick={() => closeProcess(process.uuid)}>
+                <Button
+                    style={{alignSelf: 'center'}}
+                    onClick={() => { if (process.uuid) closeProcess(process.uuid); }}
+                    disabled={!process.uuid}
+                >
                     <p style={{fontWeight: 'bold'}}>X</p>
                 </Button>
             </WindowHeader>

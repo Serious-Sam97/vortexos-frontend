@@ -7,9 +7,9 @@ const Browser: React.FC = () => {
                 <iframe
                     width="680"
                     height="400"
-                    frameborder="0"
+                    frameBorder="0"
                     src="https://web.archive.org/web/20250307002700/https://www.google.com/web/20250307002700/https://www.google.com/x`x"
-                    allowfullscreen="false">
+                    allowFullScreen={false}>
                 </iframe>
             </WindowContent>
             <Frame variant='well' className='footer'>

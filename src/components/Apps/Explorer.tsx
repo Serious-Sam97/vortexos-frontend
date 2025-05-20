@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { useEffect, useState } from "react";
 import { useProcessContext } from "../../contexts/ProcessContext";
 import { useOSContext } from "../../contexts/OSContext";

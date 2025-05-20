@@ -4,5 +4,5 @@ export interface IOSContext {
     cursor: string,
     changeCursor: (cursor: string) => void,
     storage: IFile[],
-    setStorage: React.Dispatch<React.SetStateAction<IFile[]>>,
+    setStorage: (data: Array<Array<IFile>>) => void,
 };

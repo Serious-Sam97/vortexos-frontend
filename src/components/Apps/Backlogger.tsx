@@ -12,7 +12,7 @@ const Backlogger: React.FC = () => {
     const [ isFileOpen, setIsFileOpen ] = useState(false);
 
     useEffect(() => {
-        fetchGames();
+        fetchGames(true);
     }, []);
 
     useEffect(() => {

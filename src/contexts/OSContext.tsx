@@ -2,13 +2,13 @@ import { createContext, useContext, useState } from "react";
 import { ReactNode } from "react";
 import { IOSContext } from "../interfaces/IOSContext";
 
-const OSContext = createContext<IOSContext | null>(null);
+const OSContext = createContext<IOSContext>({} as IOSContext);
 
 export function OSContextProvider({children}: {children: ReactNode}) {
     const [ cursor, setCursor ] = useState('url(/win-cursor/arrow.cur), auto');
     //IMPLEMENT RIGHT CLICK HERE!!
 
-    const [ storage, setStorage ] = useState([]);
+    const [storage, setStorage] = useState<any[]>([]);
 
     const changeCursor = (cursorType: string) => {
         setCursor(`url(/win-cursor/${cursorType}), auto`);

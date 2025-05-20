@@ -1,8 +1,12 @@
 export interface Process {
-    uuid: string,
+    uuid?: string,
     priority: number,
     component: React.ComponentType,
     selected: boolean,
     icon: string,
     name: string,
+    location?: {
+        x?: number,
+        y?: number
+    },
 }
