@@ -43,7 +43,7 @@ const WMenu: React.FC = () => {
 
     return (
         <StyledAppBar>
-            <Toolbar style={{ justifyContent: 'space-between' }}>
+            <Toolbar style={{ justifyContent: 'space-between', padding: '7px' }}>
                 <div style={{ position: 'relative', display: 'inline-block' }}>
                 <Button
                     onClick={() => setOpen(!open)}
@@ -55,14 +55,15 @@ const WMenu: React.FC = () => {
                     alt='react95 logo'
                     style={{ height: '20px', marginRight: 4 }}
                     />
-                    Start
+                    <p style={{padding: '5px'}}>Start</p>
                 </Button>
                 {open && (
                     <MenuList
                         style={{
                             position: 'absolute',
                             left: '0',
-                            top: '-550%'
+                            top: '-550%',
+                            width: '15vw'
                         }}
                         onClick={() => setOpen(false)}
                     >
@@ -103,7 +104,7 @@ const WMenu: React.FC = () => {
                                 <TaskbarButton style={process.priority === 0 ? {borderTopColor: '#808080', borderLeftColor: '#808080', borderRightColor: '#fff', borderBottomColor: '#fff', cursor: 'pointer', display: 'flex', justifyContent: 'center'} : {cursor: 'pointer', display: 'flex', justifyContent: 'center'}} onClick={() => changePriority(process, 0)}>
                                     <img
                                         src={process.icon}
-                                        style={{ height: '25px', alignSelf: 'center', marginRight: '5px'}}
+                                        style={{ height: '20px', alignSelf: 'center', marginRight: '5px'}}
                                     />
                                     <p style={{textAlign: 'center', alignSelf: 'center'}}>{process.name}</p>
                                 </TaskbarButton>
