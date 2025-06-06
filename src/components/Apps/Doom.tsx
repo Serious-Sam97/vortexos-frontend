@@ -1,4 +1,5 @@
 import { Button, Frame, Toolbar, WindowContent } from "react95";
+import DosPlayer from "../DosPlayer";
 
 const Doom: React.FC = () => {
 
@@ -16,13 +17,10 @@ const Doom: React.FC = () => {
                 </Button>
             </Toolbar>
             <WindowContent>
-                <iframe
-                    width="680"
-                    height="400"
-                    frameBorder="0"
-                    src="https://dos.zone/doom-ii-oct-10-1994"
-                    allowFullScreen>
-                </iframe>
+                <div style={{ width: "800px", height: "600px" }}>
+                    <DosPlayer bundleUrl="dos/doom.jsdos" />
+                </div>
+
             </WindowContent>
             <Frame variant='well' className='footer'>
                 TEST

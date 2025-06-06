@@ -9,6 +9,7 @@ import Backlogger from "../components/Apps/Backlogger";
 import BackloggerIcon from '/backlogger.png';
 import TaskManager from "../components/Apps/TaskManager";
 import TaskManagerIcon from '/task_manager.png';
+import TombRaiderIcon from '/tomb.jpg';
 import { useProcessContext } from "../contexts/ProcessContext";
 import NotesIcon from '/notes.png';
 import Notes from "../components/Apps/Notes";
@@ -16,6 +17,7 @@ import ExplorerIcon from '/explorer.png';
 import Explorer from "../components/Apps/Explorer";
 import BrowserIcon from '/browser.png';
 import Browser from "../components/Apps/Browser";
+import TombRaider from "../components/Apps/TombRaider";
 
 const Desktop: React.FC = () => {
     const desktop = useRef<HTMLDivElement | null>(null);
@@ -39,11 +41,11 @@ const Desktop: React.FC = () => {
                 priority: 0,
             },
             {
-                name: "Doom",
-                icon: DoomIcon,
+                name: "GameCache",
+                icon: BackloggerIcon,
                 selected: false,
-                componentName: 'doom',
-                component: Doom,
+                componentName: 'backlogger',
+                component: Backlogger,
                 priority: 0,
             },
         ],
@@ -56,12 +58,13 @@ const Desktop: React.FC = () => {
                 component: MyComputer,
                 priority: 0,
             },
+
             {
-                name: "Browser",
-                icon: BrowserIcon,
+                name: "Tomb Raider",
+                icon: TombRaiderIcon,
                 selected: false,
-                componentName: 'browser',
-                component: Browser,
+                componentName: 'tomb',
+                component: TombRaider,
                 priority: 0,
             },
         ],
@@ -72,6 +75,14 @@ const Desktop: React.FC = () => {
                 selected: false,
                 componentName: 'task_manager',
                 component: TaskManager,
+                priority: 0,
+            },
+            {
+                name: "Doom",
+                icon: DoomIcon,
+                selected: false,
+                componentName: 'doom',
+                component: Doom,
                 priority: 0,
             },
         ],
@@ -87,11 +98,11 @@ const Desktop: React.FC = () => {
         ],
         [
             {
-                name: "GameCache",
-                icon: BackloggerIcon,
+                name: "Browser",
+                icon: BrowserIcon,
                 selected: false,
-                componentName: 'backlogger',
-                component: Backlogger,
+                componentName: 'browser',
+                component: Browser,
                 priority: 0,
             },
         ],

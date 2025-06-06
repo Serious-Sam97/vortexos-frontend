@@ -14,6 +14,7 @@ import Explorer from "../components/Apps/Explorer";
 import ExplorerIcon from '/explorer.png';
 import NotesIcon from '/notes.png';
 import { Program } from "../interfaces/Program";
+import TombRaider from "../components/Apps/TombRaider";
 
 const ProcessContext = createContext<IProcessContext>({} as IProcessContext);
 
@@ -114,6 +115,9 @@ export function ProcessContextProvider({children}: {children: ReactNode}) {
                 break;
             case 'explorer':
                 return Explorer;
+                break;
+            case 'tomb':
+                return TombRaider;
                 break;
         }
     }
