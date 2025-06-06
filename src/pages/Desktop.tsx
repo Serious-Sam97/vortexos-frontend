@@ -153,7 +153,13 @@ const Desktop: React.FC = () => {
         }));
     }
 
+    const playIntroAudio = () => {
+        const audio = new Audio('win98.mp3');
+        audio.play();
+    }
+
     useEffect(() => {
+        playIntroAudio();
         updateHeight();
         window.addEventListener("resize", updateHeight);
         return () => window.removeEventListener("resize", updateHeight);
