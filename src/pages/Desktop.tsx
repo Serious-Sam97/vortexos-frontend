@@ -1,12 +1,14 @@
 import { useRef, useEffect, useState } from "react";
 import TrashIcon from '/trash.svg'
 import MyComputerIcon from '/my-computer.png'
-import DoomIcon from '/doom.png'
+import DoomIcon from '/doom.png';
+import DoomIIIcon from '/doom2.png';
 import Doom from "../components/Apps/Doom";
 import MyComputer from "../components/Apps/MyComputer";
 import RecycleBin from "../components/Apps/RecycleBin";
 import Backlogger from "../components/Apps/Backlogger";
 import BackloggerIcon from '/backlogger.png';
+import PersiaIcon from '/persia.png';
 import TaskManager from "../components/Apps/TaskManager";
 import TaskManagerIcon from '/task_manager.png';
 import TombRaiderIcon from '/tomb.jpg';
@@ -18,6 +20,8 @@ import Explorer from "../components/Apps/Explorer";
 import BrowserIcon from '/browser.png';
 import Browser from "../components/Apps/Browser";
 import TombRaider from "../components/Apps/TombRaider";
+import DoomII from "../components/Apps/DoomII";
+import Persia from "../components/Apps/Persia";
 
 const Desktop: React.FC = () => {
     const desktop = useRef<HTMLDivElement | null>(null);
@@ -95,6 +99,14 @@ const Desktop: React.FC = () => {
                 component: Explorer,
                 priority: 0,
             },
+            {
+                name: "Doom II",
+                icon: DoomIIIcon,
+                selected: false,
+                componentName: 'doomII',
+                component: DoomII,
+                priority: 0,
+            },
         ],
         [
             {
@@ -103,6 +115,14 @@ const Desktop: React.FC = () => {
                 selected: false,
                 componentName: 'browser',
                 component: Browser,
+                priority: 0,
+            },
+            {
+                name: "Prince of Persia",
+                icon: PersiaIcon,
+                selected: false,
+                componentName: 'persia',
+                component: Persia,
                 priority: 0,
             },
         ],

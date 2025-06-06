@@ -18,7 +18,7 @@ const DoomII: React.FC = () => {
             </Toolbar>
             <WindowContent>
                 <div style={{ width: "640px", height: "400px" }}>
-                    <DosPlayer bundleUrl="dos/doom.jsdos" />
+                    <DosPlayer bundleUrl="dos/doom2.jsdos" />
                 </div>
 
             </WindowContent>
