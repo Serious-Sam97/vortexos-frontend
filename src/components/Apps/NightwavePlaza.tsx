@@ -22,7 +22,10 @@ const NightwavePlaza: React.FC = () => {
         const interval = setInterval(() => {
         fetch(STATUS_API)
             .then((res) => res.json())
-            .then((data) => setTrack(data.song));
+            .then((data) => {
+                console.log(data);
+                setTrack(data.song)
+            });
         }, 10000);
 
         return () => clearInterval(interval);
