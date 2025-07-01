@@ -22,6 +22,8 @@ import Browser from "../components/Apps/Browser";
 import TombRaider from "../components/Apps/TombRaider";
 import DoomII from "../components/Apps/DoomII";
 import Persia from "../components/Apps/Persia";
+import NightwavePlaza from "../components/Apps/NightwavePlaza";
+import NightwavePlazaIcon from '/vapor.png';
 
 const Desktop: React.FC = () => {
     const desktop = useRef<HTMLDivElement | null>(null);
@@ -133,6 +135,14 @@ const Desktop: React.FC = () => {
                 selected: false,
                 componentName: 'notes',
                 component: Notes,
+                priority: 0,
+            },
+            {
+                name: "Nightwave Plaza",
+                icon: NightwavePlazaIcon,
+                selected: false,
+                componentName: 'vaporwave',
+                component: NightwavePlaza,
                 priority: 0,
             },
         ],

@@ -20,7 +20,6 @@ const Persia: React.FC = () => {
                 <div style={{ width: "800px", height: "600px" }}>
                     <DosPlayer bundleUrl="dos/PERSIA.jsdos" />
                 </div>
-
             </WindowContent>
             <Frame variant='well' className='footer'>
                 TEST

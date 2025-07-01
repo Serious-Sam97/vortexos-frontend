@@ -17,6 +17,7 @@ import { Program } from "../interfaces/Program";
 import TombRaider from "../components/Apps/TombRaider";
 import DoomII from "../components/Apps/DoomII";
 import Persia from "../components/Apps/Persia";
+import NightwavePlaza from "../components/Apps/NightwavePlaza";
 
 const ProcessContext = createContext<IProcessContext>({} as IProcessContext);
 
@@ -96,37 +97,28 @@ export function ProcessContextProvider({children}: {children: ReactNode}) {
         switch(componentName) {
             case 'recycle_bin':
                 return RecycleBin;
-                break;
             case 'my_computer':
                 return MyComputer;
-                break;
             case 'task_manager':
                 return TaskManager;
-                break;
             case 'doom':
                 return Doom;
-                break;
             case 'backlogger':
                 return Backlogger;
-                break;
             case 'notes':
                 return Notes;
-                break;
             case 'browser':
                 return Browser;
-                break;
             case 'explorer':
                 return Explorer;
-                break;
             case 'tomb':
                 return TombRaider;
-                break;
             case 'doomII':
                 return DoomII;
-                break;
             case 'persia':
                 return Persia;
-                break;
+            case 'vaporwave':
+                return NightwavePlaza;
         }
     }
 
