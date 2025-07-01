@@ -1,10 +1,18 @@
 import { useEffect, useState } from "react";
 import { Button, Frame, Toolbar, WindowContent } from "react95";
+
 const STREAM_URL = "https://radio.plaza.one/mp3";
 const STATUS_API = "https://api.plaza.one/status";
+
+type Track = {
+    artwork_src?: string;
+    title?: string;
+    artist?: string;
+};
+
 const NightwavePlaza: React.FC = () => {
 
-    const [track, setTrack] = useState(null);
+    const [track, setTrack] = useState<Track | null>(null);
 
     useEffect(() => {
         fetch(STATUS_API)
@@ -14,7 +22,7 @@ const NightwavePlaza: React.FC = () => {
         const interval = setInterval(() => {
         fetch(STATUS_API)
             .then((res) => res.json())
-            .then((data) => console.log(data));
+            .then((data) => setTrack(data.song));
         }, 10000);
 
         return () => clearInterval(interval);
