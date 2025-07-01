@@ -18,6 +18,7 @@ import TombRaider from "../components/Apps/TombRaider";
 import DoomII from "../components/Apps/DoomII";
 import Persia from "../components/Apps/Persia";
 import NightwavePlaza from "../components/Apps/NightwavePlaza";
+import ControlPanel from "../components/Apps/ControlPanel";
 
 const ProcessContext = createContext<IProcessContext>({} as IProcessContext);
 
@@ -119,6 +120,8 @@ export function ProcessContextProvider({children}: {children: ReactNode}) {
                 return Persia;
             case 'vaporwave':
                 return NightwavePlaza;
+            case 'control_panel':
+                return ControlPanel;
         }
     }
 

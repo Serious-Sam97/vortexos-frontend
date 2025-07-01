@@ -6,7 +6,9 @@ import styled from "styled-components";
 import { useProcessContext } from '../contexts/ProcessContext';
 import TaskManager from "../components/Apps/TaskManager";
 import TaskManagerIcon from '/task_manager.png';
+import ControlPanelIcon from '/controlpanel.png';
 import { Process } from '../interfaces/Process';
+import ControlPanel from './Apps/ControlPanel';
 
 const WMenu: React.FC = () => {
     const [open, setOpen] = useState(false);
@@ -37,6 +39,14 @@ const WMenu: React.FC = () => {
             selected: false,
             componentName: 'task_manager',
             component: TaskManager,
+            priority: 0,
+        },
+        {
+            name: "Control Panel",
+            icon: ControlPanelIcon,
+            selected: false,
+            componentName: 'control_panel',
+            component: ControlPanel,
             priority: 0,
         },
     ]);
