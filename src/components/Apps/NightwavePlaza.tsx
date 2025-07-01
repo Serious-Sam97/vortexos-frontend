@@ -64,7 +64,7 @@ const NightwavePlaza: React.FC = () => {
                         <div className="flex flex-col items-center">
                         <img
                             width={'200px'}
-                            src={`${number}.jpeg`}
+                            src={`/vaporwave/${number}.jpeg`}
                             alt="Cover"
                             className="w-40 h-40 rounded-2xl mb-2 shadow-lg"
                         />
