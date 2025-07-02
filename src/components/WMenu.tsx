@@ -86,12 +86,6 @@ const WMenu: React.FC = () => {
                             ))
                         }
                         <MenuListItem>
-                            <span role='img' aria-label='👨‍💻'>
-                            👨‍💻
-                            </span>
-                            Profile
-                        </MenuListItem>
-                        <MenuListItem>
                             <span role='img' aria-label='📁'>
                             📁
                             </span>
