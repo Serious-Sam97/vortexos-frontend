@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button, Frame, Toolbar, WindowContent } from "react95";
 
 const STREAM_URL = "https://radio.plaza.one/mp3";
-const STATUS_API = "https://api.fplaza.one/status";
+const STATUS_API = "https://api.plaza.one/status";
 
 type Track = {
     artwork_src?: string;
@@ -46,7 +46,7 @@ const NightwavePlaza: React.FC = () => {
                 </Button>
             </Toolbar>
             <WindowContent>
-                <div className="flex flex-col items-center gap-4">
+                <div style={{width: '300px'}} className="flex flex-col items-center gap-4">
                     <h2 className="text-2xl font-bold">Vaporwave Radio</h2>
                     <audio controls autoPlay src={STREAM_URL} className="w-full max-w-md" />
                     {track ? (

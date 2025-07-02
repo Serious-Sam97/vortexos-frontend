@@ -38,7 +38,7 @@ const Explorer: React.FC<IExplorer> = ({level}) => {
 
         console.log(nextLvlAvailable);
 
-        let tempStorage = storage;
+        const tempStorage = storage;
 
         if (!tempStorage[nextLvlAvailable[0]]) {
             setStorage([

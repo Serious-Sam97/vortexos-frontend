@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { ReactNode } from "react";
 import { IOSContext } from "../interfaces/IOSContext";
 
@@ -10,12 +10,24 @@ export function OSContextProvider({children}: {children: ReactNode}) {
 
     const [storage, setStorage] = useState<any[]>([]);
 
+    const [ wallpaper, setWallpaper ] = useState('');
+
+    const userWallpaper = localStorage.getItem('wallpaper');
+    useEffect(() => {
+        setWallpaper(userWallpaper !== null ? userWallpaper : '')
+    }, [userWallpaper]);
+
+    const changeWallpaper = (value: string) => {
+        localStorage.setItem('wallpaper', value);
+        setWallpaper(value);
+    }
+
     const changeCursor = (cursorType: string) => {
         setCursor(`url(/win-cursor/${cursorType}), auto`);
     }
 
     return (
-        <OSContext.Provider value={{cursor, changeCursor, storage, setStorage}}>
+        <OSContext.Provider value={{cursor, changeCursor, storage, setStorage, wallpaper, changeWallpaper}}>
             {children}
         </OSContext.Provider>
     )

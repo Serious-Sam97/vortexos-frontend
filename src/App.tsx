@@ -3,11 +3,10 @@ import { styleReset } from 'react95';
 import original from 'react95/dist/themes/original';
 import ms_sans_serif from 'react95/dist/fonts/ms_sans_serif.woff2';
 import ms_sans_serif_bold from 'react95/dist/fonts/ms_sans_serif_bold.woff2';
-import { BrowserRouter, Routes, Route } from "react-router";
-import Intro from './pages/Intro';
-import Windows from './pages/Vortex';
+import { BrowserRouter } from "react-router";
 import { ProcessContextProvider } from './contexts/ProcessContext';
 import { OSContextProvider } from './contexts/OSContext';
+import AppContent from './AppContent';
 
 const GlobalStyles = createGlobalStyle`
   ${styleReset}
@@ -38,7 +37,6 @@ const GlobalStyles = createGlobalStyle`
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #008080; /* Background for full screen */
   }
 `;
 
@@ -48,10 +46,9 @@ const App = () => (
       <ThemeProvider theme={original}>
         <OSContextProvider>
           <ProcessContextProvider>
-            <Routes>
-              <Route path="/" element={<Intro />} />
-              <Route path="/vortex" element={<Windows />} />
-            </Routes>
+            <AppContent>
+              
+            </AppContent>
           </ProcessContextProvider>
         </OSContextProvider>
       </ThemeProvider>
