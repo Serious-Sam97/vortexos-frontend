@@ -1,4 +1,3 @@
-import styled from 'styled-components';
 import { useOSContext } from './contexts/OSContext';
 import Intro from './pages/Intro';
 import Windows from './pages/Vortex';
