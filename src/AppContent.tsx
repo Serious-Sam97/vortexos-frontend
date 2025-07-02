@@ -5,19 +5,25 @@ import { Routes, Route } from "react-router";
 
 const AppContent: React.FC = () => {
     const { wallpaper } = useOSContext();
-    console.log(wallpaper)
     
     const getWallpaper = () => {
-        if (!wallpaper) {
+        if (!wallpaper.image) {
             return {
-                backgroundColor: '#008080'
+                background: '#008080'
             };
+        }
+        
+        if (wallpaper.type === 2) {
+            return {
+                background: wallpaper.image
+            }
         }
 
         return {
-            backgroundImage: `url('/${wallpaper}')`,
+            backgroundImage: `url('/${wallpaper.image}')`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
         }
     }
 
