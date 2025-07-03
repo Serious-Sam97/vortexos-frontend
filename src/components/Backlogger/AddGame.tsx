@@ -41,7 +41,7 @@ const AddGame: React.FC<AddGameProps> = ({saveAndGoBack}) => {
     };
 
     useEffect(() => {
-        axios.get('http://localhost:8080/platforms')
+        axios.get(`${import.meta.env.VITE_API_URL}/platforms`)
             .then(data => {
                 setPlatforms(data.data.map((plat: Platform) => {
                     return {
@@ -55,7 +55,7 @@ const AddGame: React.FC<AddGameProps> = ({saveAndGoBack}) => {
     const saveGame = () => {
         setPage(backlog ? 2 : 1);
         startTimer();
-        axios.post('http://localhost:8080/games', {
+        axios.post(`${import.meta.env.VITE_API_URL}/games`, {
             platform_id: selectedPlatform.id,
             title: game,
             backlog,

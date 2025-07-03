@@ -29,7 +29,7 @@ const Backlogger: React.FC = () => {
 
     const fetchGames = (pending: boolean) => {
         setGames([]);
-        axios.get(`http://localhost:8080/games${pending ? '/backlog' : ''}`)
+        axios.get(`${import.meta.env.VITE_API_URL}/games${pending ? '/backlog' : ''}`)
             .then(data => setGames(data.data));
     }
 

@@ -55,18 +55,18 @@ const GameList: React.FC<GameListProps> = ({ games, fetchGames, setGames }) => {
 
     const deleteGame = (game: Game) => {
         setLoading(true);
-        axios.delete(`http://localhost:8080/games/${game.id}`)
+        axios.delete(`${import.meta.env.VITE_API_URL}/games/${game.id}`)
             .then(() => fetchGames());
     }
 
     const completeGame = (game: Game) => {
         setLoading(true);
-        axios.post(`http://localhost:8080/games/${game.id}/complete`)
+        axios.post(`${import.meta.env.VITE_API_URL}/games/${game.id}/complete`)
             .then(() => fetchGames());
     }
 
     const updateNotes = (event: React.ChangeEvent<HTMLTextAreaElement>, game: Game) => {
-        axios.put(`http://localhost:8080/games/${game.id}`, {
+        axios.put(`${import.meta.env.VITE_API_URL}/games/${game.id}`, {
             notes: event.target.value
         });
     }
