@@ -2,9 +2,10 @@ import { Table, TableBody, TableDataCell, TableHead, TableHeadCell, TableRow } f
 import { useProcessContext } from "../../contexts/ProcessContext";
 
 const ProcessList: React.FC = () => {
-    const { processes } = useProcessContext();
+    const { processes, closeProcess } = useProcessContext();
+
     const headers: string[] = [
-        'UUID', 'Name', 'Priority'
+        'UUID', 'Name', 'Priority', ''
     ];
 
     return (
@@ -28,6 +29,12 @@ const ProcessList: React.FC = () => {
                                 </TableDataCell>
                                 <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{process.name}</TableDataCell>
                                 <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{process.priority === 0 ? 'High' : 'Normal'}</TableDataCell>
+                                <TableDataCell
+                                    onClick={() => closeProcess(process.uuid || '')}
+                                    style={{ textAlign: 'center', verticalAlign: 'middle', cursor: 'pointer' }}
+                                >
+                                    Delete
+                                </TableDataCell>
                             </TableRow>
                         ))
                     }
