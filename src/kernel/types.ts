@@ -42,6 +42,8 @@ export interface PCB {
     exec: string;
     name: string;
     icon: string;
+    /** Launch arguments — e.g. the file path a process was opened with. */
+    argv: string[];
     state: ProcessState;
     /** 0 = focused / foreground. Doubles as the window z-order. */
     priority: number;
@@ -90,17 +92,20 @@ export interface SyscallMap {
     exit: { args: { code?: number }; result: void };
     kill: { args: { pid: Pid }; result: void };
     getpid: { args: Record<string, never>; result: Pid | null };
+    getargv: { args: Record<string, never>; result: string[] };
     ps: { args: Record<string, never>; result: ProcInfo[] };
     // ── window / scheduler ───────────────────────────────────
     win_focus: { args: { pid: Pid }; result: void };
     win_move: { args: { pid: Pid; location: WindowState }; result: void };
-    // ── filesystem (ENOSYS until Phase 1) ────────────────────
+    // ── filesystem ───────────────────────────────────────────
     open: { args: { path: string; flags: string }; result: Fd };
     read: { args: { fd: Fd; len: number }; result: Uint8Array };
     write: { args: { fd: Fd; data: Uint8Array }; result: number };
     close: { args: { fd: Fd }; result: void };
     readdir: { args: { path: string }; result: string[] };
     stat: { args: { path: string }; result: Stat };
+    mkdir: { args: { path: string }; result: void };
+    unlink: { args: { path: string }; result: void };
 }
 
 export type SyscallName = keyof SyscallMap;
@@ -112,7 +117,12 @@ export type Errno =
     | "ENOENT" // no such file or directory
     | "EBADF" // bad file descriptor
     | "EACCES" // permission denied
-    | "EINVAL"; // invalid argument
+    | "EINVAL" // invalid argument
+    | "EEXIST" // file already exists
+    | "ENOTDIR" // not a directory
+    | "EISDIR" // is a directory
+    | "ENOTEMPTY" // directory not empty
+    | "EROFS"; // read-only filesystem
 
 export class KernelError extends Error {
     constructor(public code: Errno, message?: string) {
@@ -129,6 +139,7 @@ export interface SerializedPCB {
     exec: string;
     name: string;
     icon: string;
+    argv?: string[];
     priority: number;
     window: WindowState;
     cwd: string;

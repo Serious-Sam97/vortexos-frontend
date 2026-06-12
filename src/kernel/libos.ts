@@ -13,17 +13,26 @@ export interface LibOS {
     exit(code?: number): Promise<void>;
     kill(pid: Pid): Promise<void>;
     getpid(): Promise<Pid | null>;
+    /** This process's launch arguments (e.g. the file path it was opened with). */
+    argv(): Promise<string[]>;
     ps(): Promise<ProcInfo[]>;
     // window / scheduler
     focus(pid: Pid): Promise<void>;
     move(location: WindowState, pid?: Pid): Promise<void>;
-    // filesystem (throws ENOSYS until Phase 1)
+    // filesystem — low level
     open(path: string, flags?: string): Promise<Fd>;
     read(fd: Fd, len: number): Promise<Uint8Array>;
     write(fd: Fd, data: Uint8Array): Promise<number>;
     close(fd: Fd): Promise<void>;
     readdir(path: string): Promise<string[]>;
     stat(path: string): Promise<Stat>;
+    mkdir(path: string): Promise<void>;
+    unlink(path: string): Promise<void>;
+    // filesystem — whole-file convenience helpers
+    readFile(path: string): Promise<Uint8Array>;
+    writeFile(path: string, data: Uint8Array): Promise<void>;
+    readTextFile(path: string): Promise<string>;
+    writeTextFile(path: string, text: string): Promise<void>;
 }
 
 export function createLibOS(kernel: Kernel, pid: Pid | null): LibOS {
@@ -37,6 +46,7 @@ export function createLibOS(kernel: Kernel, pid: Pid | null): LibOS {
         exit: (code = 0) => call("exit", { code }),
         kill: (target) => call("kill", { pid: target }),
         getpid: () => call("getpid", {}),
+        argv: () => call("getargv", {}),
         ps: () => call("ps", {}),
         focus: (target) => call("win_focus", { pid: target }),
         move: (location, target) => call("win_move", { pid: target ?? (pid as Pid), location }),
@@ -46,5 +56,31 @@ export function createLibOS(kernel: Kernel, pid: Pid | null): LibOS {
         close: (fd) => call("close", { fd }),
         readdir: (path) => call("readdir", { path }),
         stat: (path) => call("stat", { path }),
+        mkdir: (path) => call("mkdir", { path }),
+        unlink: (path) => call("unlink", { path }),
+
+        async readFile(path) {
+            const { size } = await call("stat", { path });
+            const fd = await call("open", { path, flags: "r" });
+            try {
+                return await call("read", { fd, len: size });
+            } finally {
+                await call("close", { fd });
+            }
+        },
+        async writeFile(path, data) {
+            const fd = await call("open", { path, flags: "w" });
+            try {
+                await call("write", { fd, data });
+            } finally {
+                await call("close", { fd });
+            }
+        },
+        async readTextFile(path) {
+            return new TextDecoder().decode(await this.readFile(path));
+        },
+        async writeTextFile(path, text) {
+            await this.writeFile(path, new TextEncoder().encode(text));
+        },
     };
 }

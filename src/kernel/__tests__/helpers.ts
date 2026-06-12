@@ -1,5 +1,10 @@
 import { Kernel } from "../Kernel";
 import { ProgramRegistry } from "../registry";
+import { Vfs } from "../fs/Vfs";
+import { MemFS } from "../fs/MemFS";
+import { DevFS } from "../fs/DevFS";
+import { ProcFS } from "../fs/ProcFS";
+import { BinFS } from "../fs/BinFS";
 import { Persistence, SerializedPCB, WindowState } from "../types";
 
 /** A registry preloaded with stub programs (no heavy app imports). */
@@ -36,13 +41,28 @@ export function memoryPersistence(initial: SerializedPCB[] | null = null) {
 export const fixedLocation = (): WindowState => ({ x: 111, y: 222 });
 
 export function makeKernel(
-    opts: { registry?: ProgramRegistry; persistence?: Persistence } = {},
+    opts: { registry?: ProgramRegistry; persistence?: Persistence; mountFs?: boolean } = {},
 ): Kernel {
-    return new Kernel({
+    const kernel = new Kernel({
         registry: opts.registry ?? makeRegistry(),
         persistence: opts.persistence,
         defaultWindowLocation: fixedLocation,
     });
+    if (opts.mountFs !== false) kernel.mountVfs(buildTestVfs(kernel));
+    return kernel;
+}
+
+/** A VFS with the standard mounts and a seeded /home/user, for kernel tests. */
+export function buildTestVfs(kernel: Kernel): Vfs {
+    const root = new MemFS();
+    root.mkdir("/home");
+    root.mkdir("/home/user");
+    const vfs = new Vfs();
+    vfs.mount("/", root);
+    vfs.mount("/dev", new DevFS());
+    vfs.mount("/proc", new ProcFS(() => kernel.processInfo()));
+    vfs.mount("/bin", new BinFS(() => kernel.registry.list().map((p) => ({ exec: p.exec, name: p.name }))));
+    return vfs;
 }
 
 function titleCase(s: string): string {

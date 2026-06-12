@@ -10,3 +10,10 @@ export { createLocalStoragePersistence } from "./persistence";
 export { KernelProvider, useKernel, useProcessTable } from "./react/KernelProvider";
 export { PidProvider, usePid } from "./react/pid";
 export { useSys } from "./react/useSys";
+// filesystem
+export { Vfs } from "./fs/Vfs";
+export { MemFS } from "./fs/MemFS";
+export { DevFS } from "./fs/DevFS";
+export { ProcFS } from "./fs/ProcFS";
+export { BinFS } from "./fs/BinFS";
+export type { FileSystem, SerializedNode } from "./fs/types";

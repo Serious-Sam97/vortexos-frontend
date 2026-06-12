@@ -1,76 +1,123 @@
-import { useEffect, useState } from "react";
-import { Button, Frame, MenuList, MenuListItem, TextInput, Toolbar, WindowContent } from "react95";
+import { useCallback, useEffect, useState } from "react";
+import { Button, Frame, MenuList, MenuListItem, Separator, TextInput, Toolbar, WindowContent } from "react95";
+import { useSys } from "../../kernel/react/useSys";
 
+const HOME = "/home/user";
+const DEFAULT = "/home/user/welcome.txt";
+
+/** A real text editor: reads and writes files on the VFS through syscalls. */
 const Notes: React.FC = () => {
-    const [ note, setNote ] = useState('');
-    const [ isFileOpen, setIsFileOpen ] = useState(false);
+    const sys = useSys();
+    const [path, setPath] = useState(DEFAULT);
+    const [note, setNote] = useState("");
+    const [dirty, setDirty] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [files, setFiles] = useState<string[]>([]);
+    const [status, setStatus] = useState("");
 
-    const fileOptions = (option: number) => {
-        switch(option) {
-            case 0:
-                setNote('');
-                break;
-            case 1:
-                alert('Save file');
-                break;
-            case 2:
-                alert('Load file');
-                break;
+    const load = useCallback(
+        async (p: string) => {
+            try {
+                const text = await sys.readTextFile(p);
+                setPath(p);
+                setNote(text);
+                setDirty(false);
+                setStatus(`Opened ${p}`);
+            } catch (e: any) {
+                setStatus(`Could not open ${p}: ${e.code ?? e.message}`);
+            }
+        },
+        [sys],
+    );
+
+    useEffect(() => {
+        // Open the file passed in argv (e.g. from Explorer), else the default note.
+        (async () => {
+            const [arg] = await sys.argv();
+            await load(arg || DEFAULT);
+        })();
+    }, [load, sys]);
+
+    const openMenu = async () => {
+        try {
+            setFiles((await sys.readdir(HOME)).filter((f) => f.endsWith(".txt")));
+        } catch {
+            setFiles([]);
         }
-        setIsFileOpen(false);
+        setMenuOpen((o) => !o);
     };
 
-    useEffect(() => {
-        const tempNote = localStorage.getItem('App.Notes.tempValue');
-        if (tempNote) {
-            setNote(tempNote);
+    const save = async () => {
+        try {
+            await sys.writeTextFile(path, note);
+            setDirty(false);
+            setStatus(`Saved ${path}`);
+        } catch (e: any) {
+            setStatus(`Save failed: ${e.code ?? e.message}`);
         }
-    }, []);
+        setMenuOpen(false);
+    };
 
-    useEffect(() => {
-        localStorage.setItem('App.Notes.tempValue', note);
-    }, [note]);
+    const newNote = () => {
+        const name = window.prompt("New file name:", "untitled.txt");
+        setMenuOpen(false);
+        if (!name) return;
+        setPath(`${HOME}/${name}`);
+        setNote("");
+        setDirty(true);
+        setStatus(`New file ${name} — not saved yet`);
+    };
+
+    const openFile = async (name: string) => {
+        setMenuOpen(false);
+        await load(`${HOME}/${name}`);
+    };
 
     return (
         <>
             <Toolbar>
-                <Button variant='menu' size='sm' onClick={() => setIsFileOpen(!isFileOpen)}>
+                <Button variant="menu" size="sm" onClick={openMenu}>
                     File
                 </Button>
-                {
-                    isFileOpen && (
-                        <MenuList
-                            style={{
-                                position: 'absolute',
-                                left: '3%',
-                                top: '100%',
-                                zIndex: '99999'
-                            }}
-                        >
-                            <MenuListItem style={{cursor: 'pointer'}} onClick={() => fileOptions(0)}>
-                                New Note
+                {menuOpen && (
+                    <MenuList style={{ position: "absolute", left: "3%", top: "100%", zIndex: 99999 }}>
+                        <MenuListItem style={{ cursor: "pointer" }} onClick={newNote}>
+                            New
+                        </MenuListItem>
+                        <MenuListItem style={{ cursor: "pointer" }} onClick={save}>
+                            Save
+                        </MenuListItem>
+                        <Separator />
+                        {files.length === 0 && <MenuListItem disabled>(no .txt files)</MenuListItem>}
+                        {files.map((f) => (
+                            <MenuListItem key={f} style={{ cursor: "pointer" }} onClick={() => openFile(f)}>
+                                {f}
                             </MenuListItem>
-                            <MenuListItem style={{cursor: 'pointer'}} onClick={() => fileOptions(1)}>
-                                <p>Save File</p>
-                            </MenuListItem>
-                            <MenuListItem style={{cursor: 'pointer'}} onClick={() => fileOptions(1)}>
-                                <p>Load File</p>
-                            </MenuListItem>
-                        </MenuList>
-                    )
-                }
-                <Button variant='menu' size='sm' disabled>
+                        ))}
+                    </MenuList>
+                )}
+                <Button variant="menu" size="sm" onClick={save} disabled={!dirty}>
                     Save
-                </Button>
-                <Button variant='menu' size='sm' onClick={() => setIsFileOpen(false)}>
-                    About us
                 </Button>
             </Toolbar>
             <WindowContent>
-                <TextInput style={{minWidth: '60vw'}} value={note} onChange={e => setNote(e.target.value)} multiline rows={20} fullWidth />
+                <TextInput
+                    style={{ minWidth: "60vw" }}
+                    value={note}
+                    onChange={(e) => {
+                        setNote(e.target.value);
+                        setDirty(true);
+                    }}
+                    multiline
+                    rows={20}
+                    fullWidth
+                />
             </WindowContent>
-            <Frame variant='well' className='footer'>
-                <p>Notes App, the file name will appear here : )</p>
+            <Frame variant="well" className="footer">
+                <p>
+                    {path}
+                    {dirty ? " •" : ""} {status && `— ${status}`}
+                </p>
             </Frame>
         </>
     );

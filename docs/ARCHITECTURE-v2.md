@@ -23,11 +23,15 @@ BACKEND   ─ Java/Spring: persistent disk (File table) · users · auth
 
 | Phase | Builds | Status |
 |---|---|---|
-| **0 · Microkernel** | syscall ABI, `libos`, process table (PCB), program registry (`/bin`), compatibility shim | **in progress** |
-| 1 · Filesystem | inode VFS on OPFS, mount table, `/dev` `/proc`, fs syscalls | planned |
+| **0 · Microkernel** | syscall ABI, `libos`, process table (PCB), program registry (`/bin`), compatibility shim | **done** |
+| **1 · Filesystem** | inode VFS, mount table (`/` `/dev` `/proc` `/bin`), fs syscalls + fd table, Notes/Explorer as file clients | **done** |
 | 2 · Terminal + shell | `/bin/sh`, pipes/redirects, coreutils | planned |
 | 3 · App SDK + Workers | manifest + capability perms; migrate apps into real Web Workers | planned |
 | 4 · Multi-user + net | backend users/auth, login, home dirs, cloud-synced FS, messaging | planned |
+
+### Phase 1 notes
+
+VFS lives in `src/kernel/fs/`: `MemFS` (writable inode tree, the root), synthetic `DevFS`/`ProcFS`/`BinFS`, and `Vfs` (longest-prefix mount table with merged readdir). The kernel owns per-process fd tables (`PCB.fds`); `open/read/write/close/readdir/stat/mkdir/unlink` are real. Persistence is a **localStorage JSON snapshot** of the root tree (`vortex.vfs`) behind a pluggable `FsPersistence` — OPFS/IndexedDB or the backend `File` table can drop in later without touching the VFS. `/mnt/cloud` (backend-synced) is deferred to a later sub-step (needs backend write endpoints).
 
 ## Process model (Phase 0)
 
@@ -65,7 +69,7 @@ const fd = await sys.open("/home/notes.txt", "rw");
 |---|---|---|
 | Process | `spawn(exec, opts)` `exit(code)` `kill(pid)` `getpid()` `ps()` | ✅ |
 | Window | `win_focus(pid)` `win_move(pid, loc)` | ✅ (`win_create` implicit) |
-| FS | `open` `read` `write` `close` `readdir` `stat` `mkdir` `unlink` | ⏳ ENOSYS → Phase 1 |
+| FS | `open` `read` `write` `close` `readdir` `stat` `mkdir` `unlink` | ✅ (Phase 1) |
 | IPC | `pipe` `ipc_send` `ipc_recv` `signal` | ⏳ Phase 2+ |
 | Net | `net_fetch` `socket` | ⏳ Phase 4 |
 

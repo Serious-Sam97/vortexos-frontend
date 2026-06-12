@@ -131,25 +131,23 @@ describe("Kernel — introspection syscalls", () => {
         expect(await kernel.syscall("pid-123", "getpid", {})).toBe("pid-123");
         expect(await kernel.syscall(null, "getpid", {})).toBeNull();
     });
+
+    it("getargv returns the process's launch arguments", async () => {
+        const kernel = makeKernel();
+        const pid = await kernel.syscall(null, "spawn", { exec: "notes", argv: ["/home/user/x.txt"] });
+        expect(await kernel.syscall(pid, "getargv", {})).toEqual(["/home/user/x.txt"]);
+        expect(await kernel.syscall(null, "getargv", {})).toEqual([]); // kernel / no caller
+    });
 });
 
-describe("Kernel — filesystem syscalls are reserved (ENOSYS until Phase 1)", () => {
-    const kernel = makeKernel();
-    const fsCalls = [
-        ["open", { path: "/x", flags: "r" }],
-        ["read", { fd: 0, len: 1 }],
-        ["write", { fd: 0, data: new Uint8Array() }],
-        ["close", { fd: 0 }],
-        ["readdir", { path: "/" }],
-        ["stat", { path: "/x" }],
-    ] as const;
-
-    it.each(fsCalls)("%s rejects with ENOSYS", async (name, args) => {
-        await expect(kernel.syscall(null, name as any, args as any)).rejects.toThrow("ENOSYS");
+describe("Kernel — ENOSYS", () => {
+    it("an unknown syscall rejects with ENOSYS", async () => {
+        await expect(makeKernel().syscall(null, "frobnicate" as any, {})).rejects.toThrow("ENOSYS");
     });
 
-    it("an unknown syscall rejects with ENOSYS", async () => {
-        await expect(kernel.syscall(null, "frobnicate" as any, {})).rejects.toThrow("ENOSYS");
+    it("filesystem syscalls reject with ENOSYS when no VFS is mounted", async () => {
+        const kernel = makeKernel({ mountFs: false });
+        await expect(kernel.syscall(null, "readdir", { path: "/" })).rejects.toThrow("ENOSYS");
     });
 });
 
@@ -190,6 +188,20 @@ describe("Kernel — persistence", () => {
         expect(record).toMatchObject({ pid, exec: "notes", priority: 0 });
         expect(record).not.toHaveProperty("fds");
         expect(record).not.toHaveProperty("component");
+    });
+
+    it("persists and rehydrates a process's argv", async () => {
+        const persistence = memoryPersistence();
+        const kernel = makeKernel({ persistence });
+        await kernel.syscall(null, "spawn", { exec: "notes", argv: ["/home/user/welcome.txt"] });
+
+        expect(persistence.saved![0].argv).toEqual(["/home/user/welcome.txt"]);
+
+        const rebooted = makeKernel({ persistence });
+        expect(rebooted.processInfo()).toHaveLength(1);
+        expect(await rebooted.syscall(rebooted.getSnapshot()[0].pid, "getargv", {})).toEqual([
+            "/home/user/welcome.txt",
+        ]);
     });
 
     it("boots by rehydrating saved processes, dropping any whose program is gone", () => {

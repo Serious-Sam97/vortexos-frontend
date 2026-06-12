@@ -29,6 +29,12 @@ describe("createLibOS — userland syscall client", () => {
         expect(await sys.getpid()).toBe("shell-pid");
     });
 
+    it("argv returns the bound process's launch arguments", async () => {
+        const pid = await sys.spawn("notes", { argv: ["/home/user/a.txt", "--readonly"] });
+        const childSys = createLibOS(kernel, pid);
+        expect(await childSys.argv()).toEqual(["/home/user/a.txt", "--readonly"]);
+    });
+
     it("focus and move target the kernel scheduler / window", async () => {
         const a = await sys.spawn("notes");
         const b = await sys.spawn("doom");
@@ -48,9 +54,21 @@ describe("createLibOS — userland syscall client", () => {
         expect(kernel.getSnapshot().find((p) => p.pid === pid)!.window).toEqual({ x: 1, y: 2 });
     });
 
-    it("filesystem calls reject with ENOSYS until Phase 1", async () => {
-        await expect(sys.open("/etc/passwd")).rejects.toThrow("ENOSYS");
-        await expect(sys.readdir("/")).rejects.toThrow("ENOSYS");
-        await expect(sys.stat("/x")).rejects.toThrow("ENOSYS");
+    it("filesystem syscalls operate on the mounted VFS", async () => {
+        const fsSys = createLibOS(kernel, null); // kernel-level fds
+        expect(await fsSys.readdir("/")).toContain("home");
+        expect(await fsSys.stat("/home")).toMatchObject({ type: "dir" });
+        await expect(fsSys.open("/does/not/exist", "r")).rejects.toThrow("ENOENT");
+    });
+
+    it("whole-file helpers round-trip text and clean up fds", async () => {
+        const fsSys = createLibOS(kernel, null);
+        await fsSys.mkdir("/home/user/notes");
+        await fsSys.writeTextFile("/home/user/notes/todo.txt", "buy milk");
+
+        expect(await fsSys.readTextFile("/home/user/notes/todo.txt")).toBe("buy milk");
+
+        await fsSys.unlink("/home/user/notes/todo.txt");
+        expect(await fsSys.readdir("/home/user/notes")).toEqual([]);
     });
 });
