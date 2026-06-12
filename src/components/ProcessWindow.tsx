@@ -3,6 +3,7 @@ import { useProcessContext } from "../contexts/ProcessContext";
 import { Button, Window, WindowHeader } from "react95";
 import { Process } from "../interfaces/Process";
 import { useOSContext } from "../contexts/OSContext";
+import { PidProvider } from "../kernel/react/pid";
 
 interface ProcessWindowProp {
     process: Process
@@ -92,7 +93,9 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({process}) => {
             {
                 process.component
                     ? (
-                        React.createElement(process.component)
+                        <PidProvider pid={process.uuid ?? null}>
+                            {React.createElement(process.component)}
+                        </PidProvider>
                     ) : ''
             }
         </Window>

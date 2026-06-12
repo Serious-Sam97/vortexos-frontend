@@ -1,193 +1,97 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { useMemo } from "react";
 import { ReactNode } from "react";
-import { v4 as uuidv4 } from "uuid";
 import { IProcessContext } from "../interfaces/IProcessContext";
 import { Process } from "../interfaces/Process";
-import RecycleBin from "../components/Apps/RecycleBin";
-import MyComputer from "../components/Apps/MyComputer";
-import TaskManager from "../components/Apps/TaskManager";
-import Doom from "../components/Apps/Doom";
-import Backlogger from "../components/Apps/Backlogger";
-import Notes from "../components/Apps/Notes";
-import Browser from "../components/Apps/Browser";
+import { useKernel, useProcessTable } from "../kernel/react/KernelProvider";
+import ExplorerIcon from "/explorer.png";
+import NotesIcon from "/notes.png";
 import Explorer from "../components/Apps/Explorer";
-import ExplorerIcon from '/explorer.png';
-import NotesIcon from '/notes.png';
+import Notes from "../components/Apps/Notes";
 import { Program } from "../interfaces/Program";
-import TombRaider from "../components/Apps/TombRaider";
-import DoomII from "../components/Apps/DoomII";
-import Persia from "../components/Apps/Persia";
-import NightwavePlaza from "../components/Apps/NightwavePlaza";
-import ControlPanel from "../components/Apps/ControlPanel";
 
-const ProcessContext = createContext<IProcessContext>({} as IProcessContext);
+const ProcessContext = React.createContext<IProcessContext>({} as IProcessContext);
 
-export function ProcessContextProvider({children}: {children: ReactNode}) {
-    const [processes, setProcesses] = useState<Process[]>([]);
-    const [ ordenatedProcess ] = React.useState<Process[]>([]);
+/**
+ * Compatibility shim. v1's ProcessContext API is preserved exactly, but every call now
+ * forwards to the microkernel via syscalls — the kernel is the source of truth. Existing
+ * components (Desktop, WMenu, WindowManager, ProcessWindow, TaskManager, Explorer) keep
+ * working unchanged. New code should prefer `useSys()` / `useProcessTable()` directly.
+ */
+export function ProcessContextProvider({ children }: { children: ReactNode }) {
+    const kernel = useKernel();
+    const table = useProcessTable();
 
-    useEffect(() => {
-        const storedProcesses = localStorage.getItem('process');
-        if (storedProcesses) {
-            setProcesses([
-                ...JSON.parse(storedProcesses).map((process: Program) => {
-                    return {
-                        ...process,
-                        component: fetchComponent(process.componentName)
-                    }
-                })
-            ]);
-        }
-    }, []);
+    // Map the kernel's PCBs onto v1's `Process` shape, resolving each process's
+    // renderable component from the program registry (/bin).
+    const processes: Process[] = useMemo(
+        () =>
+            table.map((p) => ({
+                uuid: p.pid,
+                priority: p.priority,
+                component: kernel.registry.component(p.exec) ?? (() => null),
+                selected: false,
+                icon: p.icon,
+                name: p.name,
+                location: p.window,
+            })),
+        [table, kernel],
+    );
 
-    useEffect(() => {
-        // setOrdenatedProcess([...processes].sort((a: Process, b: Process) => a.priority - b.priority));
-    }, [processes]);
-
-
-    const changePriority = (process: Process,  priorityProp: number) => {
-        let priority = 0;
-        setProcesses(processes.map(p => {
-            if (p.uuid === process.uuid) {
-                return {
-                    ...p,
-                    priority: priorityProp,
-                };
-            }
-            return {
-                ...p,
-                priority: ++priority,
-            };
-        }));
+    // The desktop / start menu / explorer pass objects carrying `componentName`.
+    const addProcess = (tempProcess: any) => {
+        const exec = tempProcess.componentName;
+        if (!exec) return;
+        kernel.syscall(null, "spawn", { exec, name: tempProcess.name, icon: tempProcess.icon });
     };
 
-    const addProcess = (tempProcess: Process) => {
-        const process = {
-            ...tempProcess,
-            uuid: uuidv4(),
-            location: {
-                x: window.innerWidth/2,
-                y: window.innerHeight/2
-            },
-            priority: 0,
-        };
-        const allProcess = [...processes.map(p => {
-            return {
-                ...p,
-                priority: p.priority + 1
-            };
-        }), process];
-
-        setTimeout(() => {
-            setProcesses(allProcess);
-        }, 0);
-        localStorage.setItem('process', JSON.stringify(allProcess));
-    }
-
     const closeProcess = (uuid: string) => {
-        //Set Timeout Zero to run after the changePriority function
-        setTimeout(() => {
-            const allProcess = processes.filter((p: Process) => p.uuid !== uuid);
-            setProcesses(allProcess);
-            localStorage.setItem('process', JSON.stringify(allProcess));
-        }, 0);
-    }
+        if (uuid) kernel.syscall(null, "kill", { pid: uuid });
+    };
 
-    //TODO: Move this to a separated file and improve logic && flow
-    const fetchComponent = (componentName: string) => {
-        switch(componentName) {
-            case 'recycle_bin':
-                return RecycleBin;
-            case 'my_computer':
-                return MyComputer;
-            case 'task_manager':
-                return TaskManager;
-            case 'doom':
-                return Doom;
-            case 'backlogger':
-                return Backlogger;
-            case 'notes':
-                return Notes;
-            case 'browser':
-                return Browser;
-            case 'explorer':
-                return Explorer;
-            case 'tomb':
-                return TombRaider;
-            case 'doomII':
-                return DoomII;
-            case 'persia':
-                return Persia;
-            case 'vaporwave':
-                return NightwavePlaza;
-            case 'control_panel':
-                return ControlPanel;
-        }
-    }
-
-    const fetchIcon = (type: string) => {
-        switch(type) {
-            case 'folder':
-                return ExplorerIcon;
-                break;
-            case 'notes':
-                return NotesIcon;
-                break;
-        }
+    const changePriority = (process: Process, _priority: number) => {
+        if (process.uuid) kernel.syscall(null, "win_focus", { pid: process.uuid });
     };
 
     const handleProceessLocationChange = (uuid: string, location: any) => {
+        if (uuid) kernel.syscall(null, "win_move", { pid: uuid, location });
+    };
 
-        const lsProcess = localStorage.getItem('process');
+    const fetchComponent = (componentName: string) => kernel.registry.component(componentName);
 
-        if (!lsProcess) {
-            return;
+    const fetchIcon = (type: string) => {
+        switch (type) {
+            case "folder":
+                return ExplorerIcon;
+            case "notes":
+                return NotesIcon;
         }
+    };
 
-        const allProcess = [
-            ...JSON.parse(lsProcess).map((process: Process) => {
-                if (process.uuid === uuid) {
-                    return {
-                        ...process,
-                        location
-                    }
-                }
-
-                return process;
-            })
-        ];
-
-        localStorage.removeItem('process');
-        localStorage.setItem('process', JSON.stringify(allProcess));
-    }
-
-    //TODO: Move this to a separated file and improve logic && flow
-    const [ programs ] = useState([
-        {
-            name: 'File',
-            icon: ExplorerIcon,
-            componentName: 'explorer',
-            component: Explorer,
-        },
-        {
-            name: 'Notes',
-            icon: NotesIcon,
-            componentName: 'notes',
-            component: Notes,
-        },
-    ]);
+    const programs: Program[] = [
+        { name: "File", icon: ExplorerIcon, componentName: "explorer", component: Explorer },
+        { name: "Notes", icon: NotesIcon, componentName: "notes", component: Notes },
+    ];
 
     return (
-        <ProcessContext.Provider value={{processes, setProcesses, changePriority, closeProcess, ordenatedProcess, addProcess, handleProceessLocationChange, fetchIcon, fetchComponent, programs}}>
+        <ProcessContext.Provider
+            value={{
+                processes,
+                setProcesses: () => {}, // unused by consumers; kernel owns the table
+                changePriority,
+                closeProcess,
+                ordenatedProcess: processes,
+                addProcess,
+                handleProceessLocationChange,
+                fetchIcon,
+                fetchComponent,
+                programs,
+            }}
+        >
             {children}
         </ProcessContext.Provider>
-    )
+    );
 }
 
 export function useProcessContext() {
-    if (!ProcessContext) {
-        throw new Error("useProcessContext must be used within a ProcessContextProvider");
-    }
-
-    return useContext(ProcessContext);
+    return React.useContext(ProcessContext);
 }

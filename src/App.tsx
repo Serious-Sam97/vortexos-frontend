@@ -6,6 +6,7 @@ import ms_sans_serif_bold from 'react95/dist/fonts/ms_sans_serif_bold.woff2';
 import { BrowserRouter } from "react-router";
 import { ProcessContextProvider } from './contexts/ProcessContext';
 import { OSContextProvider } from './contexts/OSContext';
+import { KernelProvider } from './kernel/react/KernelProvider';
 import AppContent from './AppContent';
 
 const GlobalStyles = createGlobalStyle`
@@ -44,13 +45,15 @@ const App = () => (
   <BrowserRouter>
       <GlobalStyles />
       <ThemeProvider theme={original}>
-        <OSContextProvider>
-          <ProcessContextProvider>
-            <AppContent>
-              
-            </AppContent>
-          </ProcessContextProvider>
-        </OSContextProvider>
+        <KernelProvider>
+          <OSContextProvider>
+            <ProcessContextProvider>
+              <AppContent>
+
+              </AppContent>
+            </ProcessContextProvider>
+          </OSContextProvider>
+        </KernelProvider>
       </ThemeProvider>
     </BrowserRouter>
 );
