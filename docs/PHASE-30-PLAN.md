@@ -1,4 +1,4 @@
-# Phase 10 — App SDK + Real Web Workers ("go full")
+# Phase 30 — App SDK + Real Web Workers ("go full")
 
 > **Note:** originally Phase 3, then Phase 5, now parked at **Phase 10** — a long-term
 > "someday" item. It's the heaviest lift and nothing depends on it landing soon.

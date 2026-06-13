@@ -1,0 +1,15 @@
+{
+  "name": "VortexOS",
+  "short_name": "VortexOS",
+  "description": "A browser-based Windows-9x-style microkernel operating system.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#008080",
+  "theme_color": "#008080",
+  "icons": [
+    { "src": "/w95.png", "sizes": "192x192 512x512 any", "type": "image/png", "purpose": "any" },
+    { "src": "/logo.png", "sizes": "any", "type": "image/png", "purpose": "maskable" }
+  ]
+}

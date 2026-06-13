@@ -2,11 +2,12 @@ import { useState } from "react";
 import { Button, Checkbox, Monitor as React95Monitor } from "react95";
 import styled from "styled-components";
 import { useOSContext } from "../../contexts/OSContext";
+import { THEMES } from "../../system/themes";
 
 const Monitor: React.FC = () => {
     const [ wallpaperSelected, setWallpaperSelected ] = useState<string>('');
     const [ wallpaperType, setWallpaperType ] = useState<number>(1);
-    const { changeWallpaper, crt, toggleCrt } = useOSContext();
+    const { changeWallpaper, crt, toggleCrt, theme, setTheme } = useOSContext();
 
     const solidColors = [
         '#008080',
@@ -66,6 +67,19 @@ const Monitor: React.FC = () => {
 
     return (
         <div style={{width: '800px', maxHeight: '70vh', overflowY: 'scroll', overflowX: 'hidden'}}>
+            <div style={{ marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                <label htmlFor="theme-select" style={{ fontWeight: "bold" }}>Theme / Appearance:</label>
+                <select
+                    id="theme-select"
+                    value={theme}
+                    onChange={(e) => setTheme(e.target.value)}
+                    style={{ fontFamily: "inherit", padding: 2 }}
+                >
+                    {Object.entries(THEMES).map(([key, t]) => (
+                        <option key={key} value={key}>{t.name}</option>
+                    ))}
+                </select>
+            </div>
             <div style={{ marginBottom: 12 }}>
                 <Checkbox checked={crt} onChange={toggleCrt} label="CRT scanline effect" />
             </div>

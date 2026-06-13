@@ -20,6 +20,28 @@ describe("Shell", () => {
         expect((await run("pwd")).output).toBe("/home/user\n");
     });
 
+    it("expands environment variables", async () => {
+        expect((await run("echo $HOME")).output).toBe("/home/user\n");
+        await run("export NAME=Vortex");
+        expect((await run("echo hi $NAME")).output).toBe("hi Vortex\n");
+        expect((await run("echo ${NAME}OS")).output).toBe("VortexOS\n");
+        expect((await run("echo $MISSING.")).output).toBe(".\n"); // unset → empty
+    });
+
+    it("supports bare variable assignment", async () => {
+        await run("GREETING=hello");
+        expect((await run("echo $GREETING world")).output).toBe("hello world\n");
+    });
+
+    it("runs a script file line by line with persistent state", async () => {
+        const sys = createLibOS(kernel, null);
+        await sys.writeTextFile("/home/user/script.sh", "#!comment\nX=hi\necho $X there\nmkdir sub\ncd sub\npwd\n");
+        const res = await run("sh script.sh");
+        expect(res.output).toContain("hi there");
+        expect(res.output).toContain("/home/user/sub"); // cd persisted across script lines
+        expect(shell.cwd).toBe("/home/user/sub");
+    });
+
     it("cd changes the working directory", async () => {
         await run("cd /");
         expect(shell.cwd).toBe("/");

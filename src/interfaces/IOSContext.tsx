@@ -12,6 +12,8 @@ export interface IOSContext {
     toggleCrt: () => void,
     clipboard: FileClipboard | null,
     setClipboard: (clip: FileClipboard | null) => void,
+    theme: string,
+    setTheme: (theme: string) => void,
 };
 
 export interface FileClipboard {

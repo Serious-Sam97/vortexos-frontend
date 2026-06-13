@@ -13,6 +13,11 @@ export class ProgramRegistry {
         this.programs.set(manifest.exec, manifest);
     }
 
+    /** Uninstall a program (Add/Remove Programs). Returns whether it existed. */
+    unregister(exec: string): boolean {
+        return this.programs.delete(exec);
+    }
+
     get(exec: string): ProgramManifest | undefined {
         return this.programs.get(exec);
     }

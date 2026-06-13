@@ -21,6 +21,12 @@ export function OSContextProvider({children}: {children: ReactNode}) {
 
     const [ clipboard, setClipboard ] = useState<FileClipboard | null>(null);
 
+    const [ theme, setThemeState ] = useState<string>(() => localStorage.getItem('vortex.theme') || 'original');
+    const setTheme = (next: string) => {
+        localStorage.setItem('vortex.theme', next);
+        setThemeState(next);
+    };
+
     const [ wallpaper, setWallpaper ] = useState({
         image: '',
         type: 1,
@@ -48,7 +54,7 @@ export function OSContextProvider({children}: {children: ReactNode}) {
     }
 
     return (
-        <OSContext.Provider value={{cursor, changeCursor, wallpaper, changeWallpaper, minimized, minimize, restore, crt, toggleCrt, clipboard, setClipboard}}>
+        <OSContext.Provider value={{cursor, changeCursor, wallpaper, changeWallpaper, minimized, minimize, restore, crt, toggleCrt, clipboard, setClipboard, theme, setTheme}}>
             {children}
         </OSContext.Provider>
     )

@@ -5,6 +5,7 @@ import styled from "styled-components";
 import { useProcessContext } from "../contexts/ProcessContext";
 import { useOSContext } from "../contexts/OSContext";
 import { useAuth } from "../contexts/AuthContext";
+import { useUninstalled } from "../system/programs";
 import { useDialog } from "./Dialog/DialogProvider";
 import { Process } from "../interfaces/Process";
 import { playClick } from "../system/sounds";
@@ -108,7 +109,18 @@ const WMenu: React.FC = () => {
     const { minimized, minimize, restore } = useOSContext();
     const { username, logout } = useAuth();
     const { alert } = useDialog();
+    const uninstalled = useUninstalled();
     const clock = useClock();
+
+    // Cap a submenu's height to the space above the taskbar so a long list scrolls
+    // in place instead of running off the bottom of the screen.
+    const fitSubmenu = (el: HTMLElement | null) => {
+        if (!el) return;
+        const top = el.getBoundingClientRect().top;
+        const available = window.innerHeight - TASKBAR_HEIGHT - top - 8;
+        el.style.maxHeight = `${Math.max(140, available)}px`;
+        el.style.overflowY = "auto";
+    };
     const navigate = useNavigate();
 
     const [taskMenu, setTaskMenu] = useState<{ x: number; y: number } | null>(null);
@@ -219,19 +231,29 @@ const WMenu: React.FC = () => {
                         {/* vertical Windows-95-style banner */}
                         <div
                             style={{
-                                width: 28,
+                                width: 30,
                                 background: "linear-gradient(180deg, #00007a 0%, #000033 100%)",
                                 borderTop: "2px solid #dfdfdf",
                                 borderLeft: "2px solid #dfdfdf",
                                 display: "flex",
-                                alignItems: "flex-end",
+                                alignItems: "center",
                                 justifyContent: "center",
-                                padding: "10px 0",
                             }}
                         >
-                            <div style={{ transform: "rotate(-90deg)", transformOrigin: "center", whiteSpace: "nowrap", color: "#fff" }}>
+                            <div
+                                style={{
+                                    writingMode: "vertical-rl",
+                                    transform: "rotate(180deg)",
+                                    whiteSpace: "nowrap",
+                                    color: "#fff",
+                                    padding: "12px 0",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 4,
+                                }}
+                            >
                                 <span style={{ fontWeight: 400, letterSpacing: 1 }}>Vortex</span>
-                                <span style={{ fontWeight: "bold", fontSize: 20, marginLeft: 4 }}>95</span>
+                                <span style={{ fontWeight: "bold", fontSize: 20 }}>95</span>
                             </div>
                         </div>
 
@@ -244,8 +266,8 @@ const WMenu: React.FC = () => {
                                     <span>▸</span>
                                 </MenuListItem>
                                 {programsOpen && (
-                                    <MenuList style={{ position: "absolute", left: "100%", top: 0, width: 180 }}>
-                                        {PROGRAMS.map((p) => (
+                                    <MenuList ref={fitSubmenu as never} style={{ position: "absolute", left: "100%", top: 0, width: 220 }}>
+                                        {PROGRAMS.filter((p) => !uninstalled.has(p.componentName)).map((p) => (
                                             <MenuListItem key={p.componentName} style={{ cursor: "pointer" }} onClick={() => launch(p)}>
                                                 <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                                                     <img src={p.icon} style={{ width: 20 }} /> {p.name}
@@ -273,13 +295,21 @@ const WMenu: React.FC = () => {
                                     <span>▸</span>
                                 </MenuListItem>
                                 {settingsOpen && (
-                                    <MenuList style={{ position: "absolute", left: "100%", top: 0, width: 175 }}>
+                                    <MenuList ref={fitSubmenu as never} style={{ position: "absolute", left: "100%", top: 0, width: 220 }}>
                                         <MenuListItem
                                             style={{ cursor: "pointer" }}
                                             onClick={() => launch({ name: "Control Panel", icon: ControlPanelIcon, componentName: "control_panel" })}
                                         >
                                             <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                                                 <img src={ControlPanelIcon} style={{ width: 20 }} /> Control Panel
+                                            </span>
+                                        </MenuListItem>
+                                        <MenuListItem
+                                            style={{ cursor: "pointer" }}
+                                            onClick={() => launch({ name: "Add/Remove Programs", icon: ControlPanelIcon, componentName: "add_remove" })}
+                                        >
+                                            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                                <img src={ControlPanelIcon} style={{ width: 20 }} /> Add/Remove Programs
                                             </span>
                                         </MenuListItem>
                                     </MenuList>

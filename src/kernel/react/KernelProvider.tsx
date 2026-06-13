@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useState, useSyncExternalStore } from "react";
 import { Kernel } from "../Kernel";
 import { ProgramRegistry } from "../registry";
 import { registerBuiltins } from "../bin";
@@ -9,7 +9,8 @@ import { DevFS } from "../fs/DevFS";
 import { ProcFS } from "../fs/ProcFS";
 import { BinFS } from "../fs/BinFS";
 import { CloudFS, createCloudApi } from "../fs/CloudFS";
-import { createLocalStorageFsPersistence } from "../fs/persistence";
+import { createFsPersistence } from "../fs/persistence";
+import { getUninstalled } from "../../system/programs";
 import { PCB, WindowState } from "../types";
 
 const KernelContext = createContext<Kernel | null>(null);
@@ -38,18 +39,21 @@ function seedRoot(): MemFS {
     return fs;
 }
 
-function createKernel(): { kernel: Kernel; drives: CloudFS[] } {
+async function createKernel(): Promise<{ kernel: Kernel; drives: CloudFS[] }> {
     const registry = new ProgramRegistry();
     registerBuiltins(registry);
+    // Honour apps the user removed via Add/Remove Programs.
+    for (const exec of getUninstalled()) registry.unregister(exec);
     const kernel = new Kernel({
         registry,
         persistence: createLocalStoragePersistence(viewportCenter),
         defaultWindowLocation: viewportCenter,
     });
 
-    // Assemble and mount the VFS.
-    const fsPersistence = createLocalStorageFsPersistence();
-    const saved = fsPersistence.load();
+    // Assemble and mount the VFS. The FS snapshot now lives in OPFS (large, async) when
+    // available — load it before building the tree.
+    const fsPersistence = createFsPersistence();
+    const saved = await fsPersistence.load();
     const root = saved ? MemFS.deserialize(saved) : seedRoot();
 
     if (!root.exists("/mnt")) root.mkdir("/mnt"); // mount point for /mnt/cloud (restored trees)
@@ -81,17 +85,42 @@ function createKernel(): { kernel: Kernel; drives: CloudFS[] } {
 const CloudContext = createContext<() => Promise<void>>(async () => {});
 
 export function KernelProvider({ children, kernel: injected }: { children: ReactNode; kernel?: Kernel }) {
-    // One kernel per app session. An injected kernel (tests) takes precedence.
-    const { kernel, drives } = useMemo(
-        () => (injected ? { kernel: injected, drives: [] as CloudFS[] } : createKernel()),
-        [injected],
+    // An injected kernel (tests) is available synchronously; the real kernel loads its FS
+    // snapshot from OPFS asynchronously, so it arrives after a brief boot.
+    const [boot, setBoot] = useState<{ kernel: Kernel; drives: CloudFS[] } | null>(
+        injected ? { kernel: injected, drives: [] } : null,
     );
+
+    useEffect(() => {
+        if (injected) {
+            setBoot({ kernel: injected, drives: [] });
+            return;
+        }
+        let cancelled = false;
+        void createKernel().then((built) => {
+            if (!cancelled) setBoot(built);
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [injected]);
+
+    const drives = boot?.drives ?? [];
     const reloadCloud = useCallback(async () => {
         await Promise.all(drives.map((d) => d.reload()));
     }, [drives]);
 
+    // Brief loading screen while the OPFS snapshot is read and the kernel is assembled.
+    if (!boot) {
+        return (
+            <div style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "#008080", color: "#fff", fontSize: 14 }}>
+                Starting VortexOS…
+            </div>
+        );
+    }
+
     return (
-        <KernelContext.Provider value={kernel}>
+        <KernelContext.Provider value={boot.kernel}>
             <CloudContext.Provider value={reloadCloud}>{children}</CloudContext.Provider>
         </KernelContext.Provider>
     );

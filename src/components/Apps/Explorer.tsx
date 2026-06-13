@@ -101,9 +101,13 @@ const Explorer: React.FC = () => {
         return () => document.removeEventListener("click", close);
     }, [menu]);
 
+    const IMAGE_EXT = /\.(png|jpe?g|gif|bmp|webp|svg|ico)$/i;
+    const AUDIO_EXT = /\.(mp3|wav|ogg|m4a|flac)$/i;
     const open = (entry: Entry) => {
         const full = join(cwd, entry.name);
         if (entry.type === "dir") refresh(full);
+        else if (IMAGE_EXT.test(entry.name)) sys.spawn("imageviewer", { argv: [full] });
+        else if (AUDIO_EXT.test(entry.name)) sys.spawn("mediaplayer", { argv: [full] });
         else sys.spawn("notes", { argv: [full] });
     };
 

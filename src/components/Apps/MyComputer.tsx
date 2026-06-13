@@ -1,5 +1,6 @@
 import { Frame, WindowContent } from "react95";
 import { useSys } from "../../kernel/react/useSys";
+import { formatBytes, useStorageEstimate } from "../../system/storage";
 import MyComputerIcon from "/my-computer.png";
 import FolderIcon from "/explorer.png";
 
@@ -15,6 +16,8 @@ const DRIVES = [
 
 const MyComputer: React.FC = () => {
     const sys = useSys();
+    const storage = useStorageEstimate();
+    const pct = storage && storage.quota > 0 ? Math.min(100, (storage.usage / storage.quota) * 100) : 0;
 
     return (
         <div style={{ display: "flex", flexDirection: "column", height: "100%", minWidth: 420, minHeight: 260 }}>
@@ -33,8 +36,18 @@ const MyComputer: React.FC = () => {
                     ))}
                 </div>
             </WindowContent>
-            <Frame variant="well" className="footer">
-                {DRIVES.length} object(s)
+            <Frame variant="well" className="footer" style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 8px" }}>
+                <span style={{ fontSize: 12 }}>{DRIVES.length} object(s)</span>
+                {storage?.supported && (
+                    <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, marginLeft: "auto" }}>
+                        <span>Disk (C:):</span>
+                        <span title={`${formatBytes(storage.usage)} of ${formatBytes(storage.quota)} used`}
+                            style={{ width: 90, height: 12, border: "2px solid", borderColor: "#808080 #fff #fff #808080", background: "#fff", position: "relative" }}>
+                            <span style={{ position: "absolute", inset: 0, width: `${pct}%`, background: "#000080" }} />
+                        </span>
+                        <span>{formatBytes(storage.usage)} / {formatBytes(storage.quota)}</span>
+                    </span>
+                )}
             </Frame>
         </div>
     );

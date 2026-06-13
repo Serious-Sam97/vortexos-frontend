@@ -6,6 +6,13 @@ import { installAuthInterceptors } from './system/http'
 
 installAuthInterceptors() // attach the bearer token + 401 handling to all axios calls
 
+// Register the service worker so VortexOS is installable as a PWA and works offline.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {})
+  })
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />

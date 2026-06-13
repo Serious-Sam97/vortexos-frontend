@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { Button, TextInput, Toolbar } from "react95";
+import { getToken } from "../../system/session";
 
 const HOME = "vortex:home";
+const API = import.meta.env.VITE_API_URL ?? "";
+
+/** Route a real URL through the backend proxy so it can be framed (most sites block iframes). */
+function proxied(url: string): string {
+    return `${API}/proxy?url=${encodeURIComponent(url)}&token=${encodeURIComponent(getToken() ?? "")}`;
+}
 
 const HOME_PAGE = `
 <html><head><style>
@@ -12,11 +19,8 @@ const HOME_PAGE = `
 </style></head><body>
   <h1>VortexOS Web</h1>
   <p>Type a URL in the address bar and press Go.</p>
-  <p>Note: many sites block embedding &mdash; those will refuse to load.</p>
-  <div class="links">
-    <a href="https://example.com" target="_top">example.com</a>
-    <a href="https://wikipedia.org" target="_top">wikipedia.org</a>
-  </div>
+  <p>Pages load through the VortexOS proxy, so most sites work.</p>
+  <p style="font-size:12px;opacity:.7">Try: example.com &middot; wikipedia.org &middot; news.ycombinator.com</p>
 </body></html>`;
 
 function normalize(url: string): string {
@@ -82,7 +86,7 @@ const Browser: React.FC = () => {
             <iframe
                 key={current}
                 title="browser"
-                src={current === HOME ? undefined : current}
+                src={current === HOME ? undefined : proxied(current)}
                 srcDoc={current === HOME ? HOME_PAGE : undefined}
                 sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
                 style={{ flex: 1, width: "100%", border: "2px inset #c0c0c0", background: "#fff" }}

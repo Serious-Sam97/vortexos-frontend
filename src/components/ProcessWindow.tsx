@@ -19,6 +19,38 @@ interface Rect {
     h: number;
 }
 
+/** Eight resize handles around a window — edges + corners. dx/dy say which edges move. */
+const RESIZE_HANDLES: { key: string; dx: number; dy: number; cursor: string; box: React.CSSProperties }[] = [
+    { key: "n", dx: 0, dy: -1, cursor: "ns-resize", box: { top: -3, left: 10, right: 10, height: 7 } },
+    { key: "s", dx: 0, dy: 1, cursor: "ns-resize", box: { bottom: -3, left: 10, right: 10, height: 7 } },
+    { key: "w", dx: -1, dy: 0, cursor: "ew-resize", box: { left: -3, top: 10, bottom: 10, width: 7 } },
+    { key: "e", dx: 1, dy: 0, cursor: "ew-resize", box: { right: -3, top: 10, bottom: 10, width: 7 } },
+    { key: "nw", dx: -1, dy: -1, cursor: "nwse-resize", box: { left: -3, top: -3, width: 14, height: 14 } },
+    { key: "ne", dx: 1, dy: -1, cursor: "nesw-resize", box: { right: -3, top: -3, width: 14, height: 14 } },
+    { key: "sw", dx: -1, dy: 1, cursor: "nesw-resize", box: { left: -3, bottom: -3, width: 14, height: 14 } },
+    { key: "se", dx: 1, dy: 1, cursor: "nwse-resize", box: { right: -3, bottom: -3, width: 14, height: 14 } },
+];
+
+const SNAP_THRESHOLD = 22;
+
+/** Aero-style snap target for a cursor near a screen edge (halves, quarters, top=full). */
+function computeSnap(cx: number, cy: number): Rect | null {
+    const W = window.innerWidth;
+    const H = window.innerHeight - TASKBAR_HEIGHT; // work area height
+    const nearL = cx <= SNAP_THRESHOLD;
+    const nearR = cx >= W - SNAP_THRESHOLD;
+    const nearT = cy <= SNAP_THRESHOLD;
+    const nearB = cy >= H - SNAP_THRESHOLD;
+    if (nearT && nearL) return { x: 0, y: 0, w: W / 2, h: H / 2 };
+    if (nearT && nearR) return { x: W / 2, y: 0, w: W / 2, h: H / 2 };
+    if (nearB && nearL) return { x: 0, y: H / 2, w: W / 2, h: H / 2 };
+    if (nearB && nearR) return { x: W / 2, y: H / 2, w: W / 2, h: H / 2 };
+    if (nearL) return { x: 0, y: 0, w: W / 2, h: H };
+    if (nearR) return { x: W / 2, y: 0, w: W / 2, h: H };
+    if (nearT) return { x: 0, y: 0, w: W, h: H };
+    return null;
+}
+
 const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
     const { changePriority, closeProcess, handleProceessLocationChange } = useProcessContext();
     const { changeCursor, minimized, minimize } = useOSContext();
@@ -32,6 +64,8 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
     const [maximized, setMaximized] = useState(false);
     const [minimizing, setMinimizing] = useState(false);
     const [sysMenu, setSysMenu] = useState(false);
+    const [size, setSize] = useState<{ w: number; h: number } | null>(null);
+    const resizeStart = useRef<{ mouseX: number; mouseY: number; w: number; h: number; left: number; top: number; dx: number; dy: number } | null>(null);
 
     useEffect(() => {
         if (!sysMenu) return;
@@ -42,6 +76,7 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
 
     const windowRef = useRef<HTMLDivElement>(null);
     const dragStart = useRef<{ mouseX: number; mouseY: number; left: number; top: number; w: number; h: number } | null>(null);
+    const snapTarget = useRef<Rect | null>(null);
 
     const isActive = process.priority === 0;
     const isMinimized = !!process.uuid && minimized.includes(process.uuid);
@@ -82,15 +117,30 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
 
     const handleMouseMove = (event: MouseEvent) => {
         if (!dragStart.current) return;
-        const dx = event.clientX - dragStart.current.mouseX;
-        const dy = event.clientY - dragStart.current.mouseY;
-        setGhost({ x: dragStart.current.left + dx, y: dragStart.current.top + dy, w: dragStart.current.w, h: dragStart.current.h });
+        // Near a screen edge → preview the snap tile; otherwise the normal drag ghost.
+        const snap = computeSnap(event.clientX, event.clientY);
+        snapTarget.current = snap;
+        if (snap) {
+            setGhost(snap);
+        } else {
+            const dx = event.clientX - dragStart.current.mouseX;
+            const dy = event.clientY - dragStart.current.mouseY;
+            setGhost({ x: dragStart.current.left + dx, y: dragStart.current.top + dy, w: dragStart.current.w, h: dragStart.current.h });
+        }
     };
 
     const handleMouseUp = (event: MouseEvent) => {
         setDragging(false);
         const d = dragStart.current;
-        if (d && process.uuid) {
+        const snap = snapTarget.current;
+        if (snap && process.uuid) {
+            // Tile the window to the snapped region.
+            setMaximized(false);
+            setSize({ w: snap.w, h: snap.h });
+            const next = { x: Math.round(snap.x + snap.w / 2), y: Math.round(snap.y + snap.h / 2) };
+            setProperties(next);
+            handleProceessLocationChange(process.uuid, next);
+        } else if (d && process.uuid) {
             let left = d.left + (event.clientX - d.mouseX);
             let top = d.top + (event.clientY - d.mouseY);
             // keep the title bar reachable: never fully off-screen, never under the taskbar
@@ -101,6 +151,7 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
             handleProceessLocationChange(process.uuid, next);
         }
         setGhost(null);
+        snapTarget.current = null;
         dragStart.current = null;
     };
 
@@ -118,6 +169,48 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
     };
 
     const stop = (e: React.MouseEvent) => e.stopPropagation();
+
+    // ── window resizing (drag any edge or corner) ───────────────────────
+    // dx/dy ∈ {-1,0,1}: which edges move. The opposite edge stays anchored.
+    const MIN_W = 240;
+    const MIN_H = 150;
+    const onResizeMove = (e: MouseEvent) => {
+        const s = resizeStart.current;
+        if (!s) return;
+        const ddx = e.clientX - s.mouseX;
+        const ddy = e.clientY - s.mouseY;
+        let w = s.w;
+        let h = s.h;
+        let left = s.left;
+        let top = s.top;
+        if (s.dx === 1) w = Math.max(MIN_W, s.w + ddx);
+        if (s.dx === -1) {
+            w = Math.max(MIN_W, s.w - ddx);
+            left = s.left + (s.w - w);
+        }
+        if (s.dy === 1) h = Math.max(MIN_H, s.h + ddy);
+        if (s.dy === -1) {
+            h = Math.max(MIN_H, s.h - ddy);
+            top = s.top + (s.h - h);
+        }
+        setSize({ w, h });
+        setProperties({ x: left + w / 2, y: top + h / 2 });
+    };
+    const onResizeUp = () => {
+        resizeStart.current = null;
+        document.removeEventListener("mousemove", onResizeMove);
+        document.removeEventListener("mouseup", onResizeUp);
+    };
+    const startResize = (dx: number, dy: number) => (e: React.MouseEvent) => {
+        if (maximized) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const rect = windowRef.current?.getBoundingClientRect();
+        if (!rect) return;
+        resizeStart.current = { mouseX: e.clientX, mouseY: e.clientY, w: rect.width, h: rect.height, left: rect.left, top: rect.top, dx, dy };
+        document.addEventListener("mousemove", onResizeMove);
+        document.addEventListener("mouseup", onResizeUp);
+    };
 
     const animation = maximized ? undefined : minimizing ? "winMinimize 150ms ease-in forwards" : "winOpen 140ms ease-out";
 
@@ -141,12 +234,14 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
               transform: "translate(-50%, -50%)",
               zIndex: isActive ? 9999 : process.priority + 1,
               userSelect: "none",
-              display: isMinimized ? "none" : undefined,
-              animation,
+              display: isMinimized ? "none" : size ? "flex" : undefined,
+              flexDirection: "column",
+              animation: size ? undefined : animation,
               minWidth: 240,
               minHeight: 150,
               maxWidth: "100vw",
               maxHeight: `calc(100vh - ${TASKBAR_HEIGHT}px)`,
+              ...(size ? { width: size.w, height: size.h } : {}),
           };
 
     return (
@@ -236,7 +331,7 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
                             display: "flex",
                             flexDirection: "column",
                             width: "100%",
-                            ...(maximized ? { flex: 1, minHeight: 0, overflow: "auto" } : {}),
+                            ...(maximized || size ? { flex: 1, minHeight: 0, overflow: "auto" } : {}),
                         }}
                     >
                         <PidProvider pid={process.uuid ?? null}>{React.createElement(process.component)}</PidProvider>
@@ -244,6 +339,15 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
                 ) : (
                     ""
                 )}
+
+                {!maximized &&
+                    RESIZE_HANDLES.map((hnd) => (
+                        <div
+                            key={hnd.key}
+                            onMouseDown={startResize(hnd.dx, hnd.dy)}
+                            style={{ position: "absolute", zIndex: 20, cursor: hnd.cursor, ...hnd.box }}
+                        />
+                    ))}
             </Window>
 
             {ghost &&

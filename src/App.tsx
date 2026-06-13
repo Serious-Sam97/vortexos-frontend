@@ -1,15 +1,22 @@
+import { ReactNode } from 'react';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
 import { styleReset } from 'react95';
-import original from 'react95/dist/themes/original';
 import ms_sans_serif from 'react95/dist/fonts/ms_sans_serif.woff2';
 import ms_sans_serif_bold from 'react95/dist/fonts/ms_sans_serif_bold.woff2';
 import { BrowserRouter } from "react-router";
 import { ProcessContextProvider } from './contexts/ProcessContext';
-import { OSContextProvider } from './contexts/OSContext';
+import { OSContextProvider, useOSContext } from './contexts/OSContext';
 import { KernelProvider } from './kernel/react/KernelProvider';
 import { DialogProvider } from './components/Dialog/DialogProvider';
 import { AuthProvider } from './contexts/AuthContext';
+import { themeOf } from './system/themes';
 import AppContent from './AppContent';
+
+/** Applies the user-selected react95 theme from OSContext. */
+const Themed = ({ children }: { children: ReactNode }) => {
+    const { theme } = useOSContext();
+    return <ThemeProvider theme={themeOf(theme) as never}>{children}</ThemeProvider>;
+};
 
 const GlobalStyles = createGlobalStyle`
   ${styleReset}
@@ -56,9 +63,9 @@ const GlobalStyles = createGlobalStyle`
 const App = () => (
   <BrowserRouter>
       <GlobalStyles />
-      <ThemeProvider theme={original}>
-        <KernelProvider>
-          <OSContextProvider>
+      <KernelProvider>
+        <OSContextProvider>
+          <Themed>
             <ProcessContextProvider>
               <DialogProvider>
                 <AuthProvider>
@@ -66,9 +73,9 @@ const App = () => (
                 </AuthProvider>
               </DialogProvider>
             </ProcessContextProvider>
-          </OSContextProvider>
-        </KernelProvider>
-      </ThemeProvider>
+          </Themed>
+        </OSContextProvider>
+      </KernelProvider>
     </BrowserRouter>
 );
 

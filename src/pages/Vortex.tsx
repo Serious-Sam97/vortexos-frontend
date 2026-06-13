@@ -4,6 +4,7 @@ import WMenu from "../components/WMenu";
 import WindowManager from "../components/WindowManager";
 import LoginScreen from "../components/Login/LoginScreen";
 import ChatNotifier from "../components/ChatNotifier";
+import AltTabSwitcher from "../components/AltTabSwitcher";
 import { useOSContext } from "../contexts/OSContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useReloadCloud } from "../kernel/react/KernelProvider";
@@ -38,6 +39,7 @@ const Vortex: React.FC = () => {
             <WindowManager />
             <WMenu />
             <ChatNotifier />
+            <AltTabSwitcher />
 
             {crt && (
                 <div

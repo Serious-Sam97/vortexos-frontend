@@ -3,6 +3,8 @@ import { MenuList, MenuListItem, Separator } from "react95";
 import { useProcessContext } from "../contexts/ProcessContext";
 import { useSys } from "../kernel/react/useSys";
 import { useFsVersion } from "../kernel/react/KernelProvider";
+import { useUninstalled } from "../system/programs";
+import { useAuth } from "../contexts/AuthContext";
 import { useDialog } from "../components/Dialog/DialogProvider";
 import { recordTrash } from "../system/recycle";
 import { join } from "../kernel/fs/path";
@@ -28,9 +30,7 @@ import ClockIcon from "/clock.svg";
 import PaintIcon from "/paint_file-3.png";
 
 const TASKBAR_HEIGHT = 40;
-const DESKTOP_DIR = "/home/user/Desktop";
 const RECYCLE = "/Recycle Bin";
-const POS_KEY = "vortex.desktop.positions";
 const CELL_W = 84;
 const CELL_H = 92;
 
@@ -73,9 +73,9 @@ interface Menu {
     item: Item | null;
 }
 
-const loadPositions = (): Positions => {
+const loadPositions = (key: string): Positions => {
     try {
-        return JSON.parse(localStorage.getItem(POS_KEY) || "{}");
+        return JSON.parse(localStorage.getItem(key) || "{}");
     } catch {
         return {};
     }
@@ -85,10 +85,17 @@ const Desktop: React.FC = () => {
     const { addProcess } = useProcessContext();
     const sys = useSys();
     const { alert } = useDialog();
+    const { username } = useAuth();
     const fsVersion = useFsVersion();
+    const uninstalled = useUninstalled();
+
+    // Each user gets their own Desktop folder and icon arrangement.
+    const user = username || "user";
+    const DESKTOP_DIR = `/home/${user}/Desktop`;
+    const POS_KEY = `vortex.desktop.positions.${user}`;
 
     const [files, setFiles] = useState<Item[]>([]);
-    const [positions, setPositions] = useState<Positions>(loadPositions);
+    const [positions, setPositions] = useState<Positions>(() => loadPositions(POS_KEY));
     const [selected, setSelected] = useState<Set<string>>(new Set());
     const [menu, setMenu] = useState<Menu | null>(null);
     const [marquee, setMarquee] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
@@ -97,7 +104,7 @@ const Desktop: React.FC = () => {
     const drag = useRef<{ ids: string[]; startMouse: { x: number; y: number }; start: Positions } | null>(null);
     const marqueeStart = useRef<{ x: number; y: number } | null>(null);
 
-    const items = [...APP_SHORTCUTS, ...files];
+    const items = [...APP_SHORTCUTS.filter((a) => !a.componentName || !uninstalled.has(a.componentName)), ...files];
 
     const perCol = Math.max(1, Math.floor((window.innerHeight - TASKBAR_HEIGHT - 20) / CELL_H));
     const positionOf = (id: string, index: number) =>
@@ -105,6 +112,7 @@ const Desktop: React.FC = () => {
 
     const refreshFiles = useCallback(async () => {
         try {
+            await sys.mkdir(`/home/${user}`).catch(() => {}); // ensure the user's home exists
             await sys.mkdir(DESKTOP_DIR).catch(() => {});
             const names = await sys.readdir(DESKTOP_DIR);
             const mapped = await Promise.all(
@@ -123,7 +131,7 @@ const Desktop: React.FC = () => {
         } catch {
             setFiles([]);
         }
-    }, [sys]);
+    }, [sys, user, DESKTOP_DIR]);
 
     // Boot jingle plays once on mount.
     useEffect(() => {
@@ -144,14 +152,15 @@ const Desktop: React.FC = () => {
         return () => document.removeEventListener("click", close);
     }, [menu]);
 
-    // Persist icon positions whenever they change.
+    // Persist icon positions whenever they change (per-user key).
     useEffect(() => {
         localStorage.setItem(POS_KEY, JSON.stringify(positions));
-    }, [positions]);
+    }, [positions, POS_KEY]);
 
     const openItem = (item: Item) => {
         if (item.kind === "app") addProcess({ componentName: item.componentName, name: item.name, icon: item.icon } as any);
         else if (item.kind === "dir") sys.spawn("explorer", { argv: [item.path!] });
+        else if (/\.(png|jpe?g|gif|bmp|webp|svg|ico)$/i.test(item.name)) sys.spawn("imageviewer", { argv: [item.path!] });
         else sys.spawn("notes", { argv: [item.path!] });
     };
 

@@ -53,11 +53,14 @@ export class Shell {
         return { output, clear, code };
     }
 
-    /** Expand a leading ~ to $HOME, as a shell does before invoking commands. */
+    /** Expand `~` to $HOME and `$VAR` / `${VAR}` from the environment, as a shell does. */
     private expand(token: string): string {
-        if (token === "~") return this.env.HOME;
-        if (token.startsWith("~/")) return this.env.HOME + token.slice(1);
-        return token;
+        let t = token;
+        if (t === "~") t = this.env.HOME;
+        else if (t.startsWith("~/")) t = this.env.HOME + t.slice(1);
+        t = t.replace(/\$\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (_, n) => this.env[n] ?? "");
+        t = t.replace(/\$([A-Za-z_][A-Za-z0-9_]*)/g, (_, n) => this.env[n] ?? "");
+        return t;
     }
 
     private expandCommand(cmd: ParsedCommand): ParsedCommand {
@@ -76,10 +79,20 @@ export class Shell {
         const pipeline = rawPipeline.map((c) => this.expandCommand(c));
         // Single-command builtins mutate shell/terminal state.
         if (pipeline.length === 1) {
-            const name = pipeline[0].argv[0];
-            if (name === "cd") return { code: await this.cd(pipeline[0].argv, out) };
+            const argv = pipeline[0].argv;
+            const name = argv[0];
+            // Bare assignment: NAME=value (no other args) sets an environment variable.
+            const assign = argv.length === 1 ? /^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/.exec(name) : null;
+            if (assign) {
+                this.env[assign[1]] = assign[2];
+                return { code: 0 };
+            }
+            if (name === "cd") return { code: await this.cd(argv, out) };
             if (name === "clear") return { code: 0, clear: true };
-            if (name === "export") return { code: this.export(pipeline[0].argv) };
+            if (name === "export") return { code: this.export(argv) };
+            if (name === "sh" || name === "source" || name === ".") {
+                return { code: await this.runScript(argv[1], out) };
+            }
         }
 
         let input = "";
@@ -154,5 +167,29 @@ export class Shell {
             if (eq > 0) this.env[assignment.slice(0, eq)] = assignment.slice(eq + 1);
         }
         return 0;
+    }
+
+    /** Run a script file line by line in this shell (so cd / variables persist across lines). */
+    private async runScript(file: string | undefined, out: (s: string) => void): Promise<number> {
+        if (!file) {
+            out("sh: usage: sh <script>\n");
+            return 2;
+        }
+        let text: string;
+        try {
+            text = await this.sys.readTextFile(resolve(this.cwd, file));
+        } catch (e: any) {
+            out(`sh: ${file}: ${e.code ?? "not found"}\n`);
+            return 1;
+        }
+        let code = 0;
+        for (const raw of text.split("\n")) {
+            const line = raw.trim();
+            if (!line || line.startsWith("#")) continue; // skip blanks and comments
+            const result = await this.run(line);
+            if (result.output) out(result.output);
+            code = result.code;
+        }
+        return code;
     }
 }
