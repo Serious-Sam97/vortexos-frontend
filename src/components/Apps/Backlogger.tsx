@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import GameList from "../Backlogger/GameList";
 import AddGame from "../Backlogger/AddGame";
 import axios from "axios";
-import { Button, Frame, MenuList, MenuListItem, Toolbar, WindowContent } from "react95";
+import { Button } from "react95";
+import { AppShell, AppBody, MenuBar, Menu, MenuItem, StatusBar, StatusPanel } from "../chrome/AppChrome";
 import { Game } from "../../interfaces/Game";
 import PendingList from "../Backlogger/PendingList";
 
 const Backlogger: React.FC = () => {
     const [page, setPage] = useState(1);
     const [games, setGames] = useState<Game[]>([]);
-    const [isFileOpen, setIsFileOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
 
@@ -46,7 +46,6 @@ const Backlogger: React.FC = () => {
 
     const fileOptions = (target: number) => {
         setPage(target);
-        setIsFileOpen(false);
     };
 
     const saveAndGoBack = (target: number) => {
@@ -76,30 +75,20 @@ const Backlogger: React.FC = () => {
     };
 
     return (
-        <>
-            <Toolbar>
-                <Button variant="menu" size="sm" onClick={() => setIsFileOpen(!isFileOpen)}>
-                    File
-                </Button>
-                {isFileOpen && (
-                    <MenuList style={{ position: "absolute", left: "3%", top: "100%", zIndex: 99999 }}>
-                        <MenuListItem style={{ cursor: "pointer" }} onClick={() => fileOptions(0)}>
-                            New Game
-                        </MenuListItem>
-                        <MenuListItem style={{ cursor: "pointer" }} onClick={() => fileOptions(1)}>
-                            Game List
-                        </MenuListItem>
-                        <MenuListItem style={{ cursor: "pointer" }} onClick={() => fileOptions(2)}>
-                            Backlog
-                        </MenuListItem>
-                    </MenuList>
-                )}
-            </Toolbar>
-            <WindowContent>{body()}</WindowContent>
-            <Frame variant="well" className="footer">
-                {pageFlow[page].text}
-            </Frame>
-        </>
+        <AppShell $minW={420} $minH={320}>
+            <MenuBar>
+                <Menu label="File">
+                    <MenuItem onMouseDown={(e) => { e.preventDefault(); fileOptions(0); }}>New Game</MenuItem>
+                    <MenuItem onMouseDown={(e) => { e.preventDefault(); fileOptions(1); }}>Game List</MenuItem>
+                    <MenuItem onMouseDown={(e) => { e.preventDefault(); fileOptions(2); }}>Backlog</MenuItem>
+                </Menu>
+                <Menu label="Help"><MenuItem $disabled>GameCache — VortexOS</MenuItem></Menu>
+            </MenuBar>
+            <AppBody style={{ flexDirection: "column", overflow: "auto" }}>{body()}</AppBody>
+            <StatusBar>
+                <StatusPanel $flex={1}>{pageFlow[page].text}</StatusPanel>
+            </StatusBar>
+        </AppShell>
     );
 };
 

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button, Checkbox, Frame, Tab, TabBody, Tabs, WindowContent } from "react95";
+import { AppShell, StatusBar, StatusPanel } from "../chrome/AppChrome";
 import {
     decodeText,
     listMyFiles,
@@ -71,7 +72,7 @@ const NetworkNeighborhood: React.FC = () => {
     }, [refreshMine, refreshNetwork]);
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", height: "100%", minWidth: 460, minHeight: 320 }}>
+        <AppShell $minW={460} $minH={320} style={{ padding: 4 }}>
             <Tabs value={tab} onChange={(v: number) => setTab(v)}>
                 <Tab value={0}>Network Neighborhood</Tab>
                 <Tab value={1}>My Shared Files</Tab>
@@ -140,7 +141,10 @@ const NetworkNeighborhood: React.FC = () => {
                     )}
                 </WindowContent>
             </TabBody>
-        </div>
+            <StatusBar>
+                <StatusPanel $flex={1}>{error ? error : "Network Neighborhood"}</StatusPanel>
+            </StatusBar>
+        </AppShell>
     );
 };
 

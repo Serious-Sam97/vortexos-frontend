@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Button, Toolbar } from "react95";
 import { useSys } from "../../kernel/react/useSys";
+import { AppShell, Toolbar, ToolButton, ToolSep, StatusBar, StatusPanel } from "../chrome/AppChrome";
 
 const MIME: Record<string, string> = {
     png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif",
@@ -84,30 +84,34 @@ const ImageViewer: React.FC = () => {
         : { transform: `scale(${scale}) rotate(${rotation}deg)`, imageRendering: "pixelated" };
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", height: "100%", minWidth: 360, minHeight: 280 }}>
+        <AppShell $minW={360} $minH={280}>
             <Toolbar>
-                <Button variant="menu" size="sm" onClick={prev} disabled={list.length < 2}>◀ Prev</Button>
-                <Button variant="menu" size="sm" onClick={next} disabled={list.length < 2}>Next ▶</Button>
-                <Button variant="menu" size="sm" onClick={zoomIn}>Zoom +</Button>
-                <Button variant="menu" size="sm" onClick={zoomOut}>Zoom −</Button>
-                <Button variant="menu" size="sm" active={fit} onClick={() => { setFit(true); setScale(1); }}>Fit</Button>
-                <Button variant="menu" size="sm" onClick={actual}>1:1</Button>
-                <Button variant="menu" size="sm" onClick={() => setRotation((r) => r - 90)}>↺</Button>
-                <Button variant="menu" size="sm" onClick={() => setRotation((r) => r + 90)}>↻</Button>
-                <Button variant="menu" size="sm" active={slideshow} onClick={() => setSlideshow((s) => !s)} disabled={list.length < 2}>
+                <ToolButton onClick={prev} disabled={list.length < 2}>◀ Prev</ToolButton>
+                <ToolButton onClick={next} disabled={list.length < 2}>Next ▶</ToolButton>
+                <ToolSep />
+                <ToolButton onClick={zoomIn}>Zoom +</ToolButton>
+                <ToolButton onClick={zoomOut}>Zoom −</ToolButton>
+                <ToolButton $active={fit} onClick={() => { setFit(true); setScale(1); }}>Fit</ToolButton>
+                <ToolButton onClick={actual}>1:1</ToolButton>
+                <ToolSep />
+                <ToolButton onClick={() => setRotation((r) => r - 90)}>↺</ToolButton>
+                <ToolButton onClick={() => setRotation((r) => r + 90)}>↻</ToolButton>
+                <ToolSep />
+                <ToolButton $active={slideshow} onClick={() => setSlideshow((s) => !s)} disabled={list.length < 2}>
                     {slideshow ? "⏸ Stop" : "▶ Slideshow"}
-                </Button>
+                </ToolButton>
             </Toolbar>
             <div style={{ flex: 1, minHeight: 0, overflow: "auto", display: "flex", alignItems: "center", justifyContent: "center", background: "#2b2b2b" }}>
                 {error && <p style={{ color: "#fff" }}>{error}</p>}
                 {!error && url && <img src={url} alt={list[index]} style={imgStyle} />}
                 {!error && !url && <p style={{ color: "#fff" }}>Loading…</p>}
             </div>
-            <div style={{ background: "#c0c0c0", borderTop: "1px solid #808080", padding: "2px 6px", fontSize: 11, display: "flex", justifyContent: "space-between" }}>
-                <span>{list[index] ? nameOf(list[index]) : ""}</span>
-                <span>{list.length > 1 ? `${index + 1} / ${list.length}` : ""} {fit ? "Fit" : `${Math.round(scale * 100)}%`}</span>
-            </div>
-        </div>
+            <StatusBar>
+                <StatusPanel $flex={1}>{list[index] ? nameOf(list[index]) : ""}</StatusPanel>
+                <StatusPanel>{list.length > 1 ? `${index + 1} / ${list.length}` : "1 / 1"}</StatusPanel>
+                <StatusPanel>{fit ? "Fit" : `${Math.round(scale * 100)}%`}</StatusPanel>
+            </StatusBar>
+        </AppShell>
     );
 };
 

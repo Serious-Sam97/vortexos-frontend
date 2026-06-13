@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Button, Checkbox, Frame, Toolbar, WindowContent } from "react95";
+import { Checkbox, Frame } from "react95";
+import { AppShell, AppBody, MenuBar, Menu, MenuItem, Toolbar, ToolButton, ToolSep, StatusBar, StatusPanel } from "../chrome/AppChrome";
 import Monitor from "../ControlPanel/Monitor";
 import { getVolume, isMuted, playChord, setMuted, setVolume } from "../../system/sounds";
 import { getWinpopupMode, setWinpopupMode } from "../../system/notifications";
@@ -124,38 +125,44 @@ const ControlPanel: React.FC = () => {
     const [active, setActive] = useState<(typeof APPLETS)[number] | null>(null);
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", height: "100%", minWidth: 560, minHeight: 380 }}>
+        <AppShell $minW={560} $minH={380}>
+            <MenuBar>
+                <Menu label="File">
+                    <MenuItem $disabled={!active} onMouseDown={(e) => { e.preventDefault(); setActive(null); }}>Close Applet</MenuItem>
+                </Menu>
+                <Menu label="Help"><MenuItem $disabled>Control Panel — VortexOS</MenuItem></Menu>
+            </MenuBar>
             <Toolbar>
-                {active && (
-                    <Button variant="menu" size="sm" onClick={() => setActive(null)}>
-                        ◀ Back
-                    </Button>
-                )}
-                <span style={{ marginLeft: 8, alignSelf: "center" }}>{active ? active.name : "Control Panel"}</span>
+                <ToolButton onClick={() => setActive(null)} disabled={!active}>◀ Back</ToolButton>
+                <ToolSep />
+                <span style={{ fontSize: 12, padding: "0 4px" }}>{active ? active.name : "Control Panel"}</span>
             </Toolbar>
-            <WindowContent style={{ flex: 1, minHeight: 0, overflow: "auto", backgroundColor: "white", border: "3px solid gray", borderRadius: 5 }}>
-                {active ? (
-                    <active.component />
-                ) : (
-                    <div style={{ display: "flex", flexWrap: "wrap", padding: 10 }}>
-                        {APPLETS.map((a) => (
-                            <div
-                                key={a.name}
-                                onDoubleClick={() => setActive(a)}
-                                title="Double-click to open"
-                                style={{ cursor: "pointer", width: 96, padding: 12, display: "flex", flexDirection: "column", alignItems: "center" }}
-                            >
-                                <img src={a.icon} alt={a.name} style={{ height: 44 }} />
-                                <p style={{ textAlign: "center" }}>{a.name}</p>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </WindowContent>
-            <Frame variant="well" className="footer">
-                {active ? active.name : `${APPLETS.length} object(s)`}
-            </Frame>
-        </div>
+            <AppBody style={{ padding: 3 }}>
+                <div style={{ flex: 1, minHeight: 0, overflow: "auto", background: "#fff", border: "2px solid", borderColor: "#808080 #ffffff #ffffff #808080" }}>
+                    {active ? (
+                        <active.component />
+                    ) : (
+                        <div style={{ display: "flex", flexWrap: "wrap", padding: 10 }}>
+                            {APPLETS.map((a) => (
+                                <div
+                                    key={a.name}
+                                    onDoubleClick={() => setActive(a)}
+                                    title="Double-click to open"
+                                    style={{ cursor: "pointer", width: 96, padding: 12, display: "flex", flexDirection: "column", alignItems: "center" }}
+                                >
+                                    <img src={a.icon} alt={a.name} style={{ height: 44 }} />
+                                    <p style={{ textAlign: "center" }}>{a.name}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </AppBody>
+            <StatusBar>
+                <StatusPanel $flex={1}>{active ? active.name : "Control Panel"}</StatusPanel>
+                <StatusPanel>{APPLETS.length} object(s)</StatusPanel>
+            </StatusBar>
+        </AppShell>
     );
 };
 

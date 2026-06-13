@@ -1,28 +1,24 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button, Frame, MenuList, MenuListItem, Separator, TextInput, Toolbar, WindowContent } from "react95";
 import { useSys } from "../../kernel/react/useSys";
+import { AppShell, AppBody, MenuBar, Menu, MenuItem, MenuSep, StatusBar, StatusPanel } from "../chrome/AppChrome";
 
 const HOME = "/home/user";
 const DEFAULT = "/home/user/welcome.txt";
 
-/** A real text editor: reads and writes files on the VFS through syscalls. */
+/** A real plain-text editor: reads and writes files on the VFS through syscalls. */
 const Notes: React.FC = () => {
     const sys = useSys();
     const [path, setPath] = useState(DEFAULT);
     const [note, setNote] = useState("");
     const [dirty, setDirty] = useState(false);
-    const [menuOpen, setMenuOpen] = useState(false);
     const [files, setFiles] = useState<string[]>([]);
-    const [status, setStatus] = useState("");
+    const [status, setStatus] = useState("Ready");
 
     const load = useCallback(
         async (p: string) => {
             try {
                 const text = await sys.readTextFile(p);
-                setPath(p);
-                setNote(text);
-                setDirty(false);
-                setStatus(`Opened ${p}`);
+                setPath(p); setNote(text); setDirty(false); setStatus(`Opened ${p}`);
             } catch (e: any) {
                 setStatus(`Could not open ${p}: ${e.code ?? e.message}`);
             }
@@ -31,95 +27,78 @@ const Notes: React.FC = () => {
     );
 
     useEffect(() => {
-        // Open the file passed in argv (e.g. from Explorer), else the default note.
         (async () => {
             const [arg] = await sys.argv();
             await load(arg || DEFAULT);
         })();
     }, [load, sys]);
 
-    const openMenu = async () => {
-        try {
-            setFiles((await sys.readdir(HOME)).filter((f) => f.endsWith(".txt")));
-        } catch {
-            setFiles([]);
-        }
-        setMenuOpen((o) => !o);
+    const refreshFiles = async () => {
+        try { setFiles((await sys.readdir(HOME)).filter((f) => f.endsWith(".txt"))); } catch { setFiles([]); }
     };
 
     const save = async () => {
-        try {
-            await sys.writeTextFile(path, note);
-            setDirty(false);
-            setStatus(`Saved ${path}`);
-        } catch (e: any) {
-            setStatus(`Save failed: ${e.code ?? e.message}`);
-        }
-        setMenuOpen(false);
+        try { await sys.writeTextFile(path, note); setDirty(false); setStatus(`Saved ${path}`); }
+        catch (e: any) { setStatus(`Save failed: ${e.code ?? e.message}`); }
     };
 
     const newNote = () => {
         const name = window.prompt("New file name:", "untitled.txt");
-        setMenuOpen(false);
         if (!name) return;
-        setPath(`${HOME}/${name}`);
-        setNote("");
-        setDirty(true);
-        setStatus(`New file ${name} — not saved yet`);
-    };
-
-    const openFile = async (name: string) => {
-        setMenuOpen(false);
-        await load(`${HOME}/${name}`);
+        setPath(`${HOME}/${name}`); setNote(""); setDirty(true); setStatus(`New file ${name} — not saved yet`);
     };
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", height: "100%", minWidth: 520, minHeight: 360 }}>
-            <Toolbar>
-                <Button variant="menu" size="sm" onClick={openMenu}>
-                    File
-                </Button>
-                {menuOpen && (
-                    <MenuList style={{ position: "absolute", left: "3%", top: "100%", zIndex: 99999 }}>
-                        <MenuListItem style={{ cursor: "pointer" }} onClick={newNote}>
-                            New
-                        </MenuListItem>
-                        <MenuListItem style={{ cursor: "pointer" }} onClick={save}>
-                            Save
-                        </MenuListItem>
-                        <Separator />
-                        {files.length === 0 && <MenuListItem disabled>(no .txt files)</MenuListItem>}
-                        {files.map((f) => (
-                            <MenuListItem key={f} style={{ cursor: "pointer" }} onClick={() => openFile(f)}>
-                                {f}
-                            </MenuListItem>
-                        ))}
-                    </MenuList>
-                )}
-                <Button variant="menu" size="sm" onClick={save} disabled={!dirty}>
-                    Save
-                </Button>
-            </Toolbar>
-            <WindowContent style={{ flex: 1, minHeight: 0, display: "flex" }}>
-                <TextInput
-                    style={{ flex: 1, height: "100%" }}
+        <AppShell $minW={520} $minH={360}>
+            <MenuBar>
+                <Menu label="File" onOpen={refreshFiles}>
+                    <MenuItem onMouseDown={(e) => { e.preventDefault(); newNote(); }}>New</MenuItem>
+                    <MenuItem onMouseDown={(e) => { e.preventDefault(); save(); }}>Save<span>Ctrl+S</span></MenuItem>
+                    <MenuSep />
+                    {files.length === 0 ? (
+                        <MenuItem $disabled>(no .txt files)</MenuItem>
+                    ) : (
+                        files.map((f) => (
+                            <MenuItem key={f} onMouseDown={(e) => { e.preventDefault(); load(`${HOME}/${f}`); }}>{f}</MenuItem>
+                        ))
+                    )}
+                </Menu>
+                <Menu label="Edit">
+                    <MenuItem onMouseDown={(e) => { e.preventDefault(); setNote(""); setDirty(true); }}>Select All / Clear</MenuItem>
+                </Menu>
+                <Menu label="Help">
+                    <MenuItem $disabled>Notes — VortexOS</MenuItem>
+                </Menu>
+            </MenuBar>
+
+            <AppBody style={{ padding: 3 }}>
+                <textarea
                     value={note}
-                    onChange={(e) => {
-                        setNote(e.target.value);
-                        setDirty(true);
-                    }}
-                    multiline
+                    onChange={(e) => { setNote(e.target.value); setDirty(true); }}
+                    spellCheck={false}
                     rows={20}
-                    fullWidth
+                    style={{
+                        flex: 1,
+                        width: "100%",
+                        height: "100%",
+                        resize: "none",
+                        boxSizing: "border-box",
+                        padding: 6,
+                        border: "2px solid",
+                        borderColor: "#808080 #ffffff #ffffff #808080",
+                        background: "#ffffff",
+                        fontFamily: "'ms_sans_serif', 'MS Sans Serif', sans-serif",
+                        fontSize: 13,
+                        outline: "none",
+                    }}
                 />
-            </WindowContent>
-            <Frame variant="well" className="footer">
-                <p>
-                    {path}
-                    {dirty ? " •" : ""} {status && `— ${status}`}
-                </p>
-            </Frame>
-        </div>
+            </AppBody>
+
+            <StatusBar>
+                <StatusPanel $flex={1}>{path}{dirty ? " •" : ""}</StatusPanel>
+                <StatusPanel>{status}</StatusPanel>
+            </StatusBar>
+        </AppShell>
     );
 };
 

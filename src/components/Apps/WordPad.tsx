@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button, Frame, MenuList, MenuListItem, Separator, Toolbar, WindowContent } from "react95";
+import { Frame } from "react95";
 import { useSys } from "../../kernel/react/useSys";
+import { AppShell, AppBody, MenuBar, Menu, MenuItem, MenuSep, Toolbar, ToolButton, ToolSep, StatusBar, StatusPanel } from "../chrome/AppChrome";
 
 const HOME = "/home/user";
 const RICH_EXT = /\.(html?|rtf|doc)$/i;
@@ -17,7 +18,6 @@ const WordPad: React.FC = () => {
     const editor = useRef<HTMLDivElement>(null);
     const [path, setPath] = useState(`${HOME}/document.html`);
     const [status, setStatus] = useState("");
-    const [fileMenu, setFileMenu] = useState(false);
     const [files, setFiles] = useState<string[]>([]);
 
     const exec = (cmd: string, value?: string) => {
@@ -47,17 +47,11 @@ const WordPad: React.FC = () => {
         })();
     }, [load, sys]);
 
-    const openMenu = async () => {
-        try {
-            setFiles((await sys.readdir(HOME)).filter((f) => RICH_EXT.test(f)));
-        } catch {
-            setFiles([]);
-        }
-        setFileMenu((o) => !o);
+    const refreshFiles = async () => {
+        try { setFiles((await sys.readdir(HOME)).filter((f) => RICH_EXT.test(f))); } catch { setFiles([]); }
     };
 
     const save = async () => {
-        setFileMenu(false);
         try {
             await sys.writeTextFile(path, editor.current?.innerHTML ?? "");
             setStatus(`Saved ${path}`);
@@ -80,57 +74,61 @@ const WordPad: React.FC = () => {
     };
 
     const newDoc = () => {
-        setFileMenu(false);
         if (editor.current) editor.current.innerHTML = "";
         setPath(`${HOME}/document.html`);
         setStatus("New document");
     };
 
     const fmtBtn = (label: string, cmd: string, style?: React.CSSProperties) => (
-        <Button variant="menu" size="sm" onMouseDown={(e) => e.preventDefault()} onClick={() => exec(cmd)} style={{ minWidth: 26, ...style }}>
+        <ToolButton onMouseDown={(e) => e.preventDefault()} onClick={() => exec(cmd)} style={style}>
             {label}
-        </Button>
+        </ToolButton>
     );
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", height: "100%", minWidth: 560, minHeight: 380 }}>
-            <Toolbar style={{ position: "relative" }}>
-                <Button variant="menu" size="sm" onClick={openMenu}>File</Button>
-                {fileMenu && (
-                    <MenuList style={{ position: "absolute", left: 4, top: "100%", zIndex: 99999, width: 180 }}>
-                        <MenuListItem style={{ cursor: "pointer" }} onClick={newDoc}>New</MenuListItem>
-                        <MenuListItem style={{ cursor: "pointer" }} onClick={save}>Save</MenuListItem>
-                        <MenuListItem style={{ cursor: "pointer" }} onClick={() => { setFileMenu(false); saveAs(); }}>Save As…</MenuListItem>
-                        <Separator />
-                        {files.length === 0 && <MenuListItem disabled>(no documents)</MenuListItem>}
-                        {files.map((f) => (
-                            <MenuListItem key={f} style={{ cursor: "pointer" }} onClick={() => { setFileMenu(false); load(`${HOME}/${f}`); }}>{f}</MenuListItem>
-                        ))}
-                    </MenuList>
-                )}
-                <Button variant="menu" size="sm" onClick={save}>Save</Button>
-            </Toolbar>
+        <AppShell $minW={560} $minH={400}>
+            <MenuBar>
+                <Menu label="File" onOpen={refreshFiles}>
+                    <MenuItem onMouseDown={(e) => { e.preventDefault(); newDoc(); }}>New</MenuItem>
+                    <MenuItem onMouseDown={(e) => { e.preventDefault(); save(); }}>Save<span>Ctrl+S</span></MenuItem>
+                    <MenuItem onMouseDown={(e) => { e.preventDefault(); saveAs(); }}>Save As…</MenuItem>
+                    <MenuSep />
+                    {files.length === 0 ? (
+                        <MenuItem $disabled>(no documents)</MenuItem>
+                    ) : (
+                        files.map((f) => (
+                            <MenuItem key={f} onMouseDown={(e) => { e.preventDefault(); load(`${HOME}/${f}`); }}>{f}</MenuItem>
+                        ))
+                    )}
+                </Menu>
+                <Menu label="Edit">
+                    <MenuItem onMouseDown={(e) => { e.preventDefault(); exec("undo"); }}>Undo</MenuItem>
+                    <MenuItem onMouseDown={(e) => { e.preventDefault(); exec("selectAll"); }}>Select All</MenuItem>
+                </Menu>
+                <Menu label="Help"><MenuItem $disabled>WordPad — VortexOS</MenuItem></Menu>
+            </MenuBar>
 
-            {/* format bar */}
-            <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 4px", borderBottom: "1px solid #808080", flexWrap: "wrap" }}>
-                <select onMouseDown={(e) => e.stopPropagation()} onChange={(e) => exec("fontName", e.target.value)} style={{ fontSize: 12, padding: 1 }}>
+            <Toolbar>
+                <select onMouseDown={(e) => e.stopPropagation()} onChange={(e) => exec("fontName", e.target.value)}>
                     {FONTS.map((f) => <option key={f} value={f}>{f}</option>)}
                 </select>
-                <select onChange={(e) => exec("fontSize", e.target.value)} defaultValue="3" style={{ fontSize: 12, padding: 1 }}>
+                <select onChange={(e) => exec("fontSize", e.target.value)} defaultValue="3">
                     {SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
+                <ToolSep />
                 {fmtBtn("B", "bold", { fontWeight: "bold" })}
                 {fmtBtn("I", "italic", { fontStyle: "italic" })}
                 {fmtBtn("U", "underline", { textDecoration: "underline" })}
-                <input type="color" onChange={(e) => exec("foreColor", e.target.value)} title="Text colour" style={{ width: 28, height: 22, padding: 0, border: "1px solid #808080" }} />
+                <input type="color" onChange={(e) => exec("foreColor", e.target.value)} title="Text colour" style={{ width: 26, height: 20, padding: 0 }} />
+                <ToolSep />
                 {fmtBtn("≡L", "justifyLeft")}
                 {fmtBtn("≡C", "justifyCenter")}
                 {fmtBtn("≡R", "justifyRight")}
                 {fmtBtn("• List", "insertUnorderedList")}
-            </div>
+            </Toolbar>
 
-            <WindowContent style={{ flex: 1, minHeight: 0, padding: 0 }}>
-                <Frame variant="well" style={{ height: "100%", padding: 0 }}>
+            <AppBody style={{ padding: 3 }}>
+                <Frame variant="well" style={{ flex: 1, height: "100%", padding: 0 }}>
                     <div
                         ref={editor}
                         contentEditable
@@ -138,11 +136,13 @@ const WordPad: React.FC = () => {
                         style={{ height: "100%", overflow: "auto", padding: 10, background: "#fff", outline: "none", fontFamily: "'Times New Roman', serif", fontSize: 16 }}
                     />
                 </Frame>
-            </WindowContent>
-            <Frame variant="well" className="footer">
-                <p>{path} {status && `— ${status}`}</p>
-            </Frame>
-        </div>
+            </AppBody>
+
+            <StatusBar>
+                <StatusPanel $flex={1}>{path}</StatusPanel>
+                <StatusPanel>{status || "Ready"}</StatusPanel>
+            </StatusBar>
+        </AppShell>
     );
 };
 

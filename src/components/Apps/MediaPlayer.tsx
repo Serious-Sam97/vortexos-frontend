@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Frame } from "react95";
 import { useSys } from "../../kernel/react/useSys";
+import { AppShell, StatusBar, StatusPanel } from "../chrome/AppChrome";
 
 const MIME: Record<string, string> = {
     mp3: "audio/mpeg", wav: "audio/wav", ogg: "audio/ogg", m4a: "audio/mp4", flac: "audio/flac",
@@ -110,7 +111,7 @@ const MediaPlayer: React.FC = () => {
     const next = () => setIndex((i) => (list.length ? (i + 1) % list.length : 0));
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", height: "100%", minWidth: 340, minHeight: 260, padding: 6 }}>
+        <AppShell $minW={340} $minH={280} style={{ padding: 6, paddingBottom: 0 }}>
             {error && <p style={{ padding: 12 }}>{error}</p>}
             {!error && (
                 <>
@@ -141,7 +142,11 @@ const MediaPlayer: React.FC = () => {
                     </Frame>
                 </>
             )}
-        </div>
+            <StatusBar>
+                <StatusPanel $flex={1}>{error ? "No media" : list[index] ? nameOf(list[index]) : "—"}</StatusPanel>
+                <StatusPanel>{list.length} track(s)</StatusPanel>
+            </StatusBar>
+        </AppShell>
     );
 };
 

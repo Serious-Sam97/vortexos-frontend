@@ -24,3 +24,94 @@ body {
   cursor: default;
   user-select: none;
 }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   "Win98 Hard" — global chrome hardening. Tightens every app at once so the
+   whole OS reads as authentic Windows 98: chunky scrollbars, dotted focus,
+   grooved fieldsets, inset selects/inputs, and proper sunken status bars.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Chunky Win98 scrollbars everywhere */
+* {
+  scrollbar-width: auto;
+}
+::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+::-webkit-scrollbar-track {
+  background: #ffffff;
+  background-image:
+    linear-gradient(45deg, #c0c0c0 25%, transparent 25%, transparent 75%, #c0c0c0 75%),
+    linear-gradient(45deg, #c0c0c0 25%, transparent 25%, transparent 75%, #c0c0c0 75%);
+  background-size: 2px 2px;
+  background-position: 0 0, 1px 1px;
+}
+::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+}
+::-webkit-scrollbar-button {
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  width: 16px;
+  height: 16px;
+}
+::-webkit-scrollbar-corner {
+  background: #c0c0c0;
+}
+
+/* Dotted focus rectangle, Win98-style */
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 1px dotted #000;
+  outline-offset: -4px;
+}
+
+/* Grooved fieldsets / legends — used for app option groups */
+fieldset {
+  border: 2px groove #dfdfdf;
+  padding: 8px 10px;
+  margin: 0;
+}
+fieldset legend {
+  padding: 0 4px;
+  font-weight: bold;
+}
+
+/* Native selects & text inputs get the inset Win98 look so they don't feel loose */
+select,
+input[type="text"],
+input[type="number"],
+input[list] {
+  font-family: 'ms_sans_serif', 'MS Sans Serif', sans-serif;
+  font-size: 12px;
+  background: #ffffff;
+  border: 2px solid;
+  border-color: #808080 #ffffff #ffffff #808080;
+  padding: 2px 3px;
+  color: #000;
+}
+select {
+  background: #ffffff;
+  border-radius: 0;
+}
+
+/* App status bars: react95 <Frame className="footer"> → sunken, tight, with a top highlight */
+.footer {
+  border-top: 1px solid #ffffff !important;
+  padding: 2px 4px !important;
+  font-size: 11px;
+  margin: 0 !important;
+}
+.footer p {
+  margin: 0;
+  padding: 1px 6px;
+  border: 1px solid;
+  border-color: #808080 #ffffff #ffffff #808080;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

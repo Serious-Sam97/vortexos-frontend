@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { Button, Frame, GroupBox, TextInput, WindowContent } from "react95";
+import { Button, Frame, GroupBox, TextInput } from "react95";
 import { useSys } from "../../kernel/react/useSys";
 import { LibOS } from "../../kernel/libos";
 import { join } from "../../kernel/fs/path";
 import { openPath } from "../../system/openPath";
+import { AppShell, AppBody, StatusBar, StatusPanel } from "../chrome/AppChrome";
 
 interface Hit {
     name: string;
@@ -114,8 +115,8 @@ const Find: React.FC = () => {
     };
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", height: "100%", minWidth: 480, minHeight: 380 }}>
-            <WindowContent style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+        <AppShell $minW={480} $minH={380}>
+            <AppBody style={{ flexDirection: "column", padding: 8 }}>
                 <GroupBox label="Find: Files or Folders">
                     <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 6 }}>
                         <span style={{ width: 96 }}>Named:</span>
@@ -167,11 +168,11 @@ const Find: React.FC = () => {
                     {searched && results.length === 0 && <div style={{ padding: 8, color: "#666" }}>No items found.</div>}
                     {!searched && <div style={{ padding: 8, color: "#666" }}>Enter a name, text to find inside files, or a date — results appear as you type.</div>}
                 </Frame>
-            </WindowContent>
-            <Frame variant="well" className="footer">
-                {searching ? "Searching…" : searched ? `${results.length} item(s) found` : "Ready"}
-            </Frame>
-        </div>
+            </AppBody>
+            <StatusBar>
+                <StatusPanel $flex={1}>{searching ? "Searching…" : searched ? `${results.length} item(s) found` : "Ready"}</StatusPanel>
+            </StatusBar>
+        </AppShell>
     );
 };
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Button, Frame } from "react95";
+import { MenuBar, Menu, MenuItem } from "../chrome/AppChrome";
 
 /**
  * VortexOS Calculator — Standard / Scientific / Programmer modes, like Windows 98's calc.
@@ -34,7 +35,6 @@ const Calculator: React.FC = () => {
     const [mode, setMode] = useState<Mode>("standard");
     const [base, setBase] = useState<10 | 16 | 8 | 2>(10);
     const [degrees, setDegrees] = useState(true);
-    const [menu, setMenu] = useState(false);
     const rootRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => rootRef.current?.focus(), []);
@@ -188,26 +188,22 @@ const Calculator: React.FC = () => {
     const widthByMode = mode === "standard" ? 232 : 268;
 
     return (
-        <div ref={rootRef} tabIndex={0} onKeyDown={onKey} style={{ outline: "none", padding: 6, width: widthByMode }}>
-            {/* Win98-style menu bar */}
-            <div style={{ display: "flex", gap: 12, padding: "2px 4px", marginBottom: 4, fontSize: 12, position: "relative" }}>
-                <span style={{ position: "relative" }}>
-                    <span style={{ cursor: "pointer" }} onClick={() => setMenu((m) => !m)}><u>V</u>iew</span>
-                    {menu && (
-                        <Frame style={{ position: "absolute", top: 18, left: 0, zIndex: 10, padding: 2, width: 130 }}>
-                            {(["standard", "scientific", "programmer"] as Mode[]).map((m) => (
-                                <div key={m} onClick={() => { setMode(m); setMenu(false); clear(); if (m !== "programmer") setBase(10); }}
-                                    style={{ padding: "3px 8px", cursor: "pointer", textTransform: "capitalize", background: mode === m ? "#000080" : undefined, color: mode === m ? "#fff" : undefined }}>
-                                    {mode === m ? "● " : "○ "}{m}
-                                </div>
-                            ))}
-                        </Frame>
-                    )}
-                </span>
-                <span style={{ color: "#666" }}><u>E</u>dit</span>
-                <span style={{ color: "#666" }}><u>H</u>elp</span>
-            </div>
+        <div ref={rootRef} tabIndex={0} onKeyDown={onKey} style={{ outline: "none", width: widthByMode }}>
+            <MenuBar>
+                <Menu label="View">
+                    {(["standard", "scientific", "programmer"] as Mode[]).map((m) => (
+                        <MenuItem key={m} onMouseDown={(e) => { e.preventDefault(); setMode(m); clear(); if (m !== "programmer") setBase(10); }} style={{ textTransform: "capitalize" }}>
+                            {mode === m ? "● " : "○ "}{m}
+                        </MenuItem>
+                    ))}
+                </Menu>
+                <Menu label="Edit">
+                    <MenuItem onMouseDown={(e) => { e.preventDefault(); navigator.clipboard?.writeText(display).catch(() => {}); }}>Copy</MenuItem>
+                </Menu>
+                <Menu label="Help"><MenuItem $disabled>Calculator — VortexOS</MenuItem></Menu>
+            </MenuBar>
 
+            <div style={{ padding: 6 }}>
             <Frame variant="well" style={{ padding: 6, marginBottom: 8, textAlign: "right", fontFamily: "monospace", fontSize: 20, overflow: "hidden", minHeight: 24 }}>
                 {display}
             </Frame>
@@ -215,6 +211,7 @@ const Calculator: React.FC = () => {
             {mode === "standard" && standardPad}
             {mode === "scientific" && sciPad}
             {mode === "programmer" && progPad}
+            </div>
         </div>
     );
 };

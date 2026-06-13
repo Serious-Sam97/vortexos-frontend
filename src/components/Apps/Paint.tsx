@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { Button, Frame, Toolbar } from "react95";
+import { Button, Frame } from "react95";
 import { useSys } from "../../kernel/react/useSys";
 import { useDialog } from "../Dialog/DialogProvider";
+import { Toolbar, ToolButton, ToolSep } from "../chrome/AppChrome";
 
 const COLORS = ["#000000", "#808080", "#c0c0c0", "#ffffff", "#ff0000", "#ffa500", "#ffff00", "#008000", "#00ff00", "#0000ff", "#00ffff", "#800080", "#ff00ff", "#8b4513"];
 const SIZES = [2, 4, 8, 14];
@@ -176,13 +177,15 @@ const Paint: React.FC = () => {
     return (
         <div style={{ padding: 6 }}>
             <Toolbar>
-                <Button variant="menu" size="sm" onClick={doUndo} disabled={!undo.current.length}>Undo</Button>
-                <Button variant="menu" size="sm" onClick={doRedo} disabled={!redo.current.length}>Redo</Button>
-                <Button variant="menu" size="sm" onClick={clear}>Clear</Button>
-                <Button variant="menu" size="sm" onClick={save}>Save</Button>
-                <span style={{ marginLeft: 8, fontSize: 12 }}>Zoom:</span>
+                <ToolButton onClick={doUndo} disabled={!undo.current.length}>Undo</ToolButton>
+                <ToolButton onClick={doRedo} disabled={!redo.current.length}>Redo</ToolButton>
+                <ToolSep />
+                <ToolButton onClick={clear}>Clear</ToolButton>
+                <ToolButton onClick={save}>Save</ToolButton>
+                <ToolSep />
+                <span style={{ fontSize: 12, padding: "0 4px" }}>Zoom:</span>
                 {ZOOMS.map((z) => (
-                    <Button key={z} variant="menu" size="sm" active={zoom === z} onClick={() => setZoom(z)}>{z}x</Button>
+                    <ToolButton key={z} $active={zoom === z} onClick={() => setZoom(z)}>{z}x</ToolButton>
                 ))}
             </Toolbar>
 

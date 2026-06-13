@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Button, Frame, MenuList, MenuListItem, Separator, TextInput, Toolbar, WindowContent } from "react95";
+import { MenuList, MenuListItem, Separator, TextInput } from "react95";
+import { AppShell, AppBody, MenuBar, Menu, MenuItem, MenuSep, Toolbar, ToolButton, ToolSep, StatusBar, StatusPanel } from "../chrome/AppChrome";
 import { useSys } from "../../kernel/react/useSys";
 import { useOSContext } from "../../contexts/OSContext";
 import { useDialog } from "../Dialog/DialogProvider";
@@ -212,30 +213,44 @@ const Explorer: React.FC = () => {
     };
 
     return (
-        <div
-            ref={rootRef}
-            tabIndex={0}
-            onKeyDown={onKeyDown}
-            style={{ display: "flex", flexDirection: "column", height: "100%", minWidth: 560, minHeight: 360, outline: "none" }}
-        >
+        <AppShell ref={rootRef as never} tabIndex={0} onKeyDown={onKeyDown} $minW={560} $minH={360} style={{ outline: "none" }}>
+            <MenuBar>
+                <Menu label="File">
+                    <MenuItem onMouseDown={(e) => { e.preventDefault(); newFolder(); }}>New Folder</MenuItem>
+                    <MenuItem onMouseDown={(e) => { e.preventDefault(); newTextDocument(); }}>New Text Document</MenuItem>
+                </Menu>
+                <Menu label="Edit">
+                    <MenuItem $disabled={!clipboard} onMouseDown={(e) => { e.preventDefault(); paste(); }}>Paste</MenuItem>
+                </Menu>
+                <Menu label="View">
+                    <MenuItem onMouseDown={(e) => { e.preventDefault(); refresh(cwd); }}>Refresh</MenuItem>
+                    <MenuSep />
+                    <MenuItem $disabled={cwd === "/"} onMouseDown={(e) => { e.preventDefault(); refresh(dirname(cwd)); }}>Up One Level</MenuItem>
+                </Menu>
+                <Menu label="Help"><MenuItem $disabled>Explorer — VortexOS</MenuItem></Menu>
+            </MenuBar>
+
             <Toolbar>
-                <Button variant="menu" size="sm" onClick={() => refresh(dirname(cwd))} disabled={cwd === "/"}>
-                    Up
-                </Button>
-                <Button variant="menu" size="sm" onClick={() => refresh(cwd)}>
-                    Refresh
-                </Button>
-                <Button variant="menu" size="sm" onClick={newFolder}>
-                    New Folder
-                </Button>
-                <span style={{ marginLeft: 8, alignSelf: "center" }}>{cwd}</span>
+                <ToolButton onClick={() => refresh(dirname(cwd))} disabled={cwd === "/"}>↑ Up</ToolButton>
+                <ToolButton onClick={() => refresh(cwd)}>⟳ Refresh</ToolButton>
+                <ToolSep />
+                <ToolButton onClick={newFolder}>New Folder</ToolButton>
+                <ToolSep />
+                <span style={{ fontSize: 12, padding: "0 4px" }}>Address:</span>
+                <input
+                    key={cwd}
+                    defaultValue={cwd}
+                    onKeyDown={(e) => { if (e.key === "Enter") refresh((e.target as HTMLInputElement).value); }}
+                    style={{ flex: 1, minWidth: 120 }}
+                />
             </Toolbar>
 
-            <WindowContent
-                style={{ flex: 1, minHeight: 0, overflow: "auto", backgroundColor: "white", border: "3px solid gray", borderRadius: 5 }}
-                onContextMenu={(e) => openMenu(e, null)}
-                onClick={() => setSelected(null)}
-            >
+            <AppBody style={{ padding: 3 }}>
+                <div
+                    style={{ flex: 1, minHeight: 0, overflow: "auto", background: "#fff", border: "2px solid", borderColor: "#808080 #ffffff #ffffff #808080" }}
+                    onContextMenu={(e) => openMenu(e, null)}
+                    onClick={() => setSelected(null)}
+                >
                 <div style={{ display: "flex", flexWrap: "wrap", width: "100%", alignContent: "flex-start" }}>
                     {entries.map((entry) => (
                         <div
@@ -293,11 +308,13 @@ const Explorer: React.FC = () => {
                         </div>
                     ))}
                 </div>
-            </WindowContent>
+                </div>
+            </AppBody>
 
-            <Frame variant="well" className="footer">
-                <p>{status || "Explorer"}</p>
-            </Frame>
+            <StatusBar>
+                <StatusPanel $flex={1}>{status || "Explorer"}</StatusPanel>
+                <StatusPanel>{entries.length} object(s)</StatusPanel>
+            </StatusBar>
 
             {menu &&
                 createPortal(
@@ -344,7 +361,7 @@ const Explorer: React.FC = () => {
                     ),
                     document.body,
                 )}
-        </div>
+        </AppShell>
     );
 };
 

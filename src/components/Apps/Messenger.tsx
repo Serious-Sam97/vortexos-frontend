@@ -1,5 +1,6 @@
 import { useEffect, useReducer, useState } from "react";
 import { Button, Frame, TextInput } from "react95";
+import { AppShell, StatusBar, StatusPanel } from "../chrome/AppChrome";
 import { getChatLog, getOnline, sendChat, subscribeChat } from "../../system/chat";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -32,10 +33,7 @@ const Messenger: React.FC = () => {
     };
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", height: "100%", minWidth: 440, minHeight: 320 }}>
-            <p style={{ margin: "4px 8px", fontSize: 12 }}>
-                {others.length === 0 ? "No one else is online." : `${others.length} user(s) online`}
-            </p>
+        <AppShell $minW={440} $minH={320}>
             <div style={{ display: "flex", gap: 8, flex: 1, minHeight: 0, padding: 8 }}>
                 {/* who's online */}
                 <div style={{ ...panel, width: 130 }}>
@@ -78,7 +76,10 @@ const Messenger: React.FC = () => {
                     </div>
                 </div>
             </div>
-        </div>
+            <StatusBar>
+                <StatusPanel $flex={1}>{others.length === 0 ? "No one else is online." : `${others.length} user(s) online`}</StatusPanel>
+            </StatusBar>
+        </AppShell>
     );
 };
 
