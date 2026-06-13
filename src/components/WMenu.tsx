@@ -15,6 +15,12 @@ import TerminalIcon from "/terminal.svg";
 import ExplorerIcon from "/explorer.png";
 import NotesIcon from "/notes.png";
 import BackloggerIcon from "/backlogger.png";
+import CalculatorIcon from "/calculator.svg";
+import MinesweeperIcon from "/minesweeper.svg";
+import ClockIcon from "/clock.svg";
+import PaintIcon from "/paint_file-3.png";
+import FindIcon from "/find.svg";
+import HelpIcon from "/help.svg";
 
 const TASKBAR_HEIGHT = 40;
 
@@ -70,6 +76,10 @@ const PROGRAMS = [
     { name: "GameCache", icon: BackloggerIcon, componentName: "backlogger" },
     { name: "Task Manager", icon: TaskManagerIcon, componentName: "task_manager" },
     { name: "Control Panel", icon: ControlPanelIcon, componentName: "control_panel" },
+    { name: "Calculator", icon: CalculatorIcon, componentName: "calculator" },
+    { name: "Minesweeper", icon: MinesweeperIcon, componentName: "minesweeper" },
+    { name: "Clock", icon: ClockIcon, componentName: "clock" },
+    { name: "Paint", icon: PaintIcon, componentName: "paint" },
 ];
 
 function useClock(): string {
@@ -269,8 +279,16 @@ const WMenu: React.FC = () => {
                                     </MenuList>
                                 )}
                             </div>
-                            <MenuListItem disabled>Find ▸</MenuListItem>
-                            <MenuListItem disabled>Help</MenuListItem>
+                            <MenuListItem style={{ cursor: "pointer" }} onClick={() => launch({ name: "Find Files", icon: FindIcon, componentName: "find" })}>
+                                <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                    <img src={FindIcon} style={{ width: 20 }} /> Find
+                                </span>
+                            </MenuListItem>
+                            <MenuListItem style={{ cursor: "pointer" }} onClick={() => launch({ name: "Help", icon: HelpIcon, componentName: "help" })}>
+                                <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                    <img src={HelpIcon} style={{ width: 20 }} /> Help
+                                </span>
+                            </MenuListItem>
                             <MenuListItem
                                 style={{ cursor: "pointer" }}
                                 onClick={() =>

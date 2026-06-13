@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useProcessContext } from "../contexts/ProcessContext";
-import { Button, Window, WindowHeader } from "react95";
+import { Button, MenuList, MenuListItem, Separator, Window, WindowHeader } from "react95";
 import { Process } from "../interfaces/Process";
 import { useOSContext } from "../contexts/OSContext";
 import { PidProvider } from "../kernel/react/pid";
@@ -31,6 +31,14 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
     const [ghost, setGhost] = useState<Rect | null>(null);
     const [maximized, setMaximized] = useState(false);
     const [minimizing, setMinimizing] = useState(false);
+    const [sysMenu, setSysMenu] = useState(false);
+
+    useEffect(() => {
+        if (!sysMenu) return;
+        const close = () => setSysMenu(false);
+        document.addEventListener("click", close);
+        return () => document.removeEventListener("click", close);
+    }, [sysMenu]);
 
     const windowRef = useRef<HTMLDivElement>(null);
     const dragStart = useRef<{ mouseX: number; mouseY: number; left: number; top: number; w: number; h: number } | null>(null);
@@ -81,10 +89,14 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
 
     const handleMouseUp = (event: MouseEvent) => {
         setDragging(false);
-        if (dragStart.current && process.uuid) {
-            const dx = event.clientX - dragStart.current.mouseX;
-            const dy = event.clientY - dragStart.current.mouseY;
-            const next = { x: properties.x + dx, y: properties.y + dy };
+        const d = dragStart.current;
+        if (d && process.uuid) {
+            let left = d.left + (event.clientX - d.mouseX);
+            let top = d.top + (event.clientY - d.mouseY);
+            // keep the title bar reachable: never fully off-screen, never under the taskbar
+            left = Math.min(Math.max(left, 80 - d.w), window.innerWidth - 80);
+            top = Math.min(Math.max(top, 0), window.innerHeight - TASKBAR_HEIGHT - 28);
+            const next = { x: Math.round(left + d.w / 2), y: Math.round(top + d.h / 2) };
             setProperties(next);
             handleProceessLocationChange(process.uuid, next);
         }
@@ -131,6 +143,10 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
               userSelect: "none",
               display: isMinimized ? "none" : undefined,
               animation,
+              minWidth: 240,
+              minHeight: 150,
+              maxWidth: "100vw",
+              maxHeight: `calc(100vh - ${TASKBAR_HEIGHT}px)`,
           };
 
     return (
@@ -154,11 +170,45 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
                         background: isActive ? undefined : "#808080",
                     }}
                 >
-                    <div style={{ display: "flex", alignItems: "center", overflow: "hidden" }}>
-                        <img src={process.icon} style={{ width: 18, height: 18, marginRight: 4 }} />
+                    <div style={{ display: "flex", alignItems: "center", overflow: "hidden", position: "relative" }}>
+                        <img
+                            src={process.icon}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setSysMenu((o) => !o);
+                            }}
+                            onDoubleClick={(e) => {
+                                e.stopPropagation();
+                                if (process.uuid) closeProcess(process.uuid);
+                            }}
+                            style={{ width: 18, height: 18, marginRight: 4, cursor: "pointer" }}
+                        />
                         <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                             {process.name}
                         </span>
+                        {sysMenu && (
+                            <MenuList
+                                style={{ position: "absolute", left: 0, top: "100%", width: 150, zIndex: 100002 }}
+                                onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
+                            >
+                                <MenuListItem disabled={!maximized} style={{ cursor: maximized ? "pointer" : "default" }} onClick={() => setMaximized(false)}>
+                                    Restore
+                                </MenuListItem>
+                                <MenuListItem disabled>Move</MenuListItem>
+                                <MenuListItem disabled>Size</MenuListItem>
+                                <MenuListItem style={{ cursor: "pointer" }} onClick={doMinimize}>
+                                    Minimize
+                                </MenuListItem>
+                                <MenuListItem disabled={maximized} style={{ cursor: maximized ? "default" : "pointer" }} onClick={() => setMaximized(true)}>
+                                    Maximize
+                                </MenuListItem>
+                                <Separator />
+                                <MenuListItem style={{ cursor: "pointer" }} onClick={() => process.uuid && closeProcess(process.uuid)}>
+                                    Close
+                                </MenuListItem>
+                            </MenuList>
+                        )}
                     </div>
 
                     <div style={{ display: "flex", gap: 2 }} onMouseDown={stop} onClick={stop}>

@@ -1,32 +1,17 @@
-import { Button, Frame, Toolbar, WindowContent } from "react95";
+import { Frame, WindowContent } from "react95";
 import DosPlayer from "../DosPlayer";
 
-const Doom: React.FC = () => {
-
-    return (
-        <>
-            <Toolbar>
-                <Button variant='menu' size='sm'>
-                    File
-                </Button>
-                <Button variant='menu' size='sm'>
-                    Edit
-                </Button>
-                <Button variant='menu' size='sm' disabled>
-                    Save
-                </Button>
-            </Toolbar>
-            <WindowContent>
-                <div style={{ width: "800px", height: "600px" }}>
-                    <DosPlayer bundleUrl="dos/final-DOOM.jsdos" />
-                </div>
-
-            </WindowContent>
-            <Frame variant='well' className='footer'>
-                TEST
-            </Frame>
-        </>
-    );
-}
+const Doom: React.FC = () => (
+    <>
+        <WindowContent>
+            <div style={{ width: "800px", height: "600px" }}>
+                <DosPlayer bundleUrl="dos/final-DOOM.jsdos" />
+            </div>
+        </WindowContent>
+        <Frame variant="well" className="footer">
+            Running in the js-dos DOS emulator — click to play
+        </Frame>
+    </>
+);
 
 export default Doom;

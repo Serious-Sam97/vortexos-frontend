@@ -85,6 +85,28 @@ describe("Kernel filesystem syscalls", () => {
         expect(await kernel.syscall(null, "readdir", { path: "/home/user/docs" })).toEqual([]);
     });
 
+    it("rename moves and renames within the writable fs", async () => {
+        const w = await open(null, "/home/user/old.txt", "w");
+        await write(null, w, enc("payload"));
+        await close(null, w);
+
+        await kernel.syscall(null, "rename", { from: "/home/user/old.txt", to: "/home/user/new.txt" });
+        const listing = await kernel.syscall(null, "readdir", { path: "/home/user" });
+        expect(listing).toContain("new.txt");
+        expect(listing).not.toContain("old.txt");
+
+        const fd = await open(null, "/home/user/new.txt", "r");
+        expect(dec(await read(null, fd, 100))).toBe("payload");
+    });
+
+    it("rename into a read-only filesystem → EROFS", async () => {
+        const w = await open(null, "/home/user/f.txt", "w");
+        await close(null, w);
+        await expect(kernel.syscall(null, "rename", { from: "/home/user/f.txt", to: "/bin/f.txt" })).rejects.toThrow(
+            "EROFS",
+        );
+    });
+
     describe("errors", () => {
         it("open('r') on a missing file → ENOENT", async () => {
             await expect(open(null, "/home/user/ghost", "r")).rejects.toThrow("ENOENT");

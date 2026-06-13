@@ -8,6 +8,7 @@ import { MemFS } from "../fs/MemFS";
 import { DevFS } from "../fs/DevFS";
 import { ProcFS } from "../fs/ProcFS";
 import { BinFS } from "../fs/BinFS";
+import { CloudFS, createCloudApi } from "../fs/CloudFS";
 import { createLocalStorageFsPersistence } from "../fs/persistence";
 import { PCB, WindowState } from "../types";
 
@@ -29,7 +30,10 @@ function seedRoot(): MemFS {
     fs.mkdir("/home");
     fs.mkdir("/home/user");
     fs.mkdir("/home/user/Documents");
+    fs.mkdir("/home/user/Desktop");
     fs.mkdir("/tmp");
+    fs.mkdir("/mnt");
+    fs.mkdir("/Recycle Bin");
     fs.write("/home/user/welcome.txt", new TextEncoder().encode(WELCOME));
     return fs;
 }
@@ -48,12 +52,20 @@ function createKernel(): Kernel {
     const saved = fsPersistence.load();
     const root = saved ? MemFS.deserialize(saved) : seedRoot();
 
+    if (!root.exists("/mnt")) root.mkdir("/mnt"); // mount point for /mnt/cloud (restored trees)
+
     const vfs = new Vfs();
     vfs.mount("/", root);
     vfs.mount("/dev", new DevFS());
     vfs.mount("/proc", new ProcFS(() => kernel.processInfo()));
     vfs.mount("/bin", new BinFS(() => kernel.registry.list().map((p) => ({ exec: p.exec, name: p.name }))));
-    vfs.setOnChange(() => fsPersistence.save(root.serialize()));
+
+    // Server-backed cloud drive: mirrors the backend File table, syncs through to it.
+    const cloud = new CloudFS("/mnt/cloud", createCloudApi(import.meta.env.VITE_API_URL ?? ""));
+    vfs.mount("/mnt/cloud", cloud);
+    void cloud.init();
+
+    vfs.subscribe(() => fsPersistence.save(root.serialize()));
     kernel.mountVfs(vfs);
 
     if (!saved) fsPersistence.save(root.serialize()); // persist the freshly seeded tree
@@ -76,4 +88,10 @@ export function useKernel(): Kernel {
 export function useProcessTable(): readonly PCB[] {
     const kernel = useKernel();
     return useSyncExternalStore(kernel.subscribe, kernel.getSnapshot);
+}
+
+/** Reactive filesystem mutation counter — re-renders a component on any FS change. */
+export function useFsVersion(): number {
+    const kernel = useKernel();
+    return useSyncExternalStore(kernel.subscribeFs, kernel.fsVersion);
 }

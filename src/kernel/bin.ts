@@ -14,6 +14,12 @@ import Persia from "../components/Apps/Persia";
 import NightwavePlaza from "../components/Apps/NightwavePlaza";
 import ControlPanel from "../components/Apps/ControlPanel";
 import Terminal from "../components/Apps/Terminal";
+import Calculator from "../components/Apps/Calculator";
+import Minesweeper from "../components/Apps/Minesweeper";
+import Clock from "../components/Apps/Clock";
+import Paint from "../components/Apps/Paint";
+import Find from "../components/Apps/Find";
+import Help from "../components/Apps/Help";
 
 import TrashIcon from "/trash.svg";
 import MyComputerIcon from "/my-computer.png";
@@ -28,6 +34,12 @@ import TombRaiderIcon from "/tomb.jpg";
 import PersiaIcon from "/persia.png";
 import NightwavePlazaIcon from "/vapor.png";
 import TerminalIcon from "/terminal.svg";
+import CalculatorIcon from "/calculator.svg";
+import MinesweeperIcon from "/minesweeper.svg";
+import ClockIcon from "/clock.svg";
+import PaintIcon from "/paint_file-3.png";
+import FindIcon from "/find.svg";
+import HelpIcon from "/help.svg";
 
 /**
  * Installs the built-in programs into /bin. `exec` keys match v1's `componentName`
@@ -42,6 +54,12 @@ export function registerBuiltins(registry: ProgramRegistry): void {
         { exec: "notes", name: "Notes", icon: NotesIcon, component: Notes, permissions: ["fs"] },
         { exec: "explorer", name: "Explorer", icon: ExplorerIcon, component: Explorer, permissions: ["fs", "proc"] },
         { exec: "terminal", name: "Terminal", icon: TerminalIcon, component: Terminal, permissions: ["fs", "proc"] },
+        { exec: "calculator", name: "Calculator", icon: CalculatorIcon, component: Calculator, permissions: [] },
+        { exec: "minesweeper", name: "Minesweeper", icon: MinesweeperIcon, component: Minesweeper, permissions: [] },
+        { exec: "clock", name: "Clock", icon: ClockIcon, component: Clock, permissions: [] },
+        { exec: "paint", name: "Paint", icon: PaintIcon, component: Paint, permissions: ["fs"] },
+        { exec: "find", name: "Find Files", icon: FindIcon, component: Find, permissions: ["fs"] },
+        { exec: "help", name: "Help", icon: HelpIcon, component: Help, permissions: [] },
         { exec: "browser", name: "Browser", icon: BrowserIcon, component: Browser, permissions: ["net"] },
         { exec: "vaporwave", name: "Nightwave Plaza", icon: NightwavePlazaIcon, component: NightwavePlaza, permissions: ["net", "audio"] },
         { exec: "control_panel", name: "Control Panel", icon: MyComputerIcon, component: ControlPanel, permissions: [] },

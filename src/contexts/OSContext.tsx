@@ -1,15 +1,12 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { ReactNode } from "react";
-import { IOSContext } from "../interfaces/IOSContext";
+import { FileClipboard, IOSContext } from "../interfaces/IOSContext";
 import { IWallpaper } from "../interfaces/IWallpaper";
 
 const OSContext = createContext<IOSContext>({} as IOSContext);
 
 export function OSContextProvider({children}: {children: ReactNode}) {
     const [ cursor, setCursor ] = useState('url(/win-cursor/arrow.cur), auto');
-    //IMPLEMENT RIGHT CLICK HERE!!
-
-    const [storage, setStorage] = useState<any[]>([]);
     const [ minimized, setMinimized ] = useState<string[]>([]);
 
     const minimize = (pid: string) => setMinimized(prev => prev.includes(pid) ? prev : [...prev, pid]);
@@ -21,6 +18,8 @@ export function OSContextProvider({children}: {children: ReactNode}) {
         localStorage.setItem('vortex.crt', next ? '1' : '0');
         return next;
     });
+
+    const [ clipboard, setClipboard ] = useState<FileClipboard | null>(null);
 
     const [ wallpaper, setWallpaper ] = useState({
         image: '',
@@ -49,16 +48,12 @@ export function OSContextProvider({children}: {children: ReactNode}) {
     }
 
     return (
-        <OSContext.Provider value={{cursor, changeCursor, storage, setStorage, wallpaper, changeWallpaper, minimized, minimize, restore, crt, toggleCrt}}>
+        <OSContext.Provider value={{cursor, changeCursor, wallpaper, changeWallpaper, minimized, minimize, restore, crt, toggleCrt, clipboard, setClipboard}}>
             {children}
         </OSContext.Provider>
     )
 }
 
 export function useOSContext() {
-    if (!OSContext) {
-        throw new Error("useProcessContext must be used within a ProcessContextProvider");
-    }
-
     return useContext(OSContext);
 }

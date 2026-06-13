@@ -115,6 +115,12 @@ export class Kernel {
         this.vfs = vfs;
     }
 
+    /** Subscribe to filesystem mutations (lets React render live FS views). */
+    subscribeFs = (fn: () => void): (() => void) => (this.vfs ? this.vfs.subscribe(fn) : () => {});
+
+    /** Snapshot value for useSyncExternalStore — bumps on every FS mutation. */
+    fsVersion = (): number => this.vfs?.version() ?? 0;
+
     /** Public process-table view, used by /proc and the ps syscall. */
     processInfo(): ProcInfo[] {
         return this.sysPs();
@@ -193,6 +199,8 @@ export class Kernel {
                 return this.fs().mkdir(args.path);
             case "unlink":
                 return this.fs().unlink(args.path);
+            case "rename":
+                return this.fs().rename(args.from, args.to);
             default:
                 throw new KernelError("ENOSYS", `unknown syscall: ${name}`);
         }

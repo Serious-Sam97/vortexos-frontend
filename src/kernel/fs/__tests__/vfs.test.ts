@@ -48,6 +48,33 @@ describe("Vfs mount table", () => {
         expect(vfs.read("/dev/null").length).toBe(0);
     });
 
+    describe("change notification", () => {
+        it("notifies subscribers and bumps version on every mutation, stops after unsubscribe", () => {
+            let hits = 0;
+            const unsubscribe = vfs.subscribe(() => hits++);
+            expect(vfs.version()).toBe(0);
+
+            vfs.write("/home/user/a.txt", enc("a"));
+            vfs.mkdir("/home/user/d");
+            vfs.rename("/home/user/a.txt", "/home/user/b.txt");
+            vfs.unlink("/home/user/b.txt");
+            expect(hits).toBe(4);
+            expect(vfs.version()).toBe(4);
+
+            unsubscribe();
+            vfs.write("/home/user/c.txt", enc("c"));
+            expect(hits).toBe(4); // listener no longer fires
+            expect(vfs.version()).toBe(5); // version still advances
+        });
+
+        it("does not fire when a mutation throws (read-only mount)", () => {
+            let hits = 0;
+            vfs.subscribe(() => hits++);
+            expect(() => vfs.write("/bin/x", enc("y"))).toThrow("EROFS");
+            expect(hits).toBe(0);
+        });
+    });
+
     describe("/dev", () => {
         it("lists and reads devices", () => {
             expect(vfs.readdir("/dev")).toEqual(["null", "random", "zero"]);

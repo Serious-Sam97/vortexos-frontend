@@ -1,93 +1,116 @@
-import { useCallback, useState } from "react";
-import { Button, Frame, Toolbar, WindowContent } from "react95";
-import { IMenu } from "../../interfaces/IMenu";
+import { useEffect, useState } from "react";
+import { Button, Checkbox, Frame, Toolbar, WindowContent } from "react95";
 import Monitor from "../ControlPanel/Monitor";
+import { getVolume, isMuted, playChord, setMuted, setVolume } from "../../system/sounds";
+
+const SoundApplet: React.FC = () => {
+    const [vol, setVol] = useState(Math.round(getVolume() * 100));
+    const [mute, setMute] = useState(isMuted());
+    return (
+        <div style={{ padding: 16 }}>
+            <p style={{ fontWeight: "bold", marginBottom: 10 }}>Sound</p>
+            <Checkbox
+                checked={mute}
+                onChange={() => {
+                    const m = !mute;
+                    setMute(m);
+                    setMuted(m);
+                }}
+                label="Mute all sounds"
+            />
+            <div style={{ marginTop: 14 }}>
+                <label>Volume</label>
+                <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={vol}
+                    disabled={mute}
+                    onChange={(e) => {
+                        const v = Number(e.target.value);
+                        setVol(v);
+                        setVolume(v / 100);
+                    }}
+                    onMouseUp={() => !mute && playChord()}
+                    style={{ width: 220, display: "block", marginTop: 4 }}
+                />
+                <span>{vol}%</span>
+            </div>
+        </div>
+    );
+};
+
+const DateTimeApplet: React.FC = () => {
+    const [now, setNow] = useState(new Date());
+    useEffect(() => {
+        const id = setInterval(() => setNow(new Date()), 1000);
+        return () => clearInterval(id);
+    }, []);
+    return (
+        <div style={{ padding: 16 }}>
+            <p style={{ fontWeight: "bold", marginBottom: 10 }}>Date/Time</p>
+            <Frame variant="well" style={{ padding: 10, fontSize: 18, fontFamily: "monospace" }}>
+                {now.toLocaleString()}
+            </Frame>
+            <p style={{ marginTop: 10, fontSize: 12 }}>VortexOS follows your computer's clock.</p>
+        </div>
+    );
+};
+
+const SystemApplet: React.FC = () => (
+    <div style={{ padding: 16, lineHeight: 1.7 }}>
+        <p style={{ fontWeight: "bold", marginBottom: 10 }}>System</p>
+        <p>VortexOS 2.0</p>
+        <p>Experimental Windows 95 simulation</p>
+        <p>Microkernel build — VFS, shell, window manager</p>
+        <p>Registered to: Serious Sam</p>
+    </div>
+);
+
+const APPLETS = [
+    { name: "Display", icon: "/monitor.png", component: Monitor },
+    { name: "Sounds", icon: "/sound.svg", component: SoundApplet },
+    { name: "Date/Time", icon: "/clock.svg", component: DateTimeApplet },
+    { name: "System", icon: "/my-computer.png", component: SystemApplet },
+];
 
 const ControlPanel: React.FC = () => {
-
-    const [ principalMenu, setPrincipalMenu ] = useState(true);
-    const [ SubMenu, setSubMenu ] = useState<React.FC | null>(null);
-
-    const [menu, setMenu] = useState<IMenu[][]>([
-        [
-            {
-                name: "Monitor",
-                icon: "/monitor.png",
-                component: Monitor,
-                selected: false,
-            }
-        ]
-    ]);
-
-    const openMenu = useCallback((i: number, j: number) => {
-        setMenu(menu.map((row, rowIndex) => {
-            return row.map((column, columnIndex) => {
-                if (menu[i][j].selected === true) {
-                    setSubMenu(() => menu[i][j].component);
-                    setPrincipalMenu(false);
-
-                    return { ...column, selected: false };
-                }
-
-                if (rowIndex === i && columnIndex === j) {
-                    return { ...column, selected: true };
-                }
-                return { ...column, selected: false };
-            });
-        }));
-    }, [menu, setMenu]);
+    const [active, setActive] = useState<(typeof APPLETS)[number] | null>(null);
 
     return (
-        <>
+        <div style={{ display: "flex", flexDirection: "column", height: "100%", minWidth: 560, minHeight: 380 }}>
             <Toolbar>
-                <Button variant='menu' size='sm'>
-                    File
-                </Button>
-                <Button variant='menu' size='sm'>
-                    Edit
-                </Button>
-                <Button variant='menu' size='sm' disabled>
-                    Save
-                </Button>
+                {active && (
+                    <Button variant="menu" size="sm" onClick={() => setActive(null)}>
+                        ◀ Back
+                    </Button>
+                )}
+                <span style={{ marginLeft: 8, alignSelf: "center" }}>{active ? active.name : "Control Panel"}</span>
             </Toolbar>
-            <WindowContent style={{backgroundColor: 'white', border: '3px solid gray', borderRadius: '5px'}}>
-                {
-                    principalMenu || !SubMenu ?
-                        (
-                            <div style={{width: '700px'}}>
-                                <div style={{width: '100%'}}>
-                                {
-                                    Array.from({length: 21}).map((_, i) => (
-                                        <div style={{display: 'flex', paddingLeft: '20px', paddingRight: '20px', paddingTop: '10px', paddingBottom: '10px'}}>
-                                            {
-                                                Array.from({length: 7}).map((_, j) => (
-                                                    (menu[i] && menu[i][j] && (
-                                                        <div onClick={() => openMenu(i, j)} style={{cursor: "pointer", display: "flex", justifyContent: "center", flexDirection: 'column', paddingRight: '30px'}}>
-                                                            <div style={{display: 'flex', justifyContent: 'center'}}>
-                                                                <img
-                                                                    src={menu[i][j].icon}
-                                                                    style={{ height: '70px', filter: menu[i][j].selected ? 'sepia(100%) saturate(500%) hue-rotate(220deg) brightness(60%)' : 'none',}}
-                                                                />
-                                                            </div>
-                                                            <p style={{color: menu[i][j].selected ? 'white' : 'black', textAlign: 'center', backgroundColor: menu[i][j].selected ? '#000080' : 'transparent'}}>{menu[i][j].name}</p>
-                                                        </div>
-                                                    ))
-                                                ))
-                                            }
-                                        </div>
-                                    ))
-                                }
-                                </div>
+            <WindowContent style={{ flex: 1, minHeight: 0, overflow: "auto", backgroundColor: "white", border: "3px solid gray", borderRadius: 5 }}>
+                {active ? (
+                    <active.component />
+                ) : (
+                    <div style={{ display: "flex", flexWrap: "wrap", padding: 10 }}>
+                        {APPLETS.map((a) => (
+                            <div
+                                key={a.name}
+                                onDoubleClick={() => setActive(a)}
+                                title="Double-click to open"
+                                style={{ cursor: "pointer", width: 96, padding: 12, display: "flex", flexDirection: "column", alignItems: "center" }}
+                            >
+                                <img src={a.icon} alt={a.name} style={{ height: 44 }} />
+                                <p style={{ textAlign: "center" }}>{a.name}</p>
                             </div>
-                        )
-                        : SubMenu && (<SubMenu/>)
-                }
+                        ))}
+                    </div>
+                )}
             </WindowContent>
-            <Frame variant='well' className='footer'>
-                Control Panel
+            <Frame variant="well" className="footer">
+                {active ? active.name : `${APPLETS.length} object(s)`}
             </Frame>
-        </>
+        </div>
     );
-}
+};
 
 export default ControlPanel;

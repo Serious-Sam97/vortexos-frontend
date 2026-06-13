@@ -13,6 +13,7 @@ export interface FileSystem {
     write(path: string, data: Uint8Array): void;
     mkdir(path: string): void;
     unlink(path: string): void;
+    rename(from: string, to: string): void;
 }
 
 /** Serialized form of a MemFS node tree (file bytes stored as number[] for JSON). */

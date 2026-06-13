@@ -28,6 +28,7 @@ export interface LibOS {
     stat(path: string): Promise<Stat>;
     mkdir(path: string): Promise<void>;
     unlink(path: string): Promise<void>;
+    rename(from: string, to: string): Promise<void>;
     // filesystem — whole-file convenience helpers
     readFile(path: string): Promise<Uint8Array>;
     writeFile(path: string, data: Uint8Array): Promise<void>;
@@ -58,6 +59,7 @@ export function createLibOS(kernel: Kernel, pid: Pid | null): LibOS {
         stat: (path) => call("stat", { path }),
         mkdir: (path) => call("mkdir", { path }),
         unlink: (path) => call("unlink", { path }),
+        rename: (from, to) => call("rename", { from, to }),
 
         async readFile(path) {
             const { size } = await call("stat", { path });

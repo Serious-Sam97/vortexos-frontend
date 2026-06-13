@@ -65,4 +65,7 @@ export class ProcFS implements FileSystem {
     unlink(path: string): void {
         throw new KernelError("EROFS", path);
     }
+    rename(from: string): void {
+        throw new KernelError("EROFS", from);
+    }
 }

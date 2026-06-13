@@ -1,11 +1,8 @@
-import { IFile } from "./IFile";
 import { IWallpaper } from "./IWallpaper";
 
 export interface IOSContext {
     cursor: string,
     changeCursor: (cursor: string) => void,
-    storage: IFile[],
-    setStorage: (data: Array<Array<IFile>>) => void,
     wallpaper: IWallpaper,
     changeWallpaper: (value: IWallpaper) => void,
     minimized: string[],
@@ -13,4 +10,11 @@ export interface IOSContext {
     restore: (pid: string) => void,
     crt: boolean,
     toggleCrt: () => void,
+    clipboard: FileClipboard | null,
+    setClipboard: (clip: FileClipboard | null) => void,
 };
+
+export interface FileClipboard {
+    op: "cut" | "copy";
+    path: string;
+}

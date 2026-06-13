@@ -106,6 +106,7 @@ export interface SyscallMap {
     stat: { args: { path: string }; result: Stat };
     mkdir: { args: { path: string }; result: void };
     unlink: { args: { path: string }; result: void };
+    rename: { args: { from: string; to: string }; result: void };
 }
 
 export type SyscallName = keyof SyscallMap;

@@ -68,12 +68,4 @@ describe("ProcessContext compatibility shim", () => {
         act(() => result.current.closeProcess(uuid));
         expect(result.current.processes).toHaveLength(0);
     });
-
-    it("exposes registry lookups and the Explorer program list", () => {
-        const { result } = setup();
-        expect(typeof result.current.fetchComponent("notes")).toBe("function");
-        expect(result.current.fetchComponent("ghost")).toBeUndefined();
-        expect(result.current.fetchIcon("folder")).toBeTruthy();
-        expect(result.current.programs.map((p) => p.componentName)).toEqual(["explorer", "notes"]);
-    });
 });

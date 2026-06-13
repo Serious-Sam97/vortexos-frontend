@@ -14,11 +14,27 @@ interface Mount {
  */
 export class Vfs {
     private mounts: Mount[] = [];
-    private onChange?: () => void;
+    private listeners = new Set<() => void>();
+    private changeVersion = 0;
 
-    /** Register a callback fired after any mutating operation (for persistence). */
-    setOnChange(cb: () => void): void {
-        this.onChange = cb;
+    /**
+     * Subscribe to filesystem mutations. Fired after any mutating operation, so
+     * persistence and live UI views (e.g. the Desktop mirroring /home/user/Desktop)
+     * can react. Returns an unsubscribe function.
+     */
+    subscribe(fn: () => void): () => void {
+        this.listeners.add(fn);
+        return () => this.listeners.delete(fn);
+    }
+
+    /** Monotonic mutation counter — a stable snapshot value for useSyncExternalStore. */
+    version(): number {
+        return this.changeVersion;
+    }
+
+    private emit(): void {
+        this.changeVersion++;
+        for (const fn of this.listeners) fn();
     }
 
     mount(mountPoint: string, fs: FileSystem): void {
@@ -69,21 +85,37 @@ export class Vfs {
         const { fs, rel } = this.route(path);
         if (fs.readonly) throw new KernelError("EROFS", path);
         fs.write(rel, data);
-        this.onChange?.();
+        this.emit();
     }
 
     mkdir(path: string): void {
         const { fs, rel } = this.route(path);
         if (fs.readonly) throw new KernelError("EROFS", path);
         fs.mkdir(rel);
-        this.onChange?.();
+        this.emit();
     }
 
     unlink(path: string): void {
         const { fs, rel } = this.route(path);
         if (fs.readonly) throw new KernelError("EROFS", path);
         fs.unlink(rel);
-        this.onChange?.();
+        this.emit();
+    }
+
+    rename(from: string, to: string): void {
+        const src = this.route(from);
+        const dst = this.route(to);
+        if (src.fs.readonly || dst.fs.readonly) throw new KernelError("EROFS", from);
+
+        if (src.fs === dst.fs) {
+            src.fs.rename(src.rel, dst.rel);
+        } else {
+            // Cross-mount move: copy the bytes, then remove the source (files only).
+            if (this.stat(from).type === "dir") throw new KernelError("EINVAL", "cross-mount dir move");
+            dst.fs.write(dst.rel, src.fs.read(src.rel));
+            src.fs.unlink(src.rel);
+        }
+        this.emit();
     }
 
     exists(path: string): boolean {
