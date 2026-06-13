@@ -21,6 +21,7 @@ import ControlPanelIcon from "/controlpanel.png";
 import TerminalIcon from "/terminal.svg";
 import ExplorerIcon from "/explorer.png";
 import NotesIcon from "/notes.png";
+import WordPadIcon from "/wordpad.svg";
 import BackloggerIcon from "/backlogger.png";
 import NetworkIcon from "/network.svg";
 import WinpopupIcon from "/winpopup.svg";
@@ -104,6 +105,7 @@ const PROGRAMS = [
     { name: "Terminal", icon: TerminalIcon, componentName: "terminal" },
     { name: "Explorer", icon: ExplorerIcon, componentName: "explorer" },
     { name: "Notes", icon: NotesIcon, componentName: "notes" },
+    { name: "WordPad", icon: WordPadIcon, componentName: "wordpad" },
     { name: "GameCache", icon: BackloggerIcon, componentName: "backlogger" },
     { name: "Network Neighborhood", icon: NetworkIcon, componentName: "network" },
     { name: "WinPopup", icon: WinpopupIcon, componentName: "messenger" },

@@ -6,6 +6,7 @@ import RecycleBin from "../components/Apps/RecycleBin";
 import MyComputer from "../components/Apps/MyComputer";
 import TaskManager from "../components/Apps/TaskManager";
 import Notes from "../components/Apps/Notes";
+import WordPad from "../components/Apps/WordPad";
 import Explorer from "../components/Apps/Explorer";
 import ControlPanel from "../components/Apps/ControlPanel";
 
@@ -38,6 +39,7 @@ import DoomIcon from "/doom.png";
 import DoomIIIcon from "/doom2.png";
 import BackloggerIcon from "/backlogger.png";
 import NotesIcon from "/notes.png";
+import WordPadIcon from "/wordpad.svg";
 import BrowserIcon from "/browser.png";
 import ExplorerIcon from "/explorer.png";
 import TombRaiderIcon from "/tomb.jpg";
@@ -69,6 +71,7 @@ export const BUILTIN_APPS = [
         defineApp({ exec: "my_computer", name: "My Computer", icon: MyComputerIcon, component: MyComputer, permissions: ["proc"] }),
         defineApp({ exec: "task_manager", name: "Task Manager", icon: TaskManagerIcon, component: TaskManager, permissions: ["proc"] }),
         defineApp({ exec: "notes", name: "Notes", icon: NotesIcon, component: Notes, permissions: ["fs"] }),
+        defineApp({ exec: "wordpad", name: "WordPad", icon: WordPadIcon, component: WordPad, permissions: ["fs"] }),
         defineApp({ exec: "explorer", name: "Explorer", icon: ExplorerIcon, component: Explorer, permissions: ["fs", "proc"] }),
         defineApp({ exec: "terminal", name: "Terminal", icon: TerminalIcon, component: Terminal, permissions: ["fs", "proc"] }),
         defineApp({ exec: "paint", name: "Paint", icon: PaintIcon, component: Paint, permissions: ["fs"] }),
