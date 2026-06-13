@@ -5,15 +5,26 @@ import Shutdown from './pages/Shutdown';
 import { Routes, Route } from "react-router";
 
 const AppContent: React.FC = () => {
-    const { wallpaper } = useOSContext();
-    
+    const { wallpaper, sssStyle } = useOSContext();
+
     const getWallpaper = () => {
         if (!wallpaper.image) {
+            // No custom wallpaper: Serious Sam Style → vaporwave sunset grid; otherwise the
+            // classic stock Windows 98 teal desktop.
+            if (sssStyle) {
+                return {
+                    backgroundImage: "url('/wallpapers/vw-5.jpg')",
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundColor: '#1a0033',
+                };
+            }
             return {
                 background: '#008080'
             };
         }
-        
+
         if (wallpaper.type === 2) {
             return {
                 background: wallpaper.image

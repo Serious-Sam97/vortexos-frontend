@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useProcessContext } from "../contexts/ProcessContext";
 import { Button, MenuList, MenuListItem, Separator, Window, WindowHeader } from "react95";
@@ -6,6 +6,8 @@ import { Process } from "../interfaces/Process";
 import { useOSContext } from "../contexts/OSContext";
 import { PidProvider } from "../kernel/react/pid";
 import { playMaximize, playMinimize } from "../system/sounds";
+import { DrWatson } from "./DrWatson";
+import { win98TitleBar } from "../system/win98";
 
 interface ProcessWindowProp {
     process: Process;
@@ -269,7 +271,7 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                        background: isActive ? undefined : "#808080",
+                        ...win98TitleBar(isActive),
                     }}
                 >
                     <div style={{ display: "flex", alignItems: "center", overflow: "hidden", position: "relative" }}>
@@ -341,7 +343,19 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
                             ...(maximized || size ? { flex: 1, minHeight: 0, overflow: "auto" } : {}),
                         }}
                     >
-                        <PidProvider pid={process.uuid ?? null}>{React.createElement(process.component)}</PidProvider>
+                        <PidProvider pid={process.uuid ?? null}>
+                            <DrWatson
+                                appName={process.name}
+                                pid={process.uuid ?? null}
+                                onClose={() => process.uuid && closeProcess(process.uuid)}
+                            >
+                                <Suspense
+                                    fallback={<div style={{ padding: 24, textAlign: "center", color: "#000" }}>Loading {process.name}…</div>}
+                                >
+                                    {React.createElement(process.component)}
+                                </Suspense>
+                            </DrWatson>
+                        </PidProvider>
                     </div>
                 ) : (
                     ""

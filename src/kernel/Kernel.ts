@@ -48,6 +48,17 @@ export interface KernelConfig {
 
 type Listener = () => void;
 
+/** A fatal, unrecoverable kernel fault — surfaced to userland as the Blue Screen of Death. */
+export interface PanicInfo {
+    code: string; // pseudo exception code, e.g. "0E"
+    address: string; // pseudo segment:offset, for flavor
+    message: string;
+    stack?: string;
+    syscall?: string;
+    /** true = "press any key to continue" restores the desktop; false = reboot required. */
+    recoverable: boolean;
+}
+
 /**
  * The microkernel. Owns the process table and is the single authority for:
  *   - process lifecycle (spawn / kill / exit)
@@ -71,6 +82,10 @@ export class Kernel {
     /** Fd table for syscalls issued by the kernel/desktop itself (caller === null). */
     private kernelFds = new Map<Fd, OpenFile>();
     private nextFd = 3; // 0,1,2 reserved for stdin/stdout/stderr
+
+    /** Kernel-panic surface (drives the BSOD). */
+    private panicListeners = new Set<(info: PanicInfo | null) => void>();
+    private panicState: PanicInfo | null = null;
 
     constructor(config: KernelConfig) {
         this.registry = config.registry;
@@ -156,6 +171,35 @@ export class Kernel {
 
     getSnapshot = (): readonly PCB[] => this.snapshot;
 
+    // ── kernel panic (BSOD) ──────────────────────────────────────────────
+
+    /** Subscribe to fatal kernel faults (called with null when a panic is cleared). */
+    subscribePanic = (fn: (info: PanicInfo | null) => void): (() => void) => {
+        this.panicListeners.add(fn);
+        return () => this.panicListeners.delete(fn);
+    };
+
+    getPanic = (): PanicInfo | null => this.panicState;
+
+    /** Halt with a fatal fault. The OS surfaces this as the Blue Screen of Death. */
+    panic(info: Partial<PanicInfo> & { message: string }): void {
+        this.panicState = {
+            code: info.code ?? "0E",
+            address: info.address ?? "0028:C000" + ((this.snapshot.length * 7 + 11) % 0x10000).toString(16).toUpperCase().padStart(4, "0"),
+            message: info.message,
+            stack: info.stack,
+            syscall: info.syscall,
+            recoverable: info.recoverable ?? true,
+        };
+        for (const fn of this.panicListeners) fn(this.panicState);
+    }
+
+    /** Recover from a panic (the "press any key to continue" path). */
+    clearPanic(): void {
+        this.panicState = null;
+        for (const fn of this.panicListeners) fn(null);
+    }
+
     private rebuildSnapshot(): void {
         this.snapshot = [...this.processes.values()];
     }
@@ -181,6 +225,12 @@ export class Kernel {
         try {
             return Promise.resolve(this.dispatch(caller, name, args) as SyscallMap[K]["result"]);
         } catch (err) {
+            // A KernelError is an expected userland failure (ENOENT/EACCES/…) — reject normally.
+            // Anything else thrown from inside the kernel is a genuine fault → panic (BSOD).
+            if (!(err instanceof KernelError)) {
+                const e = err as Error;
+                this.panic({ message: e?.message ?? String(err), stack: e?.stack, syscall: name });
+            }
             return Promise.reject(err);
         }
     }

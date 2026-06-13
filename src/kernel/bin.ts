@@ -1,19 +1,23 @@
+import { lazy } from "react";
 import { ProgramRegistry } from "./registry";
 import { defineApp } from "../sdk";
 
 import RecycleBin from "../components/Apps/RecycleBin";
 import MyComputer from "../components/Apps/MyComputer";
 import TaskManager from "../components/Apps/TaskManager";
-import Doom from "../components/Apps/Doom";
-import DoomII from "../components/Apps/DoomII";
-import Backlogger from "../components/Apps/Backlogger";
 import Notes from "../components/Apps/Notes";
-import Browser from "../components/Apps/Browser";
 import Explorer from "../components/Apps/Explorer";
-import TombRaider from "../components/Apps/TombRaider";
-import Persia from "../components/Apps/Persia";
-import NightwavePlaza from "../components/Apps/NightwavePlaza";
 import ControlPanel from "../components/Apps/ControlPanel";
+
+// Heavy apps (js-dos emulator, network clients) are code-split and loaded on first launch
+// so they don't weigh down boot. ProcessWindow renders them behind a <Suspense> fallback.
+const Doom = lazy(() => import("../components/Apps/Doom"));
+const DoomII = lazy(() => import("../components/Apps/DoomII"));
+const TombRaider = lazy(() => import("../components/Apps/TombRaider"));
+const Persia = lazy(() => import("../components/Apps/Persia"));
+const Backlogger = lazy(() => import("../components/Apps/Backlogger"));
+const Browser = lazy(() => import("../components/Apps/Browser"));
+const NightwavePlaza = lazy(() => import("../components/Apps/NightwavePlaza"));
 import Terminal from "../components/Apps/Terminal";
 import Calculator from "../components/Apps/Calculator";
 import Minesweeper from "../components/Apps/Minesweeper";

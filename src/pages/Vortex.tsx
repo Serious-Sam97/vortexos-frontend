@@ -5,6 +5,10 @@ import WindowManager from "../components/WindowManager";
 import LoginScreen from "../components/Login/LoginScreen";
 import ChatNotifier from "../components/ChatNotifier";
 import ToastHost from "../components/ToastHost";
+import BSOD from "../components/BSOD";
+import OSErrorBoundary from "../components/OSErrorBoundary";
+import CommandPalette from "../components/CommandPalette";
+import RunDialog from "../components/RunDialog";
 import AltTabSwitcher from "../components/AltTabSwitcher";
 import SystemFeedback from "../components/SystemFeedback";
 import Screensaver from "../components/Screensaver";
@@ -38,14 +42,21 @@ const Vortex: React.FC = () => {
             style={{ position: "fixed", inset: 0, overflow: "hidden", cursor: busy ? "url(/win-cursor/loading.cur), wait" : cursor }}
             onContextMenu={(e) => e.preventDefault()} // suppress the browser menu; the desktop shows its own
         >
-            <Desktop />
-            <WindowManager />
-            <WMenu />
-            <ChatNotifier />
-            <ToastHost />
-            <AltTabSwitcher />
-            <SystemFeedback />
-            <Screensaver />
+            <OSErrorBoundary>
+                <Desktop />
+                <WindowManager />
+                <WMenu />
+                <ChatNotifier />
+                <ToastHost />
+                <AltTabSwitcher />
+                <SystemFeedback />
+                <Screensaver />
+                <CommandPalette />
+                <RunDialog />
+            </OSErrorBoundary>
+
+            {/* Rendered outside the boundary so it still shows if the chrome subtree is dead. */}
+            <BSOD />
 
             {crt && (
                 <div

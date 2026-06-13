@@ -8,7 +8,7 @@ import { previewSaver, SAVERS, setSaverSettings, useSaverSettings } from "../../
 const Monitor: React.FC = () => {
     const [ wallpaperSelected, setWallpaperSelected ] = useState<string>('');
     const [ wallpaperType, setWallpaperType ] = useState<number>(1);
-    const { changeWallpaper, crt, toggleCrt, theme, setTheme } = useOSContext();
+    const { changeWallpaper, crt, toggleCrt, theme, setTheme, sssStyle, toggleSssStyle } = useOSContext();
     const saver = useSaverSettings();
 
     const solidColors = [
@@ -85,6 +85,17 @@ const Monitor: React.FC = () => {
             <div style={{ marginBottom: 12 }}>
                 <Checkbox checked={crt} onChange={toggleCrt} label="CRT scanline effect" />
             </div>
+            <fieldset style={{ marginBottom: 16, border: "2px groove #c0c0c0", padding: "8px 12px" }}>
+                <legend style={{ fontWeight: "bold" }}>Desktop Style</legend>
+                <Checkbox
+                    checked={sssStyle}
+                    onChange={toggleSssStyle}
+                    label="Serious Sam Style (Vaporwave)"
+                />
+                <p style={{ fontSize: 12, color: "#444", marginTop: 6 }}>
+                    On: the signature vaporwave/retrowave desktop. Off: a clean, stock Windows 98 look.
+                </p>
+            </fieldset>
             <fieldset style={{ marginBottom: 16, border: "2px groove #c0c0c0", padding: "8px 12px" }}>
                 <legend style={{ fontWeight: "bold" }}>Screen Saver</legend>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>

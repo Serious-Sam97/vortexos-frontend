@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import { Button, Window, WindowContent, WindowHeader } from "react95";
 import { playDing } from "../../system/sounds";
+import { win98TitleBar } from "../../system/win98";
 
 type DialogType = "info" | "warning" | "error";
 
@@ -91,7 +92,7 @@ export function DialogProvider({ children }: { children: ReactNode }) {
                     }}
                 >
                     <Window style={{ minWidth: 330, maxWidth: 420 }}>
-                        <WindowHeader style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <WindowHeader style={{ display: "flex", alignItems: "center", justifyContent: "space-between", ...win98TitleBar(true) }}>
                             <span>{dialog.title}</span>
                             <Button
                                 onClick={close}

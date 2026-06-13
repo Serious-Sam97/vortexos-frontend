@@ -7,11 +7,11 @@ import { useOSContext } from "../contexts/OSContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useUninstalled } from "../system/programs";
 import { useQuickLaunch, togglePin, unpin, isPinned } from "../system/quicklaunch";
+import { openRun } from "../system/runDialog";
 import { BUILTIN_APPS } from "../kernel/bin";
 import SystemTray from "./SystemTray";
 import WindowPreview from "./WindowPreview";
 import { Tooltip } from "./Tooltip";
-import { useDialog } from "./Dialog/DialogProvider";
 import { Process } from "../interfaces/Process";
 import { playClick } from "../system/sounds";
 
@@ -120,9 +120,8 @@ const WMenu: React.FC = () => {
     const [programsOpen, setProgramsOpen] = useState(false);
     const [settingsOpen, setSettingsOpen] = useState(false);
     const { changePriority, processes, addProcess, handleProceessLocationChange } = useProcessContext();
-    const { minimized, minimize, restore } = useOSContext();
+    const { minimized, minimize, restore, sssStyle } = useOSContext();
     const { username, logout } = useAuth();
-    const { alert } = useDialog();
     const uninstalled = useUninstalled();
     const user = username || "user";
     const pinned = useQuickLaunch(user);
@@ -267,7 +266,11 @@ const WMenu: React.FC = () => {
                         <div
                             style={{
                                 width: 30,
-                                background: "linear-gradient(180deg, #00007a 0%, #000033 100%)",
+                                // Serious Sam Style → retrowave magenta→purple→cyan; otherwise the
+                                // classic Windows 98 navy banner.
+                                background: sssStyle
+                                    ? "linear-gradient(180deg, #ff2d95 0%, #6a1b9a 55%, #00e5d0 100%)"
+                                    : "linear-gradient(180deg, #00007a 0%, #000033 100%)",
                                 borderTop: "2px solid #dfdfdf",
                                 borderLeft: "2px solid #dfdfdf",
                                 display: "flex",
@@ -287,8 +290,8 @@ const WMenu: React.FC = () => {
                                     gap: 4,
                                 }}
                             >
-                                <span style={{ fontWeight: 400, letterSpacing: 1 }}>Vortex</span>
-                                <span style={{ fontWeight: "bold", fontSize: 20 }}>95</span>
+                                <span style={{ fontWeight: 400, letterSpacing: 1, textShadow: "0 0 4px rgba(0,0,0,0.5)" }}>Vortex</span>
+                                <span style={{ fontWeight: "bold", fontSize: 20, textShadow: "0 0 4px rgba(0,0,0,0.5)" }}>98</span>
                             </div>
                         </div>
 
@@ -373,13 +376,10 @@ const WMenu: React.FC = () => {
                             </MenuListItem>
                             <MenuListItem
                                 style={{ cursor: "pointer" }}
-                                onClick={() =>
-                                    alert({
-                                        title: "Run",
-                                        message: "Tip: open the Terminal and type a command like `ls` or `help`.",
-                                        type: "info",
-                                    })
-                                }
+                                onClick={() => {
+                                    setOpen(false);
+                                    openRun();
+                                }}
                             >
                                 Run...
                             </MenuListItem>

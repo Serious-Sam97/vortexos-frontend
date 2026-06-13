@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState, useSyncExternalStore } from "react";
-import { Kernel } from "../Kernel";
+import { Kernel, PanicInfo } from "../Kernel";
 import { ProgramRegistry } from "../registry";
 import { registerBuiltins } from "../bin";
 import { createLocalStoragePersistence } from "../persistence";
@@ -147,4 +147,10 @@ export function useProcessTable(): readonly PCB[] {
 export function useFsVersion(): number {
     const kernel = useKernel();
     return useSyncExternalStore(kernel.subscribeFs, kernel.fsVersion);
+}
+
+/** The current kernel panic (null = healthy). Drives the Blue Screen of Death. */
+export function usePanic(): PanicInfo | null {
+    const kernel = useKernel();
+    return useSyncExternalStore(kernel.subscribePanic, kernel.getPanic);
 }

@@ -19,6 +19,15 @@ export function OSContextProvider({children}: {children: ReactNode}) {
         return next;
     });
 
+    // "Serious Sam Style" — the vaporwave/retrowave skin. On by default (the VortexOS
+    // signature); turning it off reverts the desktop to a clean stock Windows 98 look.
+    const [ sssStyle, setSssStyle ] = useState<boolean>(() => localStorage.getItem('vortex.sss') !== '0');
+    const toggleSssStyle = () => setSssStyle(prev => {
+        const next = !prev;
+        localStorage.setItem('vortex.sss', next ? '1' : '0');
+        return next;
+    });
+
     const [ clipboard, setClipboard ] = useState<FileClipboard | null>(null);
 
     const [ theme, setThemeState ] = useState<string>(() => localStorage.getItem('vortex.theme') || 'original');
@@ -63,7 +72,7 @@ export function OSContextProvider({children}: {children: ReactNode}) {
     }
 
     return (
-        <OSContext.Provider value={{cursor, changeCursor, wallpaper, changeWallpaper, minimized, minimize, restore, crt, toggleCrt, clipboard, setClipboard, theme, setTheme, busy, flashBusy}}>
+        <OSContext.Provider value={{cursor, changeCursor, wallpaper, changeWallpaper, minimized, minimize, restore, crt, toggleCrt, clipboard, setClipboard, theme, setTheme, busy, flashBusy, sssStyle, toggleSssStyle}}>
             {children}
         </OSContext.Provider>
     )
