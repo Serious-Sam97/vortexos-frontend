@@ -6,6 +6,8 @@ import FolderIcon from "/explorer.png";
 const DRIVES = [
     { name: "VortexOS (C:)", path: "/", icon: MyComputerIcon },
     { name: "Home", path: "/home/user", icon: FolderIcon },
+    { name: "Cloud (/mnt/cloud)", path: "/mnt/cloud", icon: FolderIcon },
+    { name: "Public (/mnt/public)", path: "/mnt/public", icon: FolderIcon },
     { name: "Programs (/bin)", path: "/bin", icon: FolderIcon },
     { name: "Devices (/dev)", path: "/dev", icon: FolderIcon },
     { name: "Processes (/proc)", path: "/proc", icon: FolderIcon },

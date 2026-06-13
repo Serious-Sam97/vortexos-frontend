@@ -9,6 +9,8 @@ import { join } from "../kernel/fs/path";
 
 import TrashIcon from "/trash.svg";
 import MyComputerIcon from "/my-computer.png";
+import NetworkIcon from "/network.svg";
+import WinpopupIcon from "/winpopup.svg";
 import DoomIcon from "/doom.png";
 import DoomIIIcon from "/doom2.png";
 import BackloggerIcon from "/backlogger.png";
@@ -46,6 +48,8 @@ const APP_SHORTCUTS: Item[] = [
     { id: "app:recycle_bin", name: "Recycle Bin", icon: TrashIcon, kind: "app", componentName: "recycle_bin" },
     { id: "app:backlogger", name: "GameCache", icon: BackloggerIcon, kind: "app", componentName: "backlogger" },
     { id: "app:my_computer", name: "My Computer", icon: MyComputerIcon, kind: "app", componentName: "my_computer" },
+    { id: "app:network", name: "Network Neighborhood", icon: NetworkIcon, kind: "app", componentName: "network" },
+    { id: "app:messenger", name: "WinPopup", icon: WinpopupIcon, kind: "app", componentName: "messenger" },
     { id: "app:vaporwave", name: "Nightwave Plaza", icon: NightwavePlazaIcon, kind: "app", componentName: "vaporwave" },
     { id: "app:task_manager", name: "Task Manager", icon: TaskManagerIcon, kind: "app", componentName: "task_manager" },
     { id: "app:explorer", name: "Explorer", icon: ExplorerIcon, kind: "app", componentName: "explorer" },

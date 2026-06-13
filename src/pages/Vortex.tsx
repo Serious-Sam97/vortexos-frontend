@@ -3,9 +3,11 @@ import Desktop from "./Desktop";
 import WMenu from "../components/WMenu";
 import WindowManager from "../components/WindowManager";
 import LoginScreen from "../components/Login/LoginScreen";
+import ChatNotifier from "../components/ChatNotifier";
 import { useOSContext } from "../contexts/OSContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useReloadCloud } from "../kernel/react/KernelProvider";
+import { connectChat, disconnectChat } from "../system/chat";
 
 const Vortex: React.FC = () => {
     const { cursor, crt } = useOSContext();
@@ -16,6 +18,13 @@ const Vortex: React.FC = () => {
     useEffect(() => {
         if (isAuthenticated) void reloadCloud();
     }, [isAuthenticated, reloadCloud]);
+
+    // Connect to the Net Send / presence WebSocket while signed in.
+    useEffect(() => {
+        if (!isAuthenticated) return;
+        connectChat();
+        return () => disconnectChat();
+    }, [isAuthenticated]);
 
     // The desktop is gated behind a sign-in — no session, no Vortex.
     if (!isAuthenticated) return <LoginScreen />;
@@ -28,6 +37,7 @@ const Vortex: React.FC = () => {
             <Desktop />
             <WindowManager />
             <WMenu />
+            <ChatNotifier />
 
             {crt && (
                 <div

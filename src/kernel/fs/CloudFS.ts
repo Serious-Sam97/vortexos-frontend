@@ -135,8 +135,12 @@ export class CloudFS implements FileSystem {
     }
 }
 
-/** The real fetch-based transport to the Spring backend (authorized per-request). */
-export function createCloudApi(baseUrl: string): CloudApi {
+/**
+ * The real fetch-based transport to the Spring backend (authorized per-request).
+ * `resource` is the REST collection: "/files" for the user's drive, "/public/files" for
+ * the shared public drive.
+ */
+export function createCloudApi(baseUrl: string, resource: string = "/files"): CloudApi {
     // Build headers fresh each call so the current session token is always used.
     const headers = (): Record<string, string> => {
         const token = getToken();
@@ -149,17 +153,17 @@ export function createCloudApi(baseUrl: string): CloudApi {
     };
     return {
         async list() {
-            const r = guard(await fetch(`${baseUrl}/files`, { headers: headers() }));
+            const r = guard(await fetch(`${baseUrl}${resource}`, { headers: headers() }));
             return r.ok ? r.json() : [];
         },
         async upsert(path, name, type, content) {
-            guard(await fetch(`${baseUrl}/files`, { method: "POST", headers: headers(), body: JSON.stringify({ path, name, type, content }) }));
+            guard(await fetch(`${baseUrl}${resource}`, { method: "POST", headers: headers(), body: JSON.stringify({ path, name, type, content }) }));
         },
         async remove(path) {
-            guard(await fetch(`${baseUrl}/files?path=${encodeURIComponent(path)}`, { method: "DELETE", headers: headers() }));
+            guard(await fetch(`${baseUrl}${resource}?path=${encodeURIComponent(path)}`, { method: "DELETE", headers: headers() }));
         },
         async rename(from, to) {
-            guard(await fetch(`${baseUrl}/files/rename?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`, { method: "PUT", headers: headers() }));
+            guard(await fetch(`${baseUrl}${resource}/rename?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`, { method: "PUT", headers: headers() }));
         },
     };
 }

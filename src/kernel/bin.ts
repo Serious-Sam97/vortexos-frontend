@@ -21,6 +21,8 @@ import Clock from "../components/Apps/Clock";
 import Paint from "../components/Apps/Paint";
 import Find from "../components/Apps/Find";
 import Help from "../components/Apps/Help";
+import NetworkNeighborhood from "../components/Apps/NetworkNeighborhood";
+import Messenger from "../components/Apps/Messenger";
 
 import TrashIcon from "/trash.svg";
 import MyComputerIcon from "/my-computer.png";
@@ -41,6 +43,8 @@ import ClockIcon from "/clock.svg";
 import PaintIcon from "/paint_file-3.png";
 import FindIcon from "/find.svg";
 import HelpIcon from "/help.svg";
+import NetworkIcon from "/network.svg";
+import WinpopupIcon from "/winpopup.svg";
 
 /**
  * Installs the built-in programs into /bin. `exec` keys match v1's `componentName`
@@ -59,6 +63,8 @@ export function registerBuiltins(registry: ProgramRegistry): void {
         defineApp({ exec: "find", name: "Find Files", icon: FindIcon, component: Find, permissions: ["fs", "proc"] }),
         // Networked apps (net is declarative until networking routes through syscalls).
         defineApp({ exec: "backlogger", name: "GameCache", icon: BackloggerIcon, component: Backlogger, permissions: ["net"] }),
+        defineApp({ exec: "network", name: "Network Neighborhood", icon: NetworkIcon, component: NetworkNeighborhood, permissions: ["net"] }),
+        defineApp({ exec: "messenger", name: "WinPopup", icon: WinpopupIcon, component: Messenger, permissions: ["net"] }),
         defineApp({ exec: "browser", name: "Browser", icon: BrowserIcon, component: Browser, permissions: ["net"] }),
         defineApp({ exec: "vaporwave", name: "Nightwave Plaza", icon: NightwavePlazaIcon, component: NightwavePlaza, permissions: ["net", "audio"] }),
         // Sandboxed apps — no system access.

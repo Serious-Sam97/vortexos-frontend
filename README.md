@@ -6,8 +6,8 @@ looks like one. Apps are userland *processes* that can only touch the system thr
 kernel-enforced per-app permissions.
 
 Built with **React + TypeScript + Vite** and **[react95](https://react95.io/)** for the
-authentic 95/98 look. The [backend](../vortexos) (Spring Boot, port 8082) supplies accounts,
-auth, and the cloud drive.
+authentic 95/98 look. A companion backend (Spring Boot, port 8082 — the separate `vortexos`
+repo) supplies accounts, auth, and the cloud drive.
 
 ## Run
 
@@ -18,7 +18,7 @@ npm run dev          # http://localhost:5173
 ```
 
 Login, the cloud drive (`/mnt/cloud`), and the GameCache app need the backend running
-(`cd ../vortexos && ./gradlew bootRun`). Everything else (kernel, VFS, shell, most apps)
+(the `vortexos` repo: `./gradlew bootRun`). Everything else (kernel, VFS, shell, most apps)
 works offline.
 
 ```bash
