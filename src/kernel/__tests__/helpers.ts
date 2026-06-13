@@ -16,7 +16,9 @@ export function makeRegistry(execs: string[] = ["notes", "task_manager", "doom"]
             name: titleCase(exec),
             icon: `/${exec}.png`,
             component: () => null,
-            permissions: [],
+            // Test stubs are fully privileged; permission enforcement is exercised by
+            // dedicated tests that register programs with restricted permissions.
+            permissions: ["fs", "net", "gui", "proc", "audio"],
         });
     }
     return reg;

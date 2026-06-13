@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useMemo, useSyncExternalStore } from "react";
+import { createContext, ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from "react";
 import { Kernel } from "../Kernel";
 import { ProgramRegistry } from "../registry";
 import { registerBuiltins } from "../bin";
@@ -38,7 +38,7 @@ function seedRoot(): MemFS {
     return fs;
 }
 
-function createKernel(): Kernel {
+function createKernel(): { kernel: Kernel; cloud: CloudFS } {
     const registry = new ProgramRegistry();
     registerBuiltins(registry);
     const kernel = new Kernel({
@@ -60,22 +60,42 @@ function createKernel(): Kernel {
     vfs.mount("/proc", new ProcFS(() => kernel.processInfo()));
     vfs.mount("/bin", new BinFS(() => kernel.registry.list().map((p) => ({ exec: p.exec, name: p.name }))));
 
-    // Server-backed cloud drive: mirrors the backend File table, syncs through to it.
-    const cloud = new CloudFS("/mnt/cloud", createCloudApi(import.meta.env.VITE_API_URL ?? ""));
+    // Server-backed cloud drive: mirrors the per-user backend File table, syncs through to
+    // it. Loaded after sign-in (CloudProvider effect), not at boot, since it needs a token.
+    // onLoaded → vfs.touch() so reactive views learn the mirror changed.
+    const cloud = new CloudFS("/mnt/cloud", createCloudApi(import.meta.env.VITE_API_URL ?? ""), () => vfs.touch());
     vfs.mount("/mnt/cloud", cloud);
-    void cloud.init();
 
     vfs.subscribe(() => fsPersistence.save(root.serialize()));
     kernel.mountVfs(vfs);
 
     if (!saved) fsPersistence.save(root.serialize()); // persist the freshly seeded tree
-    return kernel;
+    return { kernel, cloud };
 }
+
+/** Reloads the /mnt/cloud mirror for the current user (no-op with an injected test kernel). */
+const CloudContext = createContext<() => Promise<void>>(async () => {});
 
 export function KernelProvider({ children, kernel: injected }: { children: ReactNode; kernel?: Kernel }) {
     // One kernel per app session. An injected kernel (tests) takes precedence.
-    const kernel = useMemo(() => injected ?? createKernel(), [injected]);
-    return <KernelContext.Provider value={kernel}>{children}</KernelContext.Provider>;
+    const { kernel, cloud } = useMemo(
+        () => (injected ? { kernel: injected, cloud: null } : createKernel()),
+        [injected],
+    );
+    const reloadCloud = useCallback(async () => {
+        await cloud?.reload();
+    }, [cloud]);
+
+    return (
+        <KernelContext.Provider value={kernel}>
+            <CloudContext.Provider value={reloadCloud}>{children}</CloudContext.Provider>
+        </KernelContext.Provider>
+    );
+}
+
+/** Reload the signed-in user's cloud drive (called when authentication changes). */
+export function useReloadCloud(): () => Promise<void> {
+    return useContext(CloudContext);
 }
 
 export function useKernel(): Kernel {

@@ -2,6 +2,7 @@ import { Stat } from "../types";
 import { FileSystem } from "./types";
 import { MemFS } from "./MemFS";
 import { dirname, segments } from "./path";
+import { getToken, notifyUnauthorized } from "../../system/session";
 
 /** A backend File row (content is base64-encoded). */
 export interface CloudFile {
@@ -69,6 +70,13 @@ export class CloudFS implements FileSystem {
         this.onLoaded();
     }
 
+    /** Reset the mirror and reload from the backend — used when the signed-in user changes. */
+    async reload(): Promise<void> {
+        this.mirror = new MemFS();
+        this.chains.clear();
+        await this.init();
+    }
+
     private ensureDir(path: string): void {
         let acc = "";
         for (const seg of segments(path)) {
@@ -127,22 +135,31 @@ export class CloudFS implements FileSystem {
     }
 }
 
-/** The real fetch-based transport to the Spring backend. */
+/** The real fetch-based transport to the Spring backend (authorized per-request). */
 export function createCloudApi(baseUrl: string): CloudApi {
-    const json = { "Content-Type": "application/json" };
+    // Build headers fresh each call so the current session token is always used.
+    const headers = (): Record<string, string> => {
+        const token = getToken();
+        return { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+    };
+    // A 401 means the session expired → end it (drops the user back to the login screen).
+    const guard = (r: Response): Response => {
+        if (r.status === 401) notifyUnauthorized();
+        return r;
+    };
     return {
         async list() {
-            const r = await fetch(`${baseUrl}/files`);
+            const r = guard(await fetch(`${baseUrl}/files`, { headers: headers() }));
             return r.ok ? r.json() : [];
         },
         async upsert(path, name, type, content) {
-            await fetch(`${baseUrl}/files`, { method: "POST", headers: json, body: JSON.stringify({ path, name, type, content }) });
+            guard(await fetch(`${baseUrl}/files`, { method: "POST", headers: headers(), body: JSON.stringify({ path, name, type, content }) }));
         },
         async remove(path) {
-            await fetch(`${baseUrl}/files?path=${encodeURIComponent(path)}`, { method: "DELETE" });
+            guard(await fetch(`${baseUrl}/files?path=${encodeURIComponent(path)}`, { method: "DELETE", headers: headers() }));
         },
         async rename(from, to) {
-            await fetch(`${baseUrl}/files/rename?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`, { method: "PUT" });
+            guard(await fetch(`${baseUrl}/files/rename?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`, { method: "PUT", headers: headers() }));
         },
     };
 }

@@ -4,6 +4,7 @@ import { Button, MenuList, MenuListItem, Separator } from "react95";
 import styled from "styled-components";
 import { useProcessContext } from "../contexts/ProcessContext";
 import { useOSContext } from "../contexts/OSContext";
+import { useAuth } from "../contexts/AuthContext";
 import { useDialog } from "./Dialog/DialogProvider";
 import { Process } from "../interfaces/Process";
 import { playClick } from "../system/sounds";
@@ -101,6 +102,7 @@ const WMenu: React.FC = () => {
     const [settingsOpen, setSettingsOpen] = useState(false);
     const { changePriority, processes, addProcess, handleProceessLocationChange } = useProcessContext();
     const { minimized, minimize, restore } = useOSContext();
+    const { username, logout } = useAuth();
     const { alert } = useDialog();
     const clock = useClock();
     const navigate = useNavigate();
@@ -302,6 +304,15 @@ const WMenu: React.FC = () => {
                                 Run...
                             </MenuListItem>
                             <Separator />
+                            <MenuListItem
+                                style={{ cursor: "pointer" }}
+                                onClick={() => {
+                                    setOpen(false);
+                                    logout(); // session cleared → Vortex re-renders the login screen
+                                }}
+                            >
+                                Log Off {username}...
+                            </MenuListItem>
                             <MenuListItem style={{ cursor: "pointer" }} onClick={() => navigate("/shutdown")}>
                                 Shut Down...
                             </MenuListItem>
@@ -327,6 +338,7 @@ const WMenu: React.FC = () => {
 
             {/* system tray */}
             <Tray className="tray-clock" onMouseEnter={() => setShowDate(true)} onMouseLeave={() => setShowDate(false)}>
+                {username && <span style={{ marginRight: 8, opacity: 0.85 }}>{username}</span>}
                 {clock}
             </Tray>
 

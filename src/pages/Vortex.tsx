@@ -1,10 +1,24 @@
+import { useEffect } from "react";
 import Desktop from "./Desktop";
 import WMenu from "../components/WMenu";
 import WindowManager from "../components/WindowManager";
+import LoginScreen from "../components/Login/LoginScreen";
 import { useOSContext } from "../contexts/OSContext";
+import { useAuth } from "../contexts/AuthContext";
+import { useReloadCloud } from "../kernel/react/KernelProvider";
 
 const Vortex: React.FC = () => {
     const { cursor, crt } = useOSContext();
+    const { isAuthenticated } = useAuth();
+    const reloadCloud = useReloadCloud();
+
+    // Load (or switch to) the signed-in user's cloud drive once authenticated.
+    useEffect(() => {
+        if (isAuthenticated) void reloadCloud();
+    }, [isAuthenticated, reloadCloud]);
+
+    // The desktop is gated behind a sign-in — no session, no Vortex.
+    if (!isAuthenticated) return <LoginScreen />;
 
     return (
         <div

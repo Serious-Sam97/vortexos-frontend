@@ -1,4 +1,5 @@
 import { ProgramRegistry } from "./registry";
+import { defineApp } from "../sdk";
 
 import RecycleBin from "../components/Apps/RecycleBin";
 import MyComputer from "../components/Apps/MyComputer";
@@ -47,29 +48,32 @@ import HelpIcon from "/help.svg";
  */
 export function registerBuiltins(registry: ProgramRegistry): void {
     const bin = [
-        { exec: "recycle_bin", name: "Recycle Bin", icon: TrashIcon, component: RecycleBin, permissions: [] },
-        { exec: "my_computer", name: "My Computer", icon: MyComputerIcon, component: MyComputer, permissions: [] },
-        { exec: "task_manager", name: "Task Manager", icon: TaskManagerIcon, component: TaskManager, permissions: ["proc"] },
-        { exec: "backlogger", name: "GameCache", icon: BackloggerIcon, component: Backlogger, permissions: ["net"] },
-        { exec: "notes", name: "Notes", icon: NotesIcon, component: Notes, permissions: ["fs"] },
-        { exec: "explorer", name: "Explorer", icon: ExplorerIcon, component: Explorer, permissions: ["fs", "proc"] },
-        { exec: "terminal", name: "Terminal", icon: TerminalIcon, component: Terminal, permissions: ["fs", "proc"] },
-        { exec: "calculator", name: "Calculator", icon: CalculatorIcon, component: Calculator, permissions: [] },
-        { exec: "minesweeper", name: "Minesweeper", icon: MinesweeperIcon, component: Minesweeper, permissions: [] },
-        { exec: "clock", name: "Clock", icon: ClockIcon, component: Clock, permissions: [] },
-        { exec: "paint", name: "Paint", icon: PaintIcon, component: Paint, permissions: ["fs"] },
-        { exec: "find", name: "Find Files", icon: FindIcon, component: Find, permissions: ["fs"] },
-        { exec: "help", name: "Help", icon: HelpIcon, component: Help, permissions: [] },
-        { exec: "browser", name: "Browser", icon: BrowserIcon, component: Browser, permissions: ["net"] },
-        { exec: "vaporwave", name: "Nightwave Plaza", icon: NightwavePlazaIcon, component: NightwavePlaza, permissions: ["net", "audio"] },
-        { exec: "control_panel", name: "Control Panel", icon: MyComputerIcon, component: ControlPanel, permissions: [] },
-        { exec: "doom", name: "Doom", icon: DoomIcon, component: Doom, permissions: [] },
-        { exec: "doomII", name: "Doom II", icon: DoomIIIcon, component: DoomII, permissions: [] },
-        { exec: "tomb", name: "Tomb Raider", icon: TombRaiderIcon, component: TombRaider, permissions: [] },
-        { exec: "persia", name: "Prince of Persia", icon: PersiaIcon, component: Persia, permissions: [] },
-    ] as const;
+        // System / file apps — declare exactly the syscalls they issue.
+        defineApp({ exec: "recycle_bin", name: "Recycle Bin", icon: TrashIcon, component: RecycleBin, permissions: ["fs"] }),
+        defineApp({ exec: "my_computer", name: "My Computer", icon: MyComputerIcon, component: MyComputer, permissions: ["proc"] }),
+        defineApp({ exec: "task_manager", name: "Task Manager", icon: TaskManagerIcon, component: TaskManager, permissions: ["proc"] }),
+        defineApp({ exec: "notes", name: "Notes", icon: NotesIcon, component: Notes, permissions: ["fs"] }),
+        defineApp({ exec: "explorer", name: "Explorer", icon: ExplorerIcon, component: Explorer, permissions: ["fs", "proc"] }),
+        defineApp({ exec: "terminal", name: "Terminal", icon: TerminalIcon, component: Terminal, permissions: ["fs", "proc"] }),
+        defineApp({ exec: "paint", name: "Paint", icon: PaintIcon, component: Paint, permissions: ["fs"] }),
+        defineApp({ exec: "find", name: "Find Files", icon: FindIcon, component: Find, permissions: ["fs", "proc"] }),
+        // Networked apps (net is declarative until networking routes through syscalls).
+        defineApp({ exec: "backlogger", name: "GameCache", icon: BackloggerIcon, component: Backlogger, permissions: ["net"] }),
+        defineApp({ exec: "browser", name: "Browser", icon: BrowserIcon, component: Browser, permissions: ["net"] }),
+        defineApp({ exec: "vaporwave", name: "Nightwave Plaza", icon: NightwavePlazaIcon, component: NightwavePlaza, permissions: ["net", "audio"] }),
+        // Sandboxed apps — no system access.
+        defineApp({ exec: "calculator", name: "Calculator", icon: CalculatorIcon, component: Calculator, permissions: [] }),
+        defineApp({ exec: "minesweeper", name: "Minesweeper", icon: MinesweeperIcon, component: Minesweeper, permissions: [] }),
+        defineApp({ exec: "clock", name: "Clock", icon: ClockIcon, component: Clock, permissions: [] }),
+        defineApp({ exec: "help", name: "Help", icon: HelpIcon, component: Help, permissions: [] }),
+        defineApp({ exec: "control_panel", name: "Control Panel", icon: MyComputerIcon, component: ControlPanel, permissions: [] }),
+        defineApp({ exec: "doom", name: "Doom", icon: DoomIcon, component: Doom, permissions: [] }),
+        defineApp({ exec: "doomII", name: "Doom II", icon: DoomIIIcon, component: DoomII, permissions: [] }),
+        defineApp({ exec: "tomb", name: "Tomb Raider", icon: TombRaiderIcon, component: TombRaider, permissions: [] }),
+        defineApp({ exec: "persia", name: "Prince of Persia", icon: PersiaIcon, component: Persia, permissions: [] }),
+    ];
 
     for (const program of bin) {
-        registry.register({ ...program, permissions: [...program.permissions] });
+        registry.register(program);
     }
 }

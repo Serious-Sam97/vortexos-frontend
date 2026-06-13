@@ -6,9 +6,13 @@ import { makeKernel } from "./helpers";
 describe("createLibOS — userland syscall client", () => {
     let kernel: Kernel;
     let sys: LibOS;
-    beforeEach(() => {
+    let shellPid: string;
+    beforeEach(async () => {
         kernel = makeKernel();
-        sys = createLibOS(kernel, "shell-pid");
+        // Bind the client to a real, fully-privileged process (stub programs grant all
+        // permissions) so gated syscalls pass the kernel's capability check.
+        shellPid = await kernel.syscall(null, "spawn", { exec: "task_manager" });
+        sys = createLibOS(kernel, shellPid);
     });
 
     it("spawn / ps / kill drive the kernel process table", async () => {
@@ -16,7 +20,7 @@ describe("createLibOS — userland syscall client", () => {
         expect((await sys.ps()).map((p) => p.pid)).toContain(pid);
 
         await sys.kill(pid);
-        expect(await sys.ps()).toHaveLength(0);
+        expect((await sys.ps()).map((p) => p.pid)).not.toContain(pid);
     });
 
     it("spawn forwards name/icon overrides", async () => {
@@ -26,7 +30,7 @@ describe("createLibOS — userland syscall client", () => {
     });
 
     it("getpid returns the pid the client is bound to", async () => {
-        expect(await sys.getpid()).toBe("shell-pid");
+        expect(await sys.getpid()).toBe(shellPid);
     });
 
     it("argv returns the bound process's launch arguments", async () => {

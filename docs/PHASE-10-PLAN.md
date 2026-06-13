@@ -1,8 +1,9 @@
-# Phase 5 — App SDK + Real Web Workers ("go full")
+# Phase 10 — App SDK + Real Web Workers ("go full")
 
-> **Note:** originally scoped as Phase 3. Deferred to Phase 5 (it's the heaviest lift and
-> nothing depends on it landing next). New order: Phase 3 = Multi-user + networking,
-> Phase 4 = App SDK contract (main-thread prep), Phase 5 = this. See the roadmap memory.
+> **Note:** originally Phase 3, then Phase 5, now parked at **Phase 10** — a long-term
+> "someday" item. It's the heaviest lift and nothing depends on it landing soon.
+> Phase 3 (Multi-user + networking) is done; Phase 4 = App SDK contract (main-thread prep);
+> Phases 5–9 are open/unplanned; this rebuild is the distant finale. See the roadmap memory.
 
 **Goal:** make a VortexOS process a *real* isolated process — code running in a Web
 Worker that reaches the system **only** through the syscall ABI, with the kernel as the

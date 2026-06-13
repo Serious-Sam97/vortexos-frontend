@@ -32,6 +32,11 @@ export class Vfs {
         return this.changeVersion;
     }
 
+    /** Manually signal a change (e.g. after a network FS loads new data out-of-band). */
+    touch(): void {
+        this.emit();
+    }
+
     private emit(): void {
         this.changeVersion++;
         for (const fn of this.listeners) fn();

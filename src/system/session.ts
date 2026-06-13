@@ -30,3 +30,17 @@ export function clearSession(): void {
 export function getToken(): string | null {
     return getSession()?.token ?? null;
 }
+
+// ── session-expiry signal ────────────────────────────────────────────────
+// Networking code (axios interceptor, CloudFS) calls notifyUnauthorized() on a 401
+// from an authenticated endpoint; AuthProvider registers a handler that logs out.
+let unauthorizedHandler: (() => void) | null = null;
+
+export function setUnauthorizedHandler(fn: (() => void) | null): void {
+    unauthorizedHandler = fn;
+}
+
+export function notifyUnauthorized(): void {
+    clearSession();
+    unauthorizedHandler?.();
+}

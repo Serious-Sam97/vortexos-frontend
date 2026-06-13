@@ -7,6 +7,7 @@ import {
     KernelError,
     OpenFile,
     PCB,
+    Permission,
     Persistence,
     Pid,
     ProcInfo,
@@ -16,6 +17,26 @@ import {
     SyscallName,
     WindowState,
 } from "./types";
+
+/**
+ * Which capability each syscall requires. Syscalls not listed are always allowed
+ * (a process can read its own identity, list processes, and exit unconditionally).
+ */
+const SYSCALL_PERMISSION: Partial<Record<SyscallName, Permission>> = {
+    spawn: "proc",
+    kill: "proc",
+    win_focus: "gui",
+    win_move: "gui",
+    open: "fs",
+    read: "fs",
+    write: "fs",
+    close: "fs",
+    readdir: "fs",
+    stat: "fs",
+    mkdir: "fs",
+    unlink: "fs",
+    rename: "fs",
+};
 
 export interface KernelConfig {
     registry: ProgramRegistry;
@@ -164,7 +185,24 @@ export class Kernel {
         }
     }
 
+    /**
+     * Capability check. The kernel/desktop/window-manager (caller === null) is trusted.
+     * A real process may only issue a syscall its program declared a permission for.
+     */
+    private enforcePermission(caller: Pid | null, name: SyscallName): void {
+        if (caller === null) return; // OS-level callers are trusted
+        const required = SYSCALL_PERMISSION[name];
+        if (!required) return; // ungated syscall (getpid/getargv/ps/exit)
+        const pcb = this.processes.get(caller);
+        if (!pcb) throw new KernelError("ESRCH", `no process ${caller}`);
+        const granted = this.registry.get(pcb.exec)?.permissions ?? [];
+        if (!granted.includes(required)) {
+            throw new KernelError("EACCES", `'${pcb.exec}' lacks '${required}' permission for ${name}`);
+        }
+    }
+
     private dispatch(caller: Pid | null, name: SyscallName, args: any): unknown {
+        this.enforcePermission(caller, name);
         switch (name) {
             case "spawn":
                 return this.sysSpawn(caller, args as SpawnOpts);

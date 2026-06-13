@@ -10,7 +10,7 @@ In v2.0 an app can only cross into the system by issuing a **syscall**. The kern
 the process table, the scheduler (focus / z-order), IPC, the VFS, and the compositor.
 
 ```
-USERLAND  ─ apps (Phase 0: in-thread · Phase 3: Web Workers)
+USERLAND  ─ apps (today: in-thread, sandboxed by capability · Phase 10: Web Workers)
    │  syscall ABI  (open · read · write · spawn · kill · win_*)
 KERNEL    ─ process table · scheduler · IPC · VFS · compositor
    │
@@ -21,13 +21,25 @@ BACKEND   ─ Java/Spring: persistent disk (File table) · users · auth
 
 ## Roadmap
 
+The roadmap was re-sequenced after the multi-user work: the heavy Worker/compositor rebuild
+moved to the end (Phase 10) so lighter, higher-value phases land first. The capability/SDK
+contract and a real login both shipped on the main thread, de-risking that eventual rebuild.
+
 | Phase | Builds | Status |
 |---|---|---|
 | **0 · Microkernel** | syscall ABI, `libos`, process table (PCB), program registry (`/bin`), compatibility shim | **done** |
-| **1 · Filesystem** | inode VFS, mount table (`/` `/dev` `/proc` `/bin`), fs syscalls + fd table, Notes/Explorer as file clients | **done** |
-| **2 · Terminal + shell** | `/bin/sh` (tokenizer/parser/executor), pipes + redirects + `;`, ~20 coreutils, Terminal app | **done** |
-| 3 · App SDK + Workers | manifest + capability perms; migrate apps into real Web Workers | planned |
-| 4 · Multi-user + net | backend users/auth, login, home dirs, cloud-synced FS, messaging | planned |
+| **1 · Filesystem** | inode VFS, mount table (`/` `/dev` `/proc` `/bin` `/mnt/cloud`), fs syscalls + fd table | **done** — [FILESYSTEM.md](FILESYSTEM.md) |
+| **2 · Terminal + shell** | `/bin/sh` (tokenizer/parser/executor), pipes + redirects + `;`, ~20 coreutils, Terminal app | **done** — [TERMINAL.md](TERMINAL.md) |
+| **3 · Multi-user + networking** | backend accounts + Spring Security/JWT, per-user File/Game ownership, login UI, session, token-scoped `/mnt/cloud` | **done** — [MULTIUSER.md](MULTIUSER.md) |
+| **4 · App SDK contract** | `defineApp` + manifest + **enforced capability permissions** (main-thread) | **done** — [APP-SDK.md](APP-SDK.md) |
+| 5 · Network Neighborhood | shared `/mnt/public`, browse others' shares, WinPopup/Net Send + presence over WebSocket | planned |
+| 6 · Real storage | move the VFS onto OPFS (large files, quota), better cloud sync/conflict handling | planned |
+| 7 · System depth | WordPad/Media Player/Image Viewer, shell scripting (`.bat`, vars/functions), Registry, Event Viewer | planned |
+| 8 · Theming & reach | theme packs (95/98/2000), screensavers, accessibility, installable PWA | planned |
+| 9 · App ecosystem | package format, Add/Remove Programs, app gallery installing from the cloud | planned |
+| 10 · Workers + compositor | move app code into isolated Web Workers reaching the kernel only via the ABI | planned — [PHASE-10-PLAN.md](PHASE-10-PLAN.md) |
+
+Plan docs for in-flight phases live alongside this file (e.g. [PHASE-3-PLAN.md](PHASE-3-PLAN.md)).
 
 ### Phase 2 notes
 
@@ -63,9 +75,11 @@ await sys.kill(pid);                         // terminate
 const procs = await sys.ps();                // process table snapshot
 await sys.focus(pid);                        // bring to front (scheduler)
 await sys.move({ x, y }, pid);               // move its window
-// fs — throws ENOSYS until Phase 1:
-const fd = await sys.open("/home/notes.txt", "rw");
+const fd = await sys.open("/home/notes.txt", "rw");   // fs (since Phase 1)
 ```
+
+Each syscall an app issues is also checked against the app's declared capabilities — a call
+the app lacks permission for throws `EACCES`. See [APP-SDK.md](APP-SDK.md).
 
 ### Syscall table
 
@@ -73,9 +87,9 @@ const fd = await sys.open("/home/notes.txt", "rw");
 |---|---|---|
 | Process | `spawn(exec, opts)` `exit(code)` `kill(pid)` `getpid()` `ps()` | ✅ |
 | Window | `win_focus(pid)` `win_move(pid, loc)` | ✅ (`win_create` implicit) |
-| FS | `open` `read` `write` `close` `readdir` `stat` `mkdir` `unlink` | ✅ (Phase 1) |
-| IPC | `pipe` `ipc_send` `ipc_recv` `signal` | ⏳ Phase 2+ |
-| Net | `net_fetch` `socket` | ⏳ Phase 4 |
+| FS | `open` `read` `write` `close` `readdir` `stat` `mkdir` `unlink` `rename` | ✅ (Phase 1) |
+| IPC | `pipe` `ipc_send` `ipc_recv` `signal` | ⏳ Phase 10 (real pipes need Workers) |
+| Net | `net_fetch` `socket` | ⏳ Phase 5 |
 
 Unimplemented syscalls throw `KernelError('ENOSYS')` — the surface is stable now so
 callers written today keep working as the kernel grows.

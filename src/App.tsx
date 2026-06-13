@@ -8,6 +8,7 @@ import { ProcessContextProvider } from './contexts/ProcessContext';
 import { OSContextProvider } from './contexts/OSContext';
 import { KernelProvider } from './kernel/react/KernelProvider';
 import { DialogProvider } from './components/Dialog/DialogProvider';
+import { AuthProvider } from './contexts/AuthContext';
 import AppContent from './AppContent';
 
 const GlobalStyles = createGlobalStyle`
@@ -60,7 +61,9 @@ const App = () => (
           <OSContextProvider>
             <ProcessContextProvider>
               <DialogProvider>
-                <AppContent />
+                <AuthProvider>
+                  <AppContent />
+                </AuthProvider>
               </DialogProvider>
             </ProcessContextProvider>
           </OSContextProvider>
