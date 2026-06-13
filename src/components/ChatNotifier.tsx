@@ -1,10 +1,15 @@
 import { useEffect, useRef } from "react";
 import { getChatLog, subscribeChat } from "../system/chat";
+import { getWinpopupMode, notify } from "../system/notifications";
 import { useDialog } from "./Dialog/DialogProvider";
 
+import WinpopupIcon from "/winpopup.svg";
+
 /**
- * Pops a WinPopup-style dialog for each incoming Net Send message. Mounted on the desktop so
- * messages reach the user whether or not the Messenger window is open.
+ * Delivers incoming Net Send messages. Mounted on the desktop so messages reach the user
+ * whether or not the Messenger window is open. The delivery style is user-configurable
+ * (Control Panel ▸ Sounds & Notifications): a non-blocking toast (default) that opens
+ * WinPopup on click, or the classic blocking WinPopup dialog.
  */
 const ChatNotifier: React.FC = () => {
     const { alert } = useDialog();
@@ -16,7 +21,18 @@ const ChatNotifier: React.FC = () => {
             const log = getChatLog();
             for (let i = seen.current; i < log.length; i++) {
                 const m = log[i];
-                if (!m.mine) alert({ title: `Message from ${m.from}`, message: m.body, type: "info" });
+                if (m.mine) continue;
+                if (getWinpopupMode() === "classic") {
+                    alert({ title: `Message from ${m.from}`, message: m.body, type: "info" });
+                } else {
+                    notify({
+                        title: `Message from ${m.from}`,
+                        body: m.body,
+                        type: "info",
+                        icon: WinpopupIcon,
+                        action: { kind: "open-app", exec: "messenger", name: "WinPopup", icon: WinpopupIcon },
+                    });
+                }
             }
             seen.current = log.length;
         });

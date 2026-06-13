@@ -103,6 +103,11 @@ export function getOnline(): string[] {
     return online;
 }
 
+/** True while the presence/Net Send socket is open — drives the tray network status icon. */
+export function isChatConnected(): boolean {
+    return socket?.readyState === WebSocket.OPEN;
+}
+
 export function getChatLog(): ChatMessage[] {
     return log;
 }

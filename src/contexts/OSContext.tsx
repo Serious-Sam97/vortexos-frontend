@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { ReactNode } from "react";
 import { FileClipboard, IOSContext } from "../interfaces/IOSContext";
 import { IWallpaper } from "../interfaces/IWallpaper";
@@ -25,6 +25,15 @@ export function OSContextProvider({children}: {children: ReactNode}) {
     const setTheme = (next: string) => {
         localStorage.setItem('vortex.theme', next);
         setThemeState(next);
+    };
+
+    // Brief hourglass while something is launching/working.
+    const [ busy, setBusy ] = useState<boolean>(false);
+    const busyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const flashBusy = (ms = 550) => {
+        setBusy(true);
+        if (busyTimer.current) clearTimeout(busyTimer.current);
+        busyTimer.current = setTimeout(() => setBusy(false), ms);
     };
 
     const [ wallpaper, setWallpaper ] = useState({
@@ -54,7 +63,7 @@ export function OSContextProvider({children}: {children: ReactNode}) {
     }
 
     return (
-        <OSContext.Provider value={{cursor, changeCursor, wallpaper, changeWallpaper, minimized, minimize, restore, crt, toggleCrt, clipboard, setClipboard, theme, setTheme}}>
+        <OSContext.Provider value={{cursor, changeCursor, wallpaper, changeWallpaper, minimized, minimize, restore, crt, toggleCrt, clipboard, setClipboard, theme, setTheme, busy, flashBusy}}>
             {children}
         </OSContext.Provider>
     )

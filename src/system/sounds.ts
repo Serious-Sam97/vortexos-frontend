@@ -12,12 +12,22 @@ let masterVolume = (() => {
 })();
 let muted = localStorage.getItem("vortex.muted") === "1";
 
+// Pub/sub so the tray volume control and the Control Panel Sounds applet stay in
+// sync — either surface can change volume/mute and the other re-renders.
+const soundListeners = new Set<() => void>();
+const notifySound = () => soundListeners.forEach((l) => l());
+export function subscribeSound(fn: () => void): () => void {
+    soundListeners.add(fn);
+    return () => soundListeners.delete(fn);
+}
+
 export function getVolume(): number {
     return masterVolume;
 }
 export function setVolume(v: number): void {
     masterVolume = Math.min(1, Math.max(0, v));
     localStorage.setItem("vortex.volume", String(masterVolume));
+    notifySound();
 }
 export function isMuted(): boolean {
     return muted;
@@ -25,6 +35,7 @@ export function isMuted(): boolean {
 export function setMuted(m: boolean): void {
     muted = m;
     localStorage.setItem("vortex.muted", m ? "1" : "0");
+    notifySound();
 }
 
 function audio(): AudioContext | null {
@@ -98,6 +109,38 @@ export function playChord(): void {
     const ac = audio();
     if (!ac) return;
     [523.25, 659.25, 783.99].forEach((f, i) => note(ac, { freq: f, start: i * 0.04, dur: 0.5, gain: 0.11 }));
+}
+
+/** Quick rising blip — a program opening. */
+export function playOpen(): void {
+    const ac = audio();
+    if (!ac) return;
+    note(ac, { freq: 440, start: 0, dur: 0.08, type: "triangle", gain: 0.09 });
+    note(ac, { freq: 660, start: 0.05, dur: 0.1, type: "triangle", gain: 0.09 });
+}
+
+/** Quick falling blip — a program closing. */
+export function playClose(): void {
+    const ac = audio();
+    if (!ac) return;
+    note(ac, { freq: 520, start: 0, dur: 0.08, type: "triangle", gain: 0.08 });
+    note(ac, { freq: 320, start: 0.05, dur: 0.12, type: "triangle", gain: 0.08 });
+}
+
+/** Short downward swoop — minimize. */
+export function playMinimize(): void {
+    const ac = audio();
+    if (!ac) return;
+    note(ac, { freq: 600, start: 0, dur: 0.12, type: "sine", gain: 0.08 });
+    note(ac, { freq: 300, start: 0.04, dur: 0.12, type: "sine", gain: 0.08 });
+}
+
+/** Short upward swoop — maximize / restore. */
+export function playMaximize(): void {
+    const ac = audio();
+    if (!ac) return;
+    note(ac, { freq: 300, start: 0, dur: 0.12, type: "sine", gain: 0.08 });
+    note(ac, { freq: 600, start: 0.04, dur: 0.12, type: "sine", gain: 0.08 });
 }
 
 /** Descending tones — shutdown. */

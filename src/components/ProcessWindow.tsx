@@ -5,6 +5,7 @@ import { Button, MenuList, MenuListItem, Separator, Window, WindowHeader } from 
 import { Process } from "../interfaces/Process";
 import { useOSContext } from "../contexts/OSContext";
 import { PidProvider } from "../kernel/react/pid";
+import { playMaximize, playMinimize } from "../system/sounds";
 
 interface ProcessWindowProp {
     process: Process;
@@ -155,7 +156,13 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
         dragStart.current = null;
     };
 
+    const toggleMaximize = () => {
+        playMaximize();
+        setMaximized((m) => !m);
+    };
+
     const doMinimize = () => {
+        playMinimize();
         if (!process.uuid) return;
         if (maximized) {
             minimize(process.uuid);
@@ -256,7 +263,7 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
             >
                 <WindowHeader
                     onMouseDown={handleMouseDown}
-                    onDoubleClick={() => setMaximized((m) => !m)}
+                    onDoubleClick={toggleMaximize}
                     className="window-title"
                     style={{
                         display: "flex",
@@ -314,7 +321,7 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
                         />
                         <ControlButton
                             label="Maximize"
-                            onClick={() => setMaximized((m) => !m)}
+                            onClick={toggleMaximize}
                             glyph={<span style={{ display: "block", width: 9, height: 8, border: "1px solid #000", borderTopWidth: 2 }} />}
                         />
                         <ControlButton

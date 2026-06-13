@@ -2,10 +2,13 @@ import { useEffect, useState } from "react";
 import { Button, Checkbox, Frame, Toolbar, WindowContent } from "react95";
 import Monitor from "../ControlPanel/Monitor";
 import { getVolume, isMuted, playChord, setMuted, setVolume } from "../../system/sounds";
+import { getWinpopupMode, setWinpopupMode } from "../../system/notifications";
+import { formatBytes, useStorageEstimate } from "../../system/storage";
 
 const SoundApplet: React.FC = () => {
     const [vol, setVol] = useState(Math.round(getVolume() * 100));
     const [mute, setMute] = useState(isMuted());
+    const [classic, setClassic] = useState(getWinpopupMode() === "classic");
     return (
         <div style={{ padding: 16 }}>
             <p style={{ fontWeight: "bold", marginBottom: 10 }}>Sound</p>
@@ -36,6 +39,20 @@ const SoundApplet: React.FC = () => {
                 />
                 <span>{vol}%</span>
             </div>
+
+            <p style={{ fontWeight: "bold", margin: "18px 0 8px" }}>Notifications</p>
+            <Checkbox
+                checked={classic}
+                onChange={() => {
+                    const c = !classic;
+                    setClassic(c);
+                    setWinpopupMode(c ? "classic" : "toast");
+                }}
+                label="Use classic WinPopup window for messages"
+            />
+            <p style={{ fontSize: 11, color: "#555", marginTop: 6 }}>
+                When off, incoming Net Send messages appear as toast notifications in the corner.
+            </p>
         </div>
     );
 };
@@ -57,21 +74,50 @@ const DateTimeApplet: React.FC = () => {
     );
 };
 
-const SystemApplet: React.FC = () => (
-    <div style={{ padding: 16, lineHeight: 1.7 }}>
-        <p style={{ fontWeight: "bold", marginBottom: 10 }}>System</p>
-        <p>VortexOS 2.0</p>
-        <p>Experimental Windows 95 simulation</p>
-        <p>Microkernel build — VFS, shell, window manager</p>
-        <p>Registered to: Serious Sam</p>
-    </div>
-);
+const SystemApplet: React.FC = () => {
+    const storage = useStorageEstimate();
+    const nav = navigator as Navigator & { deviceMemory?: number };
+    const specs: [string, string][] = [
+        ["Processor", `${nav.hardwareConcurrency ?? "?"} virtual cores`],
+        ["Memory", nav.deviceMemory ? `${nav.deviceMemory} GB RAM` : "—"],
+        ["Display", `${window.screen.width} × ${window.screen.height}`],
+        ["Disk (OPFS)", storage?.supported ? `${formatBytes(storage.usage)} of ${formatBytes(storage.quota)}` : "—"],
+        ["Kernel", "VortexOS microkernel · syscall ABI"],
+        ["Filesystem", "MemFS + OPFS · /dev /proc /bin /mnt"],
+    ];
+    return (
+        <div style={{ padding: 18, lineHeight: 1.6 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14, borderBottom: "1px solid #808080", paddingBottom: 12, marginBottom: 12 }}>
+                <img src="/w95.png" alt="" style={{ width: 48, height: 48 }} />
+                <div>
+                    <p style={{ fontSize: 22, fontWeight: "bold", margin: 0 }}>VortexOS</p>
+                    <p style={{ margin: 0, fontSize: 13 }}>Version 2.0 · Experimental Edition</p>
+                    <p style={{ margin: 0, fontSize: 12, color: "#000080", fontWeight: "bold" }}>a creation by Serious Sam</p>
+                </div>
+            </div>
+            <table style={{ fontSize: 13, borderCollapse: "collapse" }}>
+                <tbody>
+                    {specs.map(([k, v]) => (
+                        <tr key={k}>
+                            <td style={{ fontWeight: "bold", paddingRight: 16, verticalAlign: "top", whiteSpace: "nowrap" }}>{k}:</td>
+                            <td>{v}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+            <p style={{ fontSize: 11, color: "#555", marginTop: 14 }}>
+                Built from scratch — a real microkernel OS in the browser. No emulator, no clone:
+                it just <i>looks</i> like 1995.
+            </p>
+        </div>
+    );
+};
 
 const APPLETS = [
     { name: "Display", icon: "/monitor.png", component: Monitor },
     { name: "Sounds", icon: "/sound.svg", component: SoundApplet },
     { name: "Date/Time", icon: "/clock.svg", component: DateTimeApplet },
-    { name: "System", icon: "/my-computer.png", component: SystemApplet },
+    { name: "About Vortex", icon: "/w95.png", component: SystemApplet },
 ];
 
 const ControlPanel: React.FC = () => {

@@ -4,14 +4,17 @@ import WMenu from "../components/WMenu";
 import WindowManager from "../components/WindowManager";
 import LoginScreen from "../components/Login/LoginScreen";
 import ChatNotifier from "../components/ChatNotifier";
+import ToastHost from "../components/ToastHost";
 import AltTabSwitcher from "../components/AltTabSwitcher";
+import SystemFeedback from "../components/SystemFeedback";
+import Screensaver from "../components/Screensaver";
 import { useOSContext } from "../contexts/OSContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useReloadCloud } from "../kernel/react/KernelProvider";
 import { connectChat, disconnectChat } from "../system/chat";
 
 const Vortex: React.FC = () => {
-    const { cursor, crt } = useOSContext();
+    const { cursor, crt, busy } = useOSContext();
     const { isAuthenticated } = useAuth();
     const reloadCloud = useReloadCloud();
 
@@ -32,14 +35,17 @@ const Vortex: React.FC = () => {
 
     return (
         <div
-            style={{ position: "fixed", inset: 0, overflow: "hidden", cursor }}
+            style={{ position: "fixed", inset: 0, overflow: "hidden", cursor: busy ? "url(/win-cursor/loading.cur), wait" : cursor }}
             onContextMenu={(e) => e.preventDefault()} // suppress the browser menu; the desktop shows its own
         >
             <Desktop />
             <WindowManager />
             <WMenu />
             <ChatNotifier />
+            <ToastHost />
             <AltTabSwitcher />
+            <SystemFeedback />
+            <Screensaver />
 
             {crt && (
                 <div

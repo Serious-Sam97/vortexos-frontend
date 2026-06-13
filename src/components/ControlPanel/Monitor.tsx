@@ -3,11 +3,13 @@ import { Button, Checkbox, Monitor as React95Monitor } from "react95";
 import styled from "styled-components";
 import { useOSContext } from "../../contexts/OSContext";
 import { THEMES } from "../../system/themes";
+import { previewSaver, SAVERS, setSaverSettings, useSaverSettings } from "../../system/screensaver";
 
 const Monitor: React.FC = () => {
     const [ wallpaperSelected, setWallpaperSelected ] = useState<string>('');
     const [ wallpaperType, setWallpaperType ] = useState<number>(1);
     const { changeWallpaper, crt, toggleCrt, theme, setTheme } = useOSContext();
+    const saver = useSaverSettings();
 
     const solidColors = [
         '#008080',
@@ -83,6 +85,33 @@ const Monitor: React.FC = () => {
             <div style={{ marginBottom: 12 }}>
                 <Checkbox checked={crt} onChange={toggleCrt} label="CRT scanline effect" />
             </div>
+            <fieldset style={{ marginBottom: 16, border: "2px groove #c0c0c0", padding: "8px 12px" }}>
+                <legend style={{ fontWeight: "bold" }}>Screen Saver</legend>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                    <select
+                        value={saver.type}
+                        onChange={(e) => setSaverSettings({ type: e.target.value })}
+                        style={{ fontFamily: "inherit", padding: 2 }}
+                    >
+                        {SAVERS.map((s) => (
+                            <option key={s.key} value={s.key}>{s.name}</option>
+                        ))}
+                    </select>
+                    <Button size="sm" disabled={saver.type === "none"} onClick={() => previewSaver()}>Preview</Button>
+                    <label style={{ fontSize: 13 }}>
+                        Wait:{" "}
+                        <input
+                            type="number"
+                            min={1}
+                            max={60}
+                            value={saver.wait}
+                            onChange={(e) => setSaverSettings({ wait: Math.max(1, Number(e.target.value) || 1) })}
+                            style={{ width: 48, fontFamily: "inherit" }}
+                        />{" "}
+                        min
+                    </label>
+                </div>
+            </fieldset>
             <p className="text-xl pb-4 font-bold">Choose the wallpaper</p>
             <div className="flex justify-center">
                 <React95Monitor backgroundStyles={ getSelectedImage() }/>

@@ -14,6 +14,8 @@ export interface IOSContext {
     setClipboard: (clip: FileClipboard | null) => void,
     theme: string,
     setTheme: (theme: string) => void,
+    busy: boolean,
+    flashBusy: (ms?: number) => void,
 };
 
 export interface FileClipboard {

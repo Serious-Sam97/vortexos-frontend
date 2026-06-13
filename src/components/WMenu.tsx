@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { Button, MenuList, MenuListItem, Separator } from "react95";
 import styled from "styled-components";
@@ -6,6 +6,11 @@ import { useProcessContext } from "../contexts/ProcessContext";
 import { useOSContext } from "../contexts/OSContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useUninstalled } from "../system/programs";
+import { useQuickLaunch, togglePin, unpin, isPinned } from "../system/quicklaunch";
+import { BUILTIN_APPS } from "../kernel/bin";
+import SystemTray from "./SystemTray";
+import WindowPreview from "./WindowPreview";
+import { Tooltip } from "./Tooltip";
 import { useDialog } from "./Dialog/DialogProvider";
 import { Process } from "../interfaces/Process";
 import { playClick } from "../system/sounds";
@@ -62,15 +67,37 @@ const TaskButton = styled.button<{ $pressed: boolean }>`
     border-color: ${(p) => (p.$pressed ? "#808080 #ffffff #ffffff #808080" : "#ffffff #808080 #808080 #ffffff")};
 `;
 
-const Tray = styled.div`
-    margin-left: auto;
+const APP_BY_EXEC = new Map(BUILTIN_APPS.map((a) => [a.exec, a]));
+
+const ShowDesktopButton = styled.button`
+    width: 26px;
     height: 30px;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
-    padding: 0 10px;
-    font-size: 12px;
+    justify-content: center;
+    background: #c0c0c0;
     border: 2px solid;
-    border-color: #808080 #ffffff #ffffff #808080;
+    border-color: #ffffff #808080 #808080 #ffffff;
+    cursor: pointer;
+    &:active {
+        border-color: #808080 #ffffff #ffffff #808080;
+    }
+`;
+
+const QuickIcon = styled.button`
+    width: 26px;
+    height: 30px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    &:hover {
+        border-color: #808080 #ffffff #ffffff #808080;
+    }
 `;
 
 const PROGRAMS = [
@@ -88,19 +115,6 @@ const PROGRAMS = [
     { name: "Paint", icon: PaintIcon, componentName: "paint" },
 ];
 
-function useClock(): string {
-    const [now, setNow] = useState(() => new Date());
-    useEffect(() => {
-        const id = setInterval(() => setNow(new Date()), 10000);
-        return () => clearInterval(id);
-    }, []);
-    let h = now.getHours();
-    const ampm = h >= 12 ? "PM" : "AM";
-    h = h % 12 || 12;
-    const m = String(now.getMinutes()).padStart(2, "0");
-    return `${h}:${m} ${ampm}`;
-}
-
 const WMenu: React.FC = () => {
     const [open, setOpen] = useState(false);
     const [programsOpen, setProgramsOpen] = useState(false);
@@ -110,7 +124,29 @@ const WMenu: React.FC = () => {
     const { username, logout } = useAuth();
     const { alert } = useDialog();
     const uninstalled = useUninstalled();
-    const clock = useClock();
+    const user = username || "user";
+    const pinned = useQuickLaunch(user);
+    const showDeskRef = useRef<string[]>([]);
+
+    // Show Desktop: minimize everything; click again restores what it hid.
+    const showDesktop = () => {
+        const visible = processes.filter((p) => p.uuid && !minimized.includes(p.uuid));
+        if (visible.length) {
+            showDeskRef.current = visible.map((p) => p.uuid as string);
+            visible.forEach((p) => p.uuid && minimize(p.uuid));
+        } else {
+            showDeskRef.current.forEach((pid) => restore(pid));
+            showDeskRef.current = [];
+        }
+        playClick();
+    };
+
+    const launchExec = (exec: string) => {
+        const app = APP_BY_EXEC.get(exec);
+        if (!app) return;
+        addProcess({ name: app.name, icon: app.icon, componentName: exec } as never);
+        playClick();
+    };
 
     // Cap a submenu's height to the space above the taskbar so a long list scrolls
     // in place instead of running off the bottom of the screen.
@@ -124,7 +160,6 @@ const WMenu: React.FC = () => {
     const navigate = useNavigate();
 
     const [taskMenu, setTaskMenu] = useState<{ x: number; y: number } | null>(null);
-    const [showDate, setShowDate] = useState(false);
 
     useEffect(() => {
         if (!taskMenu) return;
@@ -268,10 +303,21 @@ const WMenu: React.FC = () => {
                                 {programsOpen && (
                                     <MenuList ref={fitSubmenu as never} style={{ position: "absolute", left: "100%", top: 0, width: 220 }}>
                                         {PROGRAMS.filter((p) => !uninstalled.has(p.componentName)).map((p) => (
-                                            <MenuListItem key={p.componentName} style={{ cursor: "pointer" }} onClick={() => launch(p)}>
+                                            <MenuListItem
+                                                key={p.componentName}
+                                                style={{ cursor: "pointer", justifyContent: "space-between" }}
+                                                onClick={() => launch(p)}
+                                                onContextMenu={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    togglePin(user, p.componentName);
+                                                }}
+                                                title="Right-click to pin/unpin to Quick Launch"
+                                            >
                                                 <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                                                     <img src={p.icon} style={{ width: 20 }} /> {p.name}
                                                 </span>
+                                                {isPinned(user, p.componentName) && <span style={{ color: "#000080" }}>📌</span>}
                                             </MenuListItem>
                                         ))}
                                     </MenuList>
@@ -355,49 +401,60 @@ const WMenu: React.FC = () => {
                 )}
             </div>
 
+            {/* Quick Launch — Show Desktop + pinned apps */}
+            <div style={{ display: "flex", alignItems: "center", gap: 2, paddingLeft: 4, borderLeft: "1px solid #808080", borderRight: "1px solid #808080", marginLeft: 2, marginRight: 2 }}>
+                <Tooltip text="Show Desktop">
+                    <ShowDesktopButton onClick={showDesktop} aria-label="Show Desktop">
+                        {/* tiny desktop/pencil glyph */}
+                        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden>
+                            <rect x="1.5" y="2" width="13" height="9" rx="0.5" fill="#000080" stroke="#000" strokeWidth="0.8" />
+                            <rect x="5.5" y="11" width="5" height="1.5" fill="#808080" />
+                            <rect x="3.5" y="12.5" width="9" height="1.5" fill="#404040" />
+                        </svg>
+                    </ShowDesktopButton>
+                </Tooltip>
+                {pinned
+                    .filter((exec) => APP_BY_EXEC.has(exec) && !uninstalled.has(exec))
+                    .map((exec) => {
+                        const app = APP_BY_EXEC.get(exec)!;
+                        return (
+                            <Tooltip key={exec} text={app.name}>
+                                <QuickIcon
+                                    onClick={() => launchExec(exec)}
+                                    onContextMenu={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        unpin(user, exec);
+                                    }}
+                                    aria-label={app.name}
+                                    title={app.name}
+                                >
+                                    <img src={app.icon} style={{ width: 18, height: 18 }} />
+                                </QuickIcon>
+                            </Tooltip>
+                        );
+                    })}
+            </div>
+
             {/* running windows */}
             <div style={{ display: "flex", flex: 1, gap: 3, overflow: "hidden", marginLeft: 2 }}>
                 {processes.map((process: Process) => {
                     const pressed = process.priority === 0 && !minimized.includes(process.uuid ?? "");
                     return (
-                        <TaskButton key={process.uuid} $pressed={pressed} onClick={() => onTaskClick(process)}>
-                            <img src={process.icon} style={{ width: 18, height: 18, flexShrink: 0 }} />
-                            <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                {process.name}
-                            </span>
-                        </TaskButton>
+                        <WindowPreview key={process.uuid} process={process} minimized={minimized.includes(process.uuid ?? "")}>
+                            <TaskButton $pressed={pressed} onClick={() => onTaskClick(process)}>
+                                <img src={process.icon} style={{ width: 18, height: 18, flexShrink: 0 }} />
+                                <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                    {process.name}
+                                </span>
+                            </TaskButton>
+                        </WindowPreview>
                     );
                 })}
             </div>
 
             {/* system tray */}
-            <Tray className="tray-clock" onMouseEnter={() => setShowDate(true)} onMouseLeave={() => setShowDate(false)}>
-                {username && <span style={{ marginRight: 8, opacity: 0.85 }}>{username}</span>}
-                {clock}
-            </Tray>
-
-            {showDate && (
-                <div
-                    style={{
-                        position: "fixed",
-                        right: 8,
-                        bottom: TASKBAR_HEIGHT + 6,
-                        background: "#ffffe1",
-                        border: "1px solid #000",
-                        padding: "2px 6px",
-                        fontSize: 11,
-                        zIndex: 100000,
-                        pointerEvents: "none",
-                    }}
-                >
-                    {new Date().toLocaleDateString(undefined, {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                    })}
-                </div>
-            )}
+            <SystemTray username={username} />
 
             {taskMenu && (
                 <MenuList
