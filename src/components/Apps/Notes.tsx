@@ -74,7 +74,7 @@ const Notes: React.FC = () => {
     };
 
     return (
-        <>
+        <div style={{ display: "flex", flexDirection: "column", height: "100%", minWidth: 520, minHeight: 360 }}>
             <Toolbar>
                 <Button variant="menu" size="sm" onClick={openMenu}>
                     File
@@ -100,9 +100,9 @@ const Notes: React.FC = () => {
                     Save
                 </Button>
             </Toolbar>
-            <WindowContent>
+            <WindowContent style={{ flex: 1, minHeight: 0, display: "flex" }}>
                 <TextInput
-                    style={{ minWidth: "60vw" }}
+                    style={{ flex: 1, height: "100%" }}
                     value={note}
                     onChange={(e) => {
                         setNote(e.target.value);
@@ -119,7 +119,7 @@ const Notes: React.FC = () => {
                     {dirty ? " •" : ""} {status && `— ${status}`}
                 </p>
             </Frame>
-        </>
+        </div>
     );
 };
 

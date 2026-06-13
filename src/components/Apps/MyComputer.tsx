@@ -14,11 +14,18 @@ const MyComputer: React.FC = () => {
                     Save
                 </Button>
             </Toolbar>
-            <WindowContent>
-                My Computer
+            <WindowContent style={{ minWidth: 360, minHeight: 140, display: "flex", gap: 24, padding: 16 }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                    <div style={{ fontSize: 40 }}>🖥️</div>
+                    <span>VortexOS (C:)</span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                    <div style={{ fontSize: 40 }}>📁</div>
+                    <span>Control Panel</span>
+                </div>
             </WindowContent>
             <Frame variant='well' className='footer'>
-                TEST
+                2 object(s)
             </Frame>
         </>
     );

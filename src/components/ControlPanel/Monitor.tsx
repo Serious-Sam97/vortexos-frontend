@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Button, Monitor as React95Monitor } from "react95";
+import { Button, Checkbox, Monitor as React95Monitor } from "react95";
 import styled from "styled-components";
 import { useOSContext } from "../../contexts/OSContext";
 
 const Monitor: React.FC = () => {
     const [ wallpaperSelected, setWallpaperSelected ] = useState<string>('');
     const [ wallpaperType, setWallpaperType ] = useState<number>(1);
-    const { changeWallpaper } = useOSContext();
+    const { changeWallpaper, crt, toggleCrt } = useOSContext();
 
     const solidColors = [
         '#008080',
@@ -66,6 +66,9 @@ const Monitor: React.FC = () => {
 
     return (
         <div style={{width: '800px', maxHeight: '70vh', overflowY: 'scroll', overflowX: 'hidden'}}>
+            <div style={{ marginBottom: 12 }}>
+                <Checkbox checked={crt} onChange={toggleCrt} label="CRT scanline effect" />
+            </div>
             <p className="text-xl pb-4 font-bold">Choose the wallpaper</p>
             <div className="flex justify-center">
                 <React95Monitor backgroundStyles={ getSelectedImage() }/>

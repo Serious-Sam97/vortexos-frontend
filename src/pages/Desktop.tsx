@@ -160,23 +160,17 @@ const Desktop: React.FC = () => {
     ]);
 
     const selectIcon = (i: number, j: number) => {
-        setIcons(icons.map((row, rowIndex) => {
-            return row.map((icon, iconIndex) => {
-                if (i === rowIndex && j === iconIndex) {
-                    if (icon.selected) {
-                        addProcess(icon);
-                    }
-                    return {
-                        ...icon,
-                        selected: !icon.selected,
-                    };
-                }
-                return {
-                    ...icon,
-                    selected: false,
-                };
-            });
-        }));
+        setIcons(icons.map((row, rowIndex) =>
+            row.map((icon, iconIndex) => ({
+                ...icon,
+                selected: i === rowIndex && j === iconIndex,
+            })),
+        ));
+    };
+
+    const openIcon = (i: number, j: number) => {
+        const icon = icons[i]?.[j];
+        if (icon) addProcess(icon);
     };
 
     const checkIfItsEmpty = (i: number, j: number) => {
@@ -207,7 +201,7 @@ const Desktop: React.FC = () => {
     }, []);
 
     return (
-        <div ref={desktop} style={{width: "100vw", height: "94vh"}}>
+        <div ref={desktop} style={{ width: "100vw", height: `calc(100vh - 40px)` }}>
             {
                 Array.from({ length: 7 }).map((_, i) => (
                     <div key={i} style={{height: blocksHeight, display: "flex"}}>
@@ -216,15 +210,31 @@ const Desktop: React.FC = () => {
                                 <div onClick={() => checkIfItsEmpty(i, j)} key={j} style={{width: "10.2857%", display: "flex", justifyContent: "center", alignItems: "center"}}>
                                     {
                                         (icons[i] && icons[i][j]) && (
-                                            <div onClick={() => selectIcon(i, j)} style={{cursor: "pointer", display: "flex", justifyContent: "center", flexDirection: 'column'}}>
-                                                <div style={{display: 'flex', justifyContent: 'center'}}>
-                                                    <img
-                                                        src={icons[i][j].icon}
-                                                        alt={icons[i][j].name}
-                                                        style={{ height: '70px', filter: icons[i][j].selected ? 'sepia(100%) saturate(500%) hue-rotate(220deg) brightness(60%)' : 'none',}}
-                                                    />
-                                                </div>
-                                                <p style={{color: 'white', textAlign: 'center', backgroundColor: icons[i][j].selected ? '#000080' : 'transparent'}}>{icons[i][j].name}</p>
+                                            <div
+                                                onClick={(e) => { e.stopPropagation(); selectIcon(i, j); }}
+                                                onDoubleClick={() => openIcon(i, j)}
+                                                style={{
+                                                    cursor: "pointer",
+                                                    display: "flex",
+                                                    flexDirection: "column",
+                                                    alignItems: "center",
+                                                    padding: 3,
+                                                    border: icons[i][j].selected ? "1px dotted #ffffff" : "1px solid transparent",
+                                                }}
+                                            >
+                                                <img src={icons[i][j].icon} alt={icons[i][j].name} style={{ height: 48, width: 48, objectFit: "contain" }} />
+                                                <p
+                                                    style={{
+                                                        marginTop: 2,
+                                                        padding: "0 3px",
+                                                        textAlign: "center",
+                                                        color: "#fff",
+                                                        textShadow: icons[i][j].selected ? "none" : "1px 1px 0 rgba(0,0,0,0.6)",
+                                                        backgroundColor: icons[i][j].selected ? "#000080" : "transparent",
+                                                    }}
+                                                >
+                                                    {icons[i][j].name}
+                                                </p>
                                             </div>
                                         )
                                     }

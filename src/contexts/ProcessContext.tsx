@@ -41,7 +41,12 @@ export function ProcessContextProvider({ children }: { children: ReactNode }) {
     const addProcess = (tempProcess: any) => {
         const exec = tempProcess.componentName;
         if (!exec) return;
-        kernel.syscall(null, "spawn", { exec, name: tempProcess.name, icon: tempProcess.icon });
+        kernel.syscall(null, "spawn", {
+            exec,
+            name: tempProcess.name,
+            icon: tempProcess.icon,
+            argv: tempProcess.argv,
+        });
     };
 
     const closeProcess = (uuid: string) => {

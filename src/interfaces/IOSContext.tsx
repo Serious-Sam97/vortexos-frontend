@@ -8,4 +8,9 @@ export interface IOSContext {
     setStorage: (data: Array<Array<IFile>>) => void,
     wallpaper: IWallpaper,
     changeWallpaper: (value: IWallpaper) => void,
+    minimized: string[],
+    minimize: (pid: string) => void,
+    restore: (pid: string) => void,
+    crt: boolean,
+    toggleCrt: () => void,
 };

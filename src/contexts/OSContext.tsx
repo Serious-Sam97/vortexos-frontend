@@ -10,6 +10,17 @@ export function OSContextProvider({children}: {children: ReactNode}) {
     //IMPLEMENT RIGHT CLICK HERE!!
 
     const [storage, setStorage] = useState<any[]>([]);
+    const [ minimized, setMinimized ] = useState<string[]>([]);
+
+    const minimize = (pid: string) => setMinimized(prev => prev.includes(pid) ? prev : [...prev, pid]);
+    const restore = (pid: string) => setMinimized(prev => prev.filter(p => p !== pid));
+
+    const [ crt, setCrt ] = useState<boolean>(() => localStorage.getItem('vortex.crt') === '1');
+    const toggleCrt = () => setCrt(prev => {
+        const next = !prev;
+        localStorage.setItem('vortex.crt', next ? '1' : '0');
+        return next;
+    });
 
     const [ wallpaper, setWallpaper ] = useState({
         image: '',
@@ -38,7 +49,7 @@ export function OSContextProvider({children}: {children: ReactNode}) {
     }
 
     return (
-        <OSContext.Provider value={{cursor, changeCursor, storage, setStorage, wallpaper, changeWallpaper}}>
+        <OSContext.Provider value={{cursor, changeCursor, storage, setStorage, wallpaper, changeWallpaper, minimized, minimize, restore, crt, toggleCrt}}>
             {children}
         </OSContext.Provider>
     )

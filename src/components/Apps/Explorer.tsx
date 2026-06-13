@@ -46,8 +46,12 @@ const Explorer: React.FC = () => {
     );
 
     useEffect(() => {
-        refresh("/");
-    }, [refresh]);
+        // Open the directory passed in argv (e.g. from Start ▸ Documents), else root.
+        (async () => {
+            const [arg] = await sys.argv();
+            await refresh(arg || "/");
+        })();
+    }, [refresh, sys]);
 
     const open = (entry: Entry) => {
         const fullPath = join(cwd, entry.name);
@@ -60,7 +64,7 @@ const Explorer: React.FC = () => {
     };
 
     return (
-        <>
+        <div style={{ display: "flex", flexDirection: "column", height: "100%", minWidth: 560, minHeight: 340 }}>
             <Toolbar>
                 <Button variant="menu" size="sm" onClick={() => refresh(dirname(cwd))} disabled={cwd === "/"}>
                     Up
@@ -70,8 +74,8 @@ const Explorer: React.FC = () => {
                 </Button>
                 <span style={{ marginLeft: 8, alignSelf: "center" }}>{cwd}</span>
             </Toolbar>
-            <WindowContent style={{ backgroundColor: "white", border: "3px solid gray", borderRadius: "5px" }}>
-                <div style={{ display: "flex", flexWrap: "wrap", width: 640, minHeight: 240, alignContent: "flex-start" }}>
+            <WindowContent style={{ flex: 1, minHeight: 0, overflow: "auto", backgroundColor: "white", border: "3px solid gray", borderRadius: "5px" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", width: "100%", alignContent: "flex-start" }}>
                     {entries.map((entry) => (
                         <div
                             key={entry.name}
@@ -111,7 +115,7 @@ const Explorer: React.FC = () => {
             <Frame variant="well" className="footer">
                 <p>{status || "Explorer"}</p>
             </Frame>
-        </>
+        </div>
     );
 };
 

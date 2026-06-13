@@ -14,11 +14,11 @@ const RecycleBin: React.FC = () => {
                     Save
                 </Button>
             </Toolbar>
-            <WindowContent>
-                Recycle Bin
+            <WindowContent style={{ minWidth: 360, minHeight: 140, display: "flex", alignItems: "center", justifyContent: "center", color: "#555" }}>
+                The Recycle Bin is empty.
             </WindowContent>
             <Frame variant='well' className='footer'>
-                TEST
+                0 object(s)
             </Frame>
         </>
     );

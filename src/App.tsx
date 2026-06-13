@@ -7,6 +7,7 @@ import { BrowserRouter } from "react-router";
 import { ProcessContextProvider } from './contexts/ProcessContext';
 import { OSContextProvider } from './contexts/OSContext';
 import { KernelProvider } from './kernel/react/KernelProvider';
+import { DialogProvider } from './components/Dialog/DialogProvider';
 import AppContent from './AppContent';
 
 const GlobalStyles = createGlobalStyle`
@@ -39,6 +40,16 @@ const GlobalStyles = createGlobalStyle`
     align-items: center;
     justify-content: center;
   }
+
+  @keyframes winOpen {
+    from { opacity: 0; transform: translate(-50%, -50%) scale(0.82); }
+    to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  }
+
+  @keyframes winMinimize {
+    from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    to   { opacity: 0; transform: translate(-50%, 230%) scale(0.2); }
+  }
 `;
 
 const App = () => (
@@ -48,9 +59,9 @@ const App = () => (
         <KernelProvider>
           <OSContextProvider>
             <ProcessContextProvider>
-              <AppContent>
-
-              </AppContent>
+              <DialogProvider>
+                <AppContent />
+              </DialogProvider>
             </ProcessContextProvider>
           </OSContextProvider>
         </KernelProvider>

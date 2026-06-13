@@ -72,8 +72,11 @@ const Terminal: React.FC = () => {
             ref={scrollRef}
             onClick={() => inputRef.current?.focus()}
             style={{
-                width: 640,
-                height: 360,
+                width: "100%",
+                height: "100%",
+                minWidth: 600,
+                minHeight: 360,
+                boxSizing: "border-box",
                 overflowY: "auto",
                 background: "#000",
                 color: "#c0c0c0",
