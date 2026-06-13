@@ -13,6 +13,7 @@ import TombRaider from "../components/Apps/TombRaider";
 import Persia from "../components/Apps/Persia";
 import NightwavePlaza from "../components/Apps/NightwavePlaza";
 import ControlPanel from "../components/Apps/ControlPanel";
+import Terminal from "../components/Apps/Terminal";
 
 import TrashIcon from "/trash.svg";
 import MyComputerIcon from "/my-computer.png";
@@ -26,6 +27,7 @@ import ExplorerIcon from "/explorer.png";
 import TombRaiderIcon from "/tomb.jpg";
 import PersiaIcon from "/persia.png";
 import NightwavePlazaIcon from "/vapor.png";
+import TerminalIcon from "/terminal.svg";
 
 /**
  * Installs the built-in programs into /bin. `exec` keys match v1's `componentName`
@@ -39,6 +41,7 @@ export function registerBuiltins(registry: ProgramRegistry): void {
         { exec: "backlogger", name: "GameCache", icon: BackloggerIcon, component: Backlogger, permissions: ["net"] },
         { exec: "notes", name: "Notes", icon: NotesIcon, component: Notes, permissions: ["fs"] },
         { exec: "explorer", name: "Explorer", icon: ExplorerIcon, component: Explorer, permissions: ["fs", "proc"] },
+        { exec: "terminal", name: "Terminal", icon: TerminalIcon, component: Terminal, permissions: ["fs", "proc"] },
         { exec: "browser", name: "Browser", icon: BrowserIcon, component: Browser, permissions: ["net"] },
         { exec: "vaporwave", name: "Nightwave Plaza", icon: NightwavePlazaIcon, component: NightwavePlaza, permissions: ["net", "audio"] },
         { exec: "control_panel", name: "Control Panel", icon: MyComputerIcon, component: ControlPanel, permissions: [] },

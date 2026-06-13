@@ -25,9 +25,13 @@ BACKEND   ─ Java/Spring: persistent disk (File table) · users · auth
 |---|---|---|
 | **0 · Microkernel** | syscall ABI, `libos`, process table (PCB), program registry (`/bin`), compatibility shim | **done** |
 | **1 · Filesystem** | inode VFS, mount table (`/` `/dev` `/proc` `/bin`), fs syscalls + fd table, Notes/Explorer as file clients | **done** |
-| 2 · Terminal + shell | `/bin/sh`, pipes/redirects, coreutils | planned |
+| **2 · Terminal + shell** | `/bin/sh` (tokenizer/parser/executor), pipes + redirects + `;`, ~20 coreutils, Terminal app | **done** |
 | 3 · App SDK + Workers | manifest + capability perms; migrate apps into real Web Workers | planned |
 | 4 · Multi-user + net | backend users/auth, login, home dirs, cloud-synced FS, messaging | planned |
+
+### Phase 2 notes
+
+Shell lives in `src/shell/`: `tokenize` → `parse` (statements of pipelines with redirects) → `Shell` (executor). `Shell` holds cwd/env and wires stdout→stdin across pipes, applies `>`/`>>`/`<` via libos, expands `~`, and runs builtins (`cd`/`clear`/`export`). Coreutils in `commands.ts` (ls, cat, echo, grep, wc, head, tail, mkdir, touch, rm, cp, mv, ps, kill, which, …) are `(ctx) => exit code` units that do all I/O through `sys` (libos) — so they operate on the real VFS, and `ps`/`kill` are real process control. The `Terminal` app is a TTY hosting one `Shell` per window. NOTE: the shell + coreutils currently run **inside the Terminal process** (not yet one-process-per-command); real per-command processes connected by pipe fds land with Workers in Phase 3.
 
 ### Phase 1 notes
 

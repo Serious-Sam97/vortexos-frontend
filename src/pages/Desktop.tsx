@@ -24,6 +24,8 @@ import DoomII from "../components/Apps/DoomII";
 import Persia from "../components/Apps/Persia";
 import NightwavePlaza from "../components/Apps/NightwavePlaza";
 import NightwavePlazaIcon from '/vapor.png';
+import Terminal from "../components/Apps/Terminal";
+import TerminalIcon from '/terminal.svg';
 
 const Desktop: React.FC = () => {
     const desktop = useRef<HTMLDivElement | null>(null);
@@ -142,6 +144,16 @@ const Desktop: React.FC = () => {
                 selected: false,
                 componentName: 'tomb',
                 component: TombRaider,
+                priority: 0,
+            },
+        ],
+        [
+            {
+                name: "Terminal",
+                icon: TerminalIcon,
+                selected: false,
+                componentName: 'terminal',
+                component: Terminal,
                 priority: 0,
             },
         ],
