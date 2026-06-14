@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect x="4" y="3" width="24" height="26" rx="2" fill="#fff" stroke="#1b7a32" stroke-width="1.4"/>
+  <rect x="4" y="3" width="24" height="5" rx="2" fill="#1b7a32"/>
+  <text x="16" y="7.4" font-size="3.6" text-anchor="middle" fill="#fff" font-family="sans-serif" font-weight="bold">CALC</text>
+  <g stroke="#9bbf9c" stroke-width="0.8">
+    <path d="M4 13h24M4 18h24M4 23h24M12 8v21M20 8v21"/>
+  </g>
+  <rect x="4" y="13" width="8" height="5" fill="#d7efd8"/>
+  <text x="22" y="17" font-size="4" text-anchor="middle" fill="#1b7a32" font-family="monospace">Σ</text>
+</svg>

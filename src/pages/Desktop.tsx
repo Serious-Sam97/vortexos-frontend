@@ -24,6 +24,9 @@ import PersiaIcon from "/persia.png";
 import TaskManagerIcon from "/task_manager.png";
 import TombRaiderIcon from "/tomb.jpg";
 import NotesIcon from "/notes.png";
+import VortexCodeIcon from "/vortexcode.svg";
+import VortexCalcIcon from "/vortexcalc.svg";
+import MarkdownIcon from "/markdown.svg";
 import ExplorerIcon from "/explorer.png";
 import BrowserIcon from "/browser.png";
 import NightwavePlazaIcon from "/vapor.png";
@@ -62,6 +65,9 @@ const APP_SHORTCUTS: Item[] = [
     { id: "app:explorer", name: "Explorer", icon: ExplorerIcon, kind: "app", componentName: "explorer" },
     { id: "app:terminal", name: "Terminal", icon: TerminalIcon, kind: "app", componentName: "terminal" },
     { id: "app:notes", name: "Notes", icon: NotesIcon, kind: "app", componentName: "notes" },
+    { id: "app:vortexcode", name: "VortexCode", icon: VortexCodeIcon, kind: "app", componentName: "vortexcode" },
+    { id: "app:vortexcalc", name: "VortexCalc", icon: VortexCalcIcon, kind: "app", componentName: "vortexcalc" },
+    { id: "app:markdown", name: "Markdown Studio", icon: MarkdownIcon, kind: "app", componentName: "markdown" },
     { id: "app:browser", name: "Browser", icon: BrowserIcon, kind: "app", componentName: "browser" },
     { id: "app:doom", name: "Doom", icon: DoomIcon, kind: "app", componentName: "doom" },
     { id: "app:doomII", name: "Doom II", icon: DoomIIIcon, kind: "app", componentName: "doomII" },

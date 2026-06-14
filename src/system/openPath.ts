@@ -4,6 +4,7 @@ import { pushRecentDoc } from "./recents";
 const IMAGE_EXT = /\.(png|jpe?g|gif|bmp|webp|svg|ico)$/i;
 const AUDIO_EXT = /\.(mp3|wav|ogg|m4a|flac)$/i;
 const RICH_EXT = /\.(html?|rtf|doc)$/i;
+const CODE_EXT = /\.(js|jsx|ts|tsx|mjs|cjs|css|scss|less|json|md|markdown|sh|bash|py|xml)$/i;
 
 /**
  * Open a VFS path with the right handler app: folders → Explorer, images → Image Viewer,
@@ -23,6 +24,10 @@ export async function openPath(sys: LibOS, path: string): Promise<boolean> {
     }
     if (IMAGE_EXT.test(path)) sys.spawn("imageviewer", { argv: [path] });
     else if (AUDIO_EXT.test(path)) sys.spawn("mediaplayer", { argv: [path] });
+    else if (/\.csv$/i.test(path)) sys.spawn("vortexcalc", { argv: [path] });
+    else if (/\.pdf$/i.test(path)) sys.spawn("docviewer", { argv: [path] });
+    else if (/\.(md|markdown)$/i.test(path)) sys.spawn("markdown", { argv: [path] });
+    else if (CODE_EXT.test(path)) sys.spawn("vortexcode", { argv: [path] });
     else if (RICH_EXT.test(path)) sys.spawn("wordpad", { argv: [path] });
     else sys.spawn("notes", { argv: [path] });
     pushRecentDoc(path); // a file was opened — record it for Run's recent docs

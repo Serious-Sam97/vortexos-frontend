@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSys } from "../../kernel/react/useSys";
 import { Shell } from "../../shell/Shell";
+import { getSession, homeDir } from "../../system/session";
 import ContextMenu from "../ContextMenu";
 
 const BANNER = ["VortexOS [Version 2.0]", "Type 'help' for a list of commands.", ""];
@@ -9,7 +10,11 @@ const BANNER = ["VortexOS [Version 2.0]", "Type 'help' for a list of commands.",
 const Terminal: React.FC = () => {
     const sys = useSys();
     const shellRef = useRef<Shell | null>(null);
-    if (!shellRef.current) shellRef.current = new Shell(sys);
+    if (!shellRef.current) {
+        // Start in the signed-in user's home, not the legacy /home/user.
+        const home = homeDir();
+        shellRef.current = new Shell(sys, home, { HOME: home, USER: getSession()?.username || "user" });
+    }
     const shell = shellRef.current;
 
     const [lines, setLines] = useState<string[]>(BANNER);

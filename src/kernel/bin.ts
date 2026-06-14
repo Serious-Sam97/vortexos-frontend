@@ -19,6 +19,10 @@ const Persia = lazy(() => import("../components/Apps/Persia"));
 const Backlogger = lazy(() => import("../components/Apps/Backlogger"));
 const Browser = lazy(() => import("../components/Apps/Browser"));
 const NightwavePlaza = lazy(() => import("../components/Apps/NightwavePlaza"));
+const VortexCode = lazy(() => import("../components/Apps/VortexCode"));
+const VortexCalc = lazy(() => import("../components/Apps/VortexCalc"));
+const MarkdownStudio = lazy(() => import("../components/Apps/MarkdownStudio"));
+const DocViewer = lazy(() => import("../components/Apps/DocViewer"));
 import Terminal from "../components/Apps/Terminal";
 import Calculator from "../components/Apps/Calculator";
 import Minesweeper from "../components/Apps/Minesweeper";
@@ -43,6 +47,10 @@ import DoomIIIcon from "/doom2.png";
 import BackloggerIcon from "/playstation-logo.png";
 import NotesIcon from "/notes.png";
 import WordPadIcon from "/wordpad.svg";
+import VortexCodeIcon from "/vortexcode.svg";
+import VortexCalcIcon from "/vortexcalc.svg";
+import MarkdownIcon from "/markdown.svg";
+import DocViewerIcon from "/docviewer.svg";
 import BrowserIcon from "/browser.png";
 import ExplorerIcon from "/explorer.png";
 import TombRaiderIcon from "/tomb.jpg";
@@ -78,6 +86,10 @@ export const BUILTIN_APPS = [
         defineApp({ exec: "task_manager", name: "Task Manager", icon: TaskManagerIcon, component: TaskManager, permissions: ["proc"] }),
         defineApp({ exec: "notes", name: "Notes", icon: NotesIcon, component: Notes, permissions: ["fs"] }),
         defineApp({ exec: "wordpad", name: "WordPad", icon: WordPadIcon, component: WordPad, permissions: ["fs"] }),
+        defineApp({ exec: "vortexcode", name: "VortexCode", icon: VortexCodeIcon, component: VortexCode, permissions: ["fs", "proc"] }),
+        defineApp({ exec: "vortexcalc", name: "VortexCalc", icon: VortexCalcIcon, component: VortexCalc, permissions: ["fs"] }),
+        defineApp({ exec: "markdown", name: "Markdown Studio", icon: MarkdownIcon, component: MarkdownStudio, permissions: ["fs"] }),
+        defineApp({ exec: "docviewer", name: "Document Viewer", icon: DocViewerIcon, component: DocViewer, permissions: ["fs"] }),
         defineApp({ exec: "explorer", name: "Explorer", icon: ExplorerIcon, component: Explorer, permissions: ["fs", "proc"] }),
         defineApp({ exec: "terminal", name: "Terminal", icon: TerminalIcon, component: Terminal, permissions: ["fs", "proc"] }),
         defineApp({ exec: "paint", name: "Paint", icon: PaintIcon, component: Paint, permissions: ["fs"] }),
