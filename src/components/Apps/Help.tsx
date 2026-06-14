@@ -1,14 +1,19 @@
-import { Frame, WindowContent } from "react95";
 import w95 from "/w95.png";
+import { AppShell, AppBody, MenuBar, Menu, MenuItem, StatusBar, StatusPanel } from "../chrome/AppChrome";
 
 const Help: React.FC = () => (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", minWidth: 440, minHeight: 360 }}>
-        <WindowContent style={{ flex: 1, minHeight: 0, overflow: "auto", background: "#fff", padding: 16, lineHeight: 1.6 }}>
+    <AppShell $minW={440} $minH={360}>
+        <MenuBar>
+            <Menu label="File"><MenuItem $disabled>Print Topic</MenuItem></Menu>
+            <Menu label="Help"><MenuItem $disabled>About VortexOS</MenuItem></Menu>
+        </MenuBar>
+        <AppBody style={{ padding: 3 }}>
+        <div style={{ flex: 1, minHeight: 0, overflow: "auto", background: "#fff", padding: 16, lineHeight: 1.6, border: "2px solid", borderColor: "#808080 #ffffff #ffffff #808080" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
                 <img src={w95} alt="" style={{ height: 40 }} />
                 <div>
                     <div style={{ fontSize: 20, fontWeight: "bold" }}>VortexOS 2.0</div>
-                    <div style={{ fontSize: 12, color: "#444" }}>An experimental Windows 95 simulation</div>
+                    <div style={{ fontSize: 12, color: "#444" }}>An experimental Windows 98 simulation</div>
                 </div>
             </div>
 
@@ -29,11 +34,12 @@ const Help: React.FC = () => (
             </ul>
 
             <p style={{ marginTop: 12, color: "#444", fontSize: 12 }}>Registered to: Serious Sam</p>
-        </WindowContent>
-        <Frame variant="well" className="footer">
-            VortexOS Help
-        </Frame>
-    </div>
+        </div>
+        </AppBody>
+        <StatusBar>
+            <StatusPanel $flex={1}>VortexOS Help</StatusPanel>
+        </StatusBar>
+    </AppShell>
 );
 
 export default Help;

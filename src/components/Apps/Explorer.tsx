@@ -216,14 +216,14 @@ const Explorer: React.FC = () => {
         <AppShell ref={rootRef as never} tabIndex={0} onKeyDown={onKeyDown} $minW={560} $minH={360} style={{ outline: "none" }}>
             <MenuBar>
                 <Menu label="File">
-                    <MenuItem onMouseDown={(e) => { e.preventDefault(); newFolder(); }}>New Folder</MenuItem>
-                    <MenuItem onMouseDown={(e) => { e.preventDefault(); newTextDocument(); }}>New Text Document</MenuItem>
+                    <MenuItem icon={FolderIcon} onMouseDown={(e) => { e.preventDefault(); newFolder(); }}>New Folder</MenuItem>
+                    <MenuItem icon={FileIcon} onMouseDown={(e) => { e.preventDefault(); newTextDocument(); }}>New Text Document</MenuItem>
                 </Menu>
                 <Menu label="Edit">
-                    <MenuItem $disabled={!clipboard} onMouseDown={(e) => { e.preventDefault(); paste(); }}>Paste</MenuItem>
+                    <MenuItem $disabled={!clipboard} onMouseDown={(e) => { e.preventDefault(); paste(); }}>Paste<span>Ctrl+V</span></MenuItem>
                 </Menu>
                 <Menu label="View">
-                    <MenuItem onMouseDown={(e) => { e.preventDefault(); refresh(cwd); }}>Refresh</MenuItem>
+                    <MenuItem onMouseDown={(e) => { e.preventDefault(); refresh(cwd); }}>Refresh<span>F5</span></MenuItem>
                     <MenuSep />
                     <MenuItem $disabled={cwd === "/"} onMouseDown={(e) => { e.preventDefault(); refresh(dirname(cwd)); }}>Up One Level</MenuItem>
                 </Menu>

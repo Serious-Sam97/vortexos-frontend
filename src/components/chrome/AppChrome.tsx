@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { createContext, ReactNode, useContext, useEffect, useId, useRef, useState } from "react";
 import styled from "styled-components";
 
 /**
@@ -64,11 +64,11 @@ const Dropdown = styled.div`
     padding: 2px;
 `;
 
-export const MenuItem = styled.div<{ $disabled?: boolean }>`
+const MenuItemRow = styled.div<{ $disabled?: boolean }>`
     display: flex;
-    justify-content: space-between;
-    gap: 18px;
-    padding: 3px 18px 3px 22px;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 18px 3px 6px;
     font-size: 12px;
     cursor: ${(p) => (p.$disabled ? "default" : "pointer")};
     color: ${(p) => (p.$disabled ? "#808080" : "#000")};
@@ -78,6 +78,27 @@ export const MenuItem = styled.div<{ $disabled?: boolean }>`
         color: ${(p) => (p.$disabled ? "#808080" : "#fff")};
     }
 `;
+
+/**
+ * A dropdown menu item with an optional 16px icon in the left gutter and an optional
+ * right-aligned shortcut hint (pass it as a second child <span>).
+ */
+export const MenuItem: React.FC<{
+    icon?: string;
+    $disabled?: boolean;
+    children: ReactNode;
+    onMouseDown?: (e: React.MouseEvent) => void;
+    onClick?: (e: React.MouseEvent) => void;
+    style?: React.CSSProperties;
+    title?: string;
+}> = ({ icon, children, ...rest }) => (
+    <MenuItemRow {...rest}>
+        <span style={{ width: 16, flexShrink: 0, display: "inline-flex", justifyContent: "center" }}>
+            {icon && <img src={icon} alt="" style={{ width: 16, height: 16 }} />}
+        </span>
+        <span style={{ flex: 1, display: "flex", justifyContent: "space-between", gap: 18 }}>{children}</span>
+    </MenuItemRow>
+);
 
 export const MenuSep = styled.div`
     height: 2px;
@@ -100,31 +121,49 @@ function Accel({ label, accel }: { label: string; accel?: string }) {
     );
 }
 
-export const MenuBar: React.FC<{ children: ReactNode }> = ({ children }) => <MenuBarRow>{children}</MenuBarRow>;
+// A menu bar coordinates its menus so the whole bar behaves like real Windows: clicking one
+// menu opens it, and while ANY menu is open, hovering another top-level menu switches to it.
+interface MenuBarCtx {
+    openId: string | null;
+    setOpenId: (id: string | null) => void;
+}
+const MenuBarContext = createContext<MenuBarCtx>({ openId: null, setOpenId: () => {} });
 
-/** A single top-level menu (e.g. "File") with a click-to-open dropdown. */
-export const Menu: React.FC<{ label: string; accel?: string; children: ReactNode; disabled?: boolean; onOpen?: () => void }> = ({ label, accel, children, disabled, onOpen }) => {
-    const [open, setOpen] = useState(false);
+export const MenuBar: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const [openId, setOpenId] = useState<string | null>(null);
     const ref = useRef<HTMLDivElement>(null);
     useEffect(() => {
-        if (!open) return;
-        const close = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
-        document.addEventListener("mousedown", close);
-        return () => document.removeEventListener("mousedown", close);
-    }, [open]);
-    const toggle = () => {
-        if (disabled) return;
-        setOpen((o) => {
-            if (!o) onOpen?.();
-            return !o;
-        });
-    };
+        if (openId === null) return;
+        const onDown = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpenId(null); };
+        const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpenId(null); };
+        document.addEventListener("mousedown", onDown);
+        document.addEventListener("keydown", onKey);
+        return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
+    }, [openId]);
     return (
-        <div ref={ref} style={{ position: "relative" }}>
-            <MenuLabel $open={open} disabled={disabled} onClick={toggle}>
+        <MenuBarContext.Provider value={{ openId, setOpenId }}>
+            <MenuBarRow ref={ref}>{children}</MenuBarRow>
+        </MenuBarContext.Provider>
+    );
+};
+
+/** A single top-level menu (e.g. "File"). Click to open; hover-switches while the bar is active. */
+export const Menu: React.FC<{ label: string; accel?: string; children: ReactNode; disabled?: boolean; onOpen?: () => void }> = ({ label, accel, children, disabled, onOpen }) => {
+    const id = useId();
+    const { openId, setOpenId } = useContext(MenuBarContext);
+    const open = openId === id;
+
+    const openMe = () => { if (disabled) return; onOpen?.(); setOpenId(id); };
+    const onClick = () => (disabled ? undefined : open ? setOpenId(null) : openMe());
+    // hover-to-switch: only when the bar is already showing some other menu
+    const onEnter = () => { if (!disabled && openId !== null && openId !== id) openMe(); };
+
+    return (
+        <div style={{ position: "relative" }} onMouseEnter={onEnter}>
+            <MenuLabel $open={open} disabled={disabled} onClick={onClick}>
                 <Accel label={label} accel={accel} />
             </MenuLabel>
-            {open && <Dropdown onClick={() => setOpen(false)}>{children}</Dropdown>}
+            {open && <Dropdown onClick={() => setOpenId(null)}>{children}</Dropdown>}
         </div>
     );
 };

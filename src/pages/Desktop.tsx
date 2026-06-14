@@ -15,7 +15,7 @@ import NetworkIcon from "/network.svg";
 import WinpopupIcon from "/winpopup.svg";
 import DoomIcon from "/doom.png";
 import DoomIIIcon from "/doom2.png";
-import BackloggerIcon from "/backlogger.png";
+import BackloggerIcon from "/playstation-logo.png";
 import PersiaIcon from "/persia.png";
 import TaskManagerIcon from "/task_manager.png";
 import TombRaiderIcon from "/tomb.jpg";

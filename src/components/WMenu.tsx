@@ -22,7 +22,7 @@ import TerminalIcon from "/terminal.svg";
 import ExplorerIcon from "/explorer.png";
 import NotesIcon from "/notes.png";
 import WordPadIcon from "/wordpad.svg";
-import BackloggerIcon from "/backlogger.png";
+import BackloggerIcon from "/playstation-logo.png";
 import NetworkIcon from "/network.svg";
 import WinpopupIcon from "/winpopup.svg";
 import CalculatorIcon from "/calculator.svg";

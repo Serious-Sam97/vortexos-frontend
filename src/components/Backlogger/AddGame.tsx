@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Button, Checkbox, GroupBox, Select, TextInput } from "react95";
+import { Button, Checkbox, Select, TextInput } from "react95";
 import axios from "axios";
 import { Platform } from "../../interfaces/Platform";
 import { useDialog } from "../Dialog/DialogProvider";
+import { ConsoleArt, LibraryHeader } from "./consoleArt";
 
 interface AddGameProps {
     saveAndGoBack: (page: number) => void;
@@ -51,38 +52,49 @@ const AddGame: React.FC<AddGameProps> = ({ saveAndGoBack }) => {
     };
 
     return (
-        <>
-            <GroupBox label="New Game">
-                <div>
-                    <p>Platform</p>
+        <div style={{ padding: 8 }}>
+            <LibraryHeader title="Add a New Game" />
+
+            <div style={{ display: "flex", gap: 14 }}>
+                <fieldset style={{ flex: 1, minWidth: 0 }}>
+                    <legend>Details</legend>
+                    <label style={{ display: "block", fontWeight: "bold", marginBottom: 3 }}>Platform</label>
                     <Select
-                        formatDisplay={() => selectedPlatform.name ?? "Select…"}
+                        formatDisplay={() => selectedPlatform.name || "Select…"}
                         labelId="opt.name"
                         options={[{ value: 0, label: "Select…", id: 0, name: "" }, ...platforms]}
-                        menuMaxHeight={160}
-                        width={160}
+                        menuMaxHeight={180}
+                        width={200}
                         onChange={(value: any) => setSelectedPlatform(value)}
                     />
-                </div>
-                <div style={{ marginTop: 5 }}>
-                    <p>Title</p>
-                    <TextInput value={game} placeholder="Game title" onChange={(e) => setGame(e.target.value)} fullWidth />
-                </div>
-                <div style={{ marginTop: 5, display: "flex" }}>
-                    <Checkbox checked={backlog} onChange={() => setBacklog(!backlog)} style={{ marginTop: 2 }} />
-                    <p>Backlog</p>
-                </div>
-            </GroupBox>
-            <div style={{ width: "100%", display: "flex", justifyContent: "center", marginTop: 15 }}>
-                {saving ? (
-                    <p>Saving…</p>
-                ) : (
-                    <Button disabled={!selectedPlatform.id || !game} onClick={saveGame}>
-                        Save new game
-                    </Button>
-                )}
+
+                    <label style={{ display: "block", fontWeight: "bold", margin: "12px 0 3px" }}>Title</label>
+                    <TextInput value={game} placeholder="e.g. Final Fantasy VII" onChange={(e) => setGame(e.target.value)} fullWidth />
+
+                    <div style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 6 }}>
+                        <Checkbox checked={backlog} onChange={() => setBacklog(!backlog)} />
+                        <span>Add to backlog (not started yet)</span>
+                    </div>
+                </fieldset>
+
+                <fieldset style={{ width: 120, flexShrink: 0 }}>
+                    <legend>Console</legend>
+                    <div style={{ display: "flex", justifyContent: "center", paddingTop: 6 }}>
+                        {selectedPlatform.name ? (
+                            <ConsoleArt name={selectedPlatform.name} size={72} />
+                        ) : (
+                            <span style={{ fontSize: 11, color: "#666", textAlign: "center" }}>Pick a platform to preview the console</span>
+                        )}
+                    </div>
+                </fieldset>
             </div>
-        </>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 16 }}>
+                <Button primary disabled={saving || !selectedPlatform.id || !game} onClick={saveGame} style={{ minWidth: 120 }}>
+                    {saving ? "Saving…" : "Save Game"}
+                </Button>
+            </div>
+        </div>
     );
 };
 

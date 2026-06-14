@@ -123,26 +123,40 @@ const Calculator: React.FC = () => {
         if (k === "Escape") return clear();
     };
 
-    const Key = ({ label, onClick, accent, w = 40 }: { label: string; onClick: () => void; accent?: boolean; w?: number }) => (
-        <Button onClick={onClick} onMouseDown={(e) => e.preventDefault()} style={{ width: w, height: 30, fontSize: 12, padding: 0, color: accent ? "#a00000" : undefined, fontWeight: accent ? "bold" : "normal" }}>
-            {label}
-        </Button>
-    );
+    // Key kinds get distinct colours: digits black, operators navy, clear/back maroon, equals filled.
+    const Key = ({ label, onClick, accent, kind, w = 44 }: { label: string; onClick: () => void; accent?: boolean; kind?: "op" | "clr" | "eq" | "mem"; w?: number }) => {
+        const k = kind ?? (accent ? "op" : undefined);
+        const color = k === "op" ? "#000080" : k === "clr" ? "#a00000" : k === "mem" ? "#006000" : "#000";
+        return (
+            <Button
+                onClick={onClick}
+                onMouseDown={(e) => e.preventDefault()}
+                primary={k === "eq"}
+                style={{ width: w, height: 34, fontSize: 14, padding: 0, color: k === "eq" ? undefined : color, fontWeight: k && k !== "mem" ? "bold" : "normal" }}
+            >
+                {label}
+            </Button>
+        );
+    };
 
+    // Memory row spans the full keypad width (flex:1 keys) so nothing floats.
     const memBar = (
-        <div style={{ display: "flex", gap: 3, marginBottom: 4 }}>
-            <Frame variant="well" style={{ width: 28, height: 24, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11 }}>{mem !== 0 ? "M" : ""}</Frame>
-            <Key label="MC" onClick={mc} w={30} /><Key label="MR" onClick={mr} w={30} /><Key label="MS" onClick={ms} w={30} /><Key label="M+" onClick={mPlus} w={30} /><Key label="M-" onClick={mMinus} w={30} />
+        <div style={{ display: "flex", gap: 4, marginBottom: 6 }}>
+            {([["MC", mc], ["MR", mr], ["MS", ms], ["M+", mPlus], ["M-", mMinus]] as [string, () => void][]).map(([l, fn]) => (
+                <Button key={l} onClick={fn} onMouseDown={(e) => e.preventDefault()} style={{ flex: 1, minWidth: 0, height: 30, fontSize: 13, padding: 0, color: "#006000" }}>
+                    {l}
+                </Button>
+            ))}
         </div>
     );
 
     const standardPad = (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 40px)", gap: 4 }}>
-            <Key label="Back" onClick={backspace} accent /><Key label="CE" onClick={clearEntry} accent /><Key label="C" onClick={clear} accent /><Key label="±" onClick={() => unary((x) => -x)} /><Key label="√" onClick={() => unary(Math.sqrt)} />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 44px)", gap: 4 }}>
+            <Key label="Back" onClick={backspace} kind="clr" /><Key label="CE" onClick={clearEntry} kind="clr" /><Key label="C" onClick={clear} kind="clr" /><Key label="±" onClick={() => unary((x) => -x)} /><Key label="√" onClick={() => unary(Math.sqrt)} />
             <Key label="7" onClick={() => inputDigit("7")} /><Key label="8" onClick={() => inputDigit("8")} /><Key label="9" onClick={() => inputDigit("9")} /><Key label="÷" onClick={() => chooseOp("÷")} accent /><Key label="%" onClick={() => unary((x) => x / 100)} />
             <Key label="4" onClick={() => inputDigit("4")} /><Key label="5" onClick={() => inputDigit("5")} /><Key label="6" onClick={() => inputDigit("6")} /><Key label="×" onClick={() => chooseOp("×")} accent /><Key label="1/x" onClick={() => unary((x) => 1 / x)} />
-            <Key label="1" onClick={() => inputDigit("1")} /><Key label="2" onClick={() => inputDigit("2")} /><Key label="3" onClick={() => inputDigit("3")} /><Key label="-" onClick={() => chooseOp("-")} accent /><Key label="=" onClick={equals} accent />
-            <Key label="0" onClick={() => inputDigit("0")} w={84} /><Key label="." onClick={() => inputDigit(".")} /><Key label="+" onClick={() => chooseOp("+")} accent />
+            <Key label="1" onClick={() => inputDigit("1")} /><Key label="2" onClick={() => inputDigit("2")} /><Key label="3" onClick={() => inputDigit("3")} /><Key label="-" onClick={() => chooseOp("-")} accent /><Key label="=" onClick={equals} kind="eq" />
+            <Key label="0" onClick={() => inputDigit("0")} w={92} /><Key label="." onClick={() => inputDigit(".")} /><Key label="+" onClick={() => chooseOp("+")} accent />
         </div>
     );
 
@@ -152,11 +166,11 @@ const Calculator: React.FC = () => {
                 <label><input type="radio" checked={degrees} onChange={() => setDegrees(true)} /> Deg</label>
                 <label><input type="radio" checked={!degrees} onChange={() => setDegrees(false)} /> Rad</label>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 40px)", gap: 4 }}>
-                <Key label="sin" onClick={() => unary((x) => Math.sin(rad(x)))} /><Key label="cos" onClick={() => unary((x) => Math.cos(rad(x)))} /><Key label="tan" onClick={() => unary((x) => Math.tan(rad(x)))} /><Key label="x²" onClick={() => unary((x) => x * x)} /><Key label="x^y" onClick={() => chooseOp("x^y")} accent /><Key label="C" onClick={clear} accent />
-                <Key label="log" onClick={() => unary(Math.log10)} /><Key label="ln" onClick={() => unary(Math.log)} /><Key label="n!" onClick={() => unary(fact)} /><Key label="√" onClick={() => unary(Math.sqrt)} /><Key label="1/x" onClick={() => unary((x) => 1 / x)} /><Key label="Back" onClick={backspace} accent />
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 44px)", gap: 4 }}>
+                <Key label="sin" onClick={() => unary((x) => Math.sin(rad(x)))} /><Key label="cos" onClick={() => unary((x) => Math.cos(rad(x)))} /><Key label="tan" onClick={() => unary((x) => Math.tan(rad(x)))} /><Key label="x²" onClick={() => unary((x) => x * x)} /><Key label="x^y" onClick={() => chooseOp("x^y")} accent /><Key label="C" onClick={clear} kind="clr" />
+                <Key label="log" onClick={() => unary(Math.log10)} /><Key label="ln" onClick={() => unary(Math.log)} /><Key label="n!" onClick={() => unary(fact)} /><Key label="√" onClick={() => unary(Math.sqrt)} /><Key label="1/x" onClick={() => unary((x) => 1 / x)} /><Key label="Back" onClick={backspace} kind="clr" />
                 <Key label="π" onClick={() => { show(Math.PI); setFresh(true); }} /><Key label="e" onClick={() => { show(Math.E); setFresh(true); }} /><Key label="±" onClick={() => unary((x) => -x)} /><Key label="(" onClick={() => {}} /><Key label=")" onClick={() => {}} /><Key label="%" onClick={() => unary((x) => x / 100)} />
-                <Key label="7" onClick={() => inputDigit("7")} /><Key label="8" onClick={() => inputDigit("8")} /><Key label="9" onClick={() => inputDigit("9")} /><Key label="÷" onClick={() => chooseOp("÷")} accent /><Key label="×" onClick={() => chooseOp("×")} accent /><Key label="=" onClick={equals} accent />
+                <Key label="7" onClick={() => inputDigit("7")} /><Key label="8" onClick={() => inputDigit("8")} /><Key label="9" onClick={() => inputDigit("9")} /><Key label="÷" onClick={() => chooseOp("÷")} accent /><Key label="×" onClick={() => chooseOp("×")} accent /><Key label="=" onClick={equals} kind="eq" />
                 <Key label="4" onClick={() => inputDigit("4")} /><Key label="5" onClick={() => inputDigit("5")} /><Key label="6" onClick={() => inputDigit("6")} /><Key label="-" onClick={() => chooseOp("-")} accent /><Key label="+" onClick={() => chooseOp("+")} accent /><Key label="." onClick={() => inputDigit(".")} />
                 <Key label="1" onClick={() => inputDigit("1")} /><Key label="2" onClick={() => inputDigit("2")} /><Key label="3" onClick={() => inputDigit("3")} /><Key label="0" onClick={() => inputDigit("0")} /><Key label="0" onClick={() => inputDigit("0")} /><Key label="00" onClick={() => { inputDigit("0"); inputDigit("0"); }} />
             </div>
@@ -171,21 +185,27 @@ const Calculator: React.FC = () => {
                     <label key={b}><input type="radio" checked={base === b} onChange={() => setBaseKeep(b)} /> {lbl}</label>
                 ))}
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 40px)", gap: 4 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 44px)", gap: 4 }}>
                 <Key label="And" onClick={() => chooseOp("And")} accent /><Key label="Or" onClick={() => chooseOp("Or")} accent /><Key label="Xor" onClick={() => chooseOp("Xor")} accent /><Key label="Not" onClick={() => unary((x) => ~Math.trunc(x) >>> 0)} accent /><Key label="Lsh" onClick={() => chooseOp("Lsh")} accent /><Key label="Rsh" onClick={() => chooseOp("Rsh")} accent />
-                <Key label="Mod" onClick={() => chooseOp("Mod")} accent /><Key label="C" onClick={clear} accent /><Key label="CE" onClick={clearEntry} accent /><Key label="Back" onClick={backspace} accent /><Key label="±" onClick={() => unary((x) => -Math.trunc(x))} /><Key label="=" onClick={equals} accent />
+                <Key label="Mod" onClick={() => chooseOp("Mod")} accent /><Key label="C" onClick={clear} kind="clr" /><Key label="CE" onClick={clearEntry} kind="clr" /><Key label="Back" onClick={backspace} kind="clr" /><Key label="±" onClick={() => unary((x) => -Math.trunc(x))} /><Key label="=" onClick={equals} kind="eq" />
                 {HEX.slice(0, 3).map((h) => <Key key={h} label={h} onClick={() => inputDigit(h)} />)}
                 <Key label="7" onClick={() => inputDigit("7")} /><Key label="8" onClick={() => inputDigit("8")} /><Key label="9" onClick={() => inputDigit("9")} />
                 {HEX.slice(3).map((h) => <Key key={h} label={h} onClick={() => inputDigit(h)} />)}
                 <Key label="4" onClick={() => inputDigit("4")} /><Key label="5" onClick={() => inputDigit("5")} /><Key label="6" onClick={() => inputDigit("6")} />
                 <Key label="÷" onClick={() => chooseOp("÷")} accent /><Key label="×" onClick={() => chooseOp("×")} accent /><Key label="-" onClick={() => chooseOp("-")} accent />
                 <Key label="1" onClick={() => inputDigit("1")} /><Key label="2" onClick={() => inputDigit("2")} /><Key label="3" onClick={() => inputDigit("3")} />
-                <Key label="+" onClick={() => chooseOp("+")} accent /><Key label="0" onClick={() => inputDigit("0")} w={84} />
+                <Key label="+" onClick={() => chooseOp("+")} accent /><Key label="0" onClick={() => inputDigit("0")} w={92} />
             </div>
         </>
     );
 
-    const widthByMode = mode === "standard" ? 232 : 268;
+    // Window content width = keypad width exactly, so the display, memory row and keypad all
+    // line up flush (no floating gap on the right).
+    const widthByMode = mode === "standard" ? 252 : 300;
+    const indicator =
+        mode === "programmer" ? ({ 16: "HEX", 10: "DEC", 8: "OCT", 2: "BIN" } as Record<number, string>)[base]
+        : mode === "scientific" ? (degrees ? "DEG" : "RAD")
+        : "";
 
     return (
         <div ref={rootRef} tabIndex={0} onKeyDown={onKey} style={{ outline: "none", width: widthByMode }}>
@@ -203,9 +223,16 @@ const Calculator: React.FC = () => {
                 <Menu label="Help"><MenuItem $disabled>Calculator — VortexOS</MenuItem></Menu>
             </MenuBar>
 
-            <div style={{ padding: 6 }}>
-            <Frame variant="well" style={{ padding: 6, marginBottom: 8, textAlign: "right", fontFamily: "monospace", fontSize: 20, overflow: "hidden", minHeight: 24 }}>
-                {display}
+            <div style={{ padding: 8 }}>
+            {/* LCD-style display: greenish glass, indicator row (memory · pending op · mode), big number */}
+            <Frame variant="well" style={{ width: "100%", boxSizing: "border-box", display: "block", padding: "4px 8px", marginBottom: 8, overflow: "hidden", background: "#cfe3cf" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#3a5a3a", height: 14, fontFamily: "monospace" }}>
+                    <span>{mem !== 0 ? "M" : ""}</span>
+                    <span>{[op ?? "", indicator].filter(Boolean).join("  ")}</span>
+                </div>
+                <div style={{ textAlign: "right", fontFamily: "'Courier New', monospace", fontWeight: "bold", fontSize: 28, color: "#0c2a0c", lineHeight: 1.1, letterSpacing: 1, overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {display}
+                </div>
             </Frame>
             {memBar}
             {mode === "standard" && standardPad}

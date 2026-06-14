@@ -37,7 +37,7 @@ import MyComputerIcon from "/my-computer.png";
 import TaskManagerIcon from "/task_manager.png";
 import DoomIcon from "/doom.png";
 import DoomIIIcon from "/doom2.png";
-import BackloggerIcon from "/backlogger.png";
+import BackloggerIcon from "/playstation-logo.png";
 import NotesIcon from "/notes.png";
 import WordPadIcon from "/wordpad.svg";
 import BrowserIcon from "/browser.png";

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button, Frame, Toolbar, WindowContent } from "react95";
+import { AppShell, AppBody, MenuBar, Menu, MenuItem, MenuSep, Toolbar, ToolButton, ToolSep, StatusBar, StatusPanel } from "../chrome/AppChrome";
 import { useSys } from "../../kernel/react/useSys";
 import { LibOS } from "../../kernel/libos";
 import { dirname, join } from "../../kernel/fs/path";
@@ -68,19 +68,25 @@ const RecycleBin: React.FC = () => {
     };
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", height: "100%", minWidth: 420, minHeight: 280 }}>
+        <AppShell $minW={420} $minH={280}>
+            <MenuBar>
+                <Menu label="File">
+                    <MenuItem $disabled={!selected} onMouseDown={(e) => { e.preventDefault(); restore(); }}>Restore</MenuItem>
+                    <MenuSep />
+                    <MenuItem $disabled={items.length === 0} onMouseDown={(e) => { e.preventDefault(); empty(); }}>Empty Recycle Bin</MenuItem>
+                </Menu>
+                <Menu label="Help"><MenuItem $disabled>Recycle Bin — VortexOS</MenuItem></Menu>
+            </MenuBar>
             <Toolbar>
-                <Button variant="menu" size="sm" onClick={restore} disabled={!selected}>
-                    Restore
-                </Button>
-                <Button variant="menu" size="sm" onClick={empty} disabled={items.length === 0}>
-                    Empty Recycle Bin
-                </Button>
+                <ToolButton onClick={restore} disabled={!selected}>↩ Restore</ToolButton>
+                <ToolSep />
+                <ToolButton onClick={empty} disabled={items.length === 0}>🗑 Empty Recycle Bin</ToolButton>
             </Toolbar>
-            <WindowContent
-                style={{ flex: 1, minHeight: 0, overflow: "auto", backgroundColor: "white", border: "3px solid gray", borderRadius: 5 }}
-                onClick={() => setSelected(null)}
-            >
+            <AppBody style={{ padding: 3 }}>
+                <div
+                    style={{ flex: 1, minHeight: 0, overflow: "auto", background: "#fff", border: "2px solid", borderColor: "#808080 #ffffff #ffffff #808080" }}
+                    onClick={() => setSelected(null)}
+                >
                 {items.length === 0 ? (
                     <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#555" }}>
                         The Recycle Bin is empty.
@@ -108,11 +114,12 @@ const RecycleBin: React.FC = () => {
                         ))}
                     </div>
                 )}
-            </WindowContent>
-            <Frame variant="well" className="footer">
-                {items.length} object(s)
-            </Frame>
-        </div>
+                </div>
+            </AppBody>
+            <StatusBar>
+                <StatusPanel $flex={1}>{items.length} object(s)</StatusPanel>
+            </StatusBar>
+        </AppShell>
     );
 };
 

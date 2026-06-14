@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { ProgressBar, Table, TableBody, TableDataCell, TableHead, TableHeadCell, TableRow, TextInput } from "react95";
-import Error from '/error.png';
-import Trust from '/trust.png';
+import { ProgressBar } from "react95";
 import axios from 'axios';
 import { Game } from '../../interfaces/Game';
 import { useOSContext } from '../../contexts/OSContext';
+import { ConsoleArt, ActionButton, LibraryHeader } from './consoleArt';
 
 interface GameListProps {
     games: Game[];
@@ -14,7 +13,6 @@ interface GameListProps {
 
 const GameList: React.FC<GameListProps> = ({ games, fetchGames, setGames }) => {
     const { changeCursor } = useOSContext();
-    const headers = ['Platform', 'Title', 'Started Date', 'Notes','Completed', 'Completed Date', ''];
     const [ percent, setPercent ] = useState(0);
     const [ loading, setLoading ] = useState(true);
 
@@ -73,77 +71,86 @@ const GameList: React.FC<GameListProps> = ({ games, fetchGames, setGames }) => {
 
     if (loading) {
         return (
-            <ProgressBar value={Math.floor(percent)} />
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 36, minHeight: 200 }}>
+                <img src="/playstation-logo.png" alt="" style={{ height: 60 }} />
+                <p style={{ fontWeight: "bold", letterSpacing: 1 }}>Loading your game library…</p>
+                <div style={{ width: 260 }}><ProgressBar value={Math.floor(percent)} /></div>
+            </div>
         )
     }
 
     return (
-        <div>
-            <p style={{textAlign: 'center', fontSize: '18px', fontWeight: 'bold', marginBottom: '10px'}}>GAMES!</p>
+        <div style={{ padding: 8 }}>
+            <LibraryHeader title="My Game Library" right={`${games.length} title(s)`} />
             {
                 !games.length ?
                     (
-                        <p>NO GAMES AVAILABLE, Go registry some!</p>
+                        <div style={{ textAlign: "center", padding: 24, color: "#444" }}>
+                            <div style={{ fontSize: 40, marginBottom: 8 }}>🕹️</div>
+                            <p style={{ fontWeight: "bold" }}>No games yet.</p>
+                            <p style={{ fontSize: 12 }}>Use <b>File ▸ New Game</b> to add one to your collection.</p>
+                        </div>
                     )
                     :
                     (
-                        <div style={{maxHeight: '50vh', overflowY: 'auto'}}>
-                            <Table>
-                                <TableHead>
-                                    <TableRow>
-                                        {
-                                            headers.map(header => (
-                                                <TableHeadCell key={header}>{header}</TableHeadCell>
-                                            ))
-                                        }
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {
-                                        games.map((game, index) => (
-                                            <TableRow key={index}>
-                                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                                                    <p>{ game.platform.name }</p>
-                                                </TableDataCell>
-                                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                                                    <div style={{ minWidth: '150px' }}>
-                                                        <p>{game.title}</p>
-                                                    </div>
-                                                </TableDataCell>
-                                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.startedDate}</TableDataCell>
-                                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                                                    { game.completed ?
-                                                        (
-                                                            <TextInput style={{minWidth: '20vw'}} onChange={(event) => onChangeNotes(event, index)} value={game.notes || ''} onBlur={(event) => updateNotes(event, game)} multiline rows={4} fullWidth />
-                                                        )
-                                                        : game.notes
-                                                    }
-                                                </TableDataCell>
-                                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.completed ? 'Yes!' : 'No'}</TableDataCell>
-                                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle' }}>{game.completedDate}</TableDataCell>
-                                                <TableDataCell style={{ textAlign: 'center', verticalAlign: 'middle'}}>
-                                                    {
-                                                        !game.completed && (
-                                                            <div style={{width: '70px' }}>
-                                                                <img
-                                                                    onClick={() => completeGame(game)}
-                                                                    src={Trust}
-                                                                    style={{ height: '25px', cursor: 'pointer', marginTop: '10px', marginRight: '20px'}}
-                                                                />
-                                                                <img
-                                                                    onClick={() => deleteGame(game)}
-                                                                    src={Error}
-                                                                    style={{ height: '25px', cursor: 'pointer', marginTop: '10px'}}
-                                                                />
-                                                            </div>
-                                                        )
-                                                    }
-                                                </TableDataCell>
-                                            </TableRow>
-                                        ))
-                                    }
-                                </TableBody>
-                            </Table>
+                        <div style={{ maxHeight: '52vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, paddingRight: 2 }}>
+                            {games.map((game, index) => (
+                                <div
+                                    key={index}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 12,
+                                        padding: 8,
+                                        background: '#fff',
+                                        border: '2px solid',
+                                        borderColor: '#808080 #ffffff #ffffff #808080',
+                                    }}
+                                >
+                                    <ConsoleArt name={game.platform.name} size={58} />
+
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ fontWeight: 'bold', fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            {game.title}
+                                        </div>
+                                        <div style={{ fontSize: 11, color: '#555', marginTop: 2 }}>
+                                            {game.platform.name} · Started {game.startedDate}
+                                            {game.completed && game.completedDate ? ` · Finished ${game.completedDate}` : ''}
+                                        </div>
+                                        {game.completed && (
+                                            <textarea
+                                                value={game.notes || ''}
+                                                placeholder="Your thoughts on this game…"
+                                                onChange={(event) => onChangeNotes(event, index)}
+                                                onBlur={(event) => updateNotes(event, game)}
+                                                rows={2}
+                                                style={{
+                                                    marginTop: 6, width: '100%', resize: 'vertical', boxSizing: 'border-box',
+                                                    border: '2px solid', borderColor: '#808080 #fff #fff #808080', padding: 4,
+                                                    fontFamily: "'ms_sans_serif', sans-serif", fontSize: 12,
+                                                }}
+                                            />
+                                        )}
+                                    </div>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
+                                        <span
+                                            style={{
+                                                fontSize: 11, fontWeight: 'bold', padding: '2px 8px', color: '#fff',
+                                                background: game.completed ? '#107c10' : '#1084d0', whiteSpace: 'nowrap',
+                                            }}
+                                        >
+                                            {game.completed ? '✓ Completed' : '▶ Playing'}
+                                        </span>
+                                        <div style={{ display: 'flex', gap: 6 }}>
+                                            {!game.completed && (
+                                                <ActionButton $tone="green" onClick={() => completeGame(game)}>✓ Complete</ActionButton>
+                                            )}
+                                            <ActionButton $tone="red" onClick={() => deleteGame(game)}>✕ Delete</ActionButton>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )
             }

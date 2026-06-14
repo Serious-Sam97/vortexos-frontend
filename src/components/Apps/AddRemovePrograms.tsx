@@ -1,4 +1,5 @@
-import { Button, Frame, Tab, TabBody, Tabs, WindowContent } from "react95";
+import { Button, Tab, TabBody, Tabs, WindowContent } from "react95";
+import { AppShell, StatusBar, StatusPanel } from "../chrome/AppChrome";
 import { useState } from "react";
 import { useKernel } from "../../kernel/react/KernelProvider";
 import { BUILTIN_APPS, CORE_APPS } from "../../kernel/bin";
@@ -26,7 +27,7 @@ const AddRemovePrograms: React.FC = () => {
     };
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", height: "100%", minWidth: 420, minHeight: 320 }}>
+        <AppShell $minW={420} $minH={320} style={{ padding: 4 }}>
             <Tabs value={tab} onChange={(v: number) => setTab(v)}>
                 <Tab value={0}>Install/Uninstall</Tab>
                 <Tab value={1}>Add Programs</Tab>
@@ -70,12 +71,12 @@ const AddRemovePrograms: React.FC = () => {
                             </div>
                         </>
                     )}
-                    <Frame variant="well" style={{ marginTop: 8, padding: "4px 8px", fontSize: 11 }}>
-                        {installed.length} installed · {available.length} available
-                    </Frame>
                 </WindowContent>
             </TabBody>
-        </div>
+            <StatusBar>
+                <StatusPanel $flex={1}>{installed.length} installed · {available.length} available</StatusPanel>
+            </StatusBar>
+        </AppShell>
     );
 };
 

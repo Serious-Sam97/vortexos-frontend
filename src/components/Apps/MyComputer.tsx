@@ -1,4 +1,5 @@
-import { Frame, WindowContent } from "react95";
+import { Frame } from "react95";
+import { AppShell, AppBody, MenuBar, Menu, MenuItem } from "../chrome/AppChrome";
 import { useSys } from "../../kernel/react/useSys";
 import { formatBytes, useStorageEstimate } from "../../system/storage";
 import MyComputerIcon from "/my-computer.png";
@@ -20,8 +21,14 @@ const MyComputer: React.FC = () => {
     const pct = storage && storage.quota > 0 ? Math.min(100, (storage.usage / storage.quota) * 100) : 0;
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", height: "100%", minWidth: 420, minHeight: 260 }}>
-            <WindowContent style={{ flex: 1, minHeight: 0, overflow: "auto", backgroundColor: "white", border: "3px solid gray", borderRadius: 5 }}>
+        <AppShell $minW={420} $minH={280}>
+            <MenuBar>
+                <Menu label="File"><MenuItem $disabled>Open / Explore a drive</MenuItem></Menu>
+                <Menu label="View"><MenuItem $disabled>Large Icons</MenuItem></Menu>
+                <Menu label="Help"><MenuItem $disabled>My Computer — VortexOS</MenuItem></Menu>
+            </MenuBar>
+            <AppBody style={{ padding: 3 }}>
+                <div style={{ flex: 1, minHeight: 0, overflow: "auto", background: "#fff", border: "2px solid", borderColor: "#808080 #ffffff #ffffff #808080" }}>
                 <div style={{ display: "flex", flexWrap: "wrap" }}>
                     {DRIVES.map((drive) => (
                         <div
@@ -35,7 +42,8 @@ const MyComputer: React.FC = () => {
                         </div>
                     ))}
                 </div>
-            </WindowContent>
+                </div>
+            </AppBody>
             <Frame variant="well" className="footer" style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 8px" }}>
                 <span style={{ fontSize: 12 }}>{DRIVES.length} object(s)</span>
                 {storage?.supported && (
@@ -49,7 +57,7 @@ const MyComputer: React.FC = () => {
                     </span>
                 )}
             </Frame>
-        </div>
+        </AppShell>
     );
 };
 
