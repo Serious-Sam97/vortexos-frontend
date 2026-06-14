@@ -3,8 +3,10 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import { installAuthInterceptors } from './system/http'
+import { recordBoot } from './system/identity'
 
 installAuthInterceptors() // attach the bearer token + 401 handling to all axios calls
+recordBoot() // tick the lifetime boot counter shown in About
 
 // Register the service worker so VortexOS is installable as a PWA and works offline.
 if ('serviceWorker' in navigator) {

@@ -12,6 +12,10 @@ import RunDialog from "../components/RunDialog";
 import AltTabSwitcher from "../components/AltTabSwitcher";
 import SystemFeedback from "../components/SystemFeedback";
 import Screensaver from "../components/Screensaver";
+import WelcomeCenter from "../components/WelcomeCenter";
+import TipOfTheDay from "../components/TipOfTheDay";
+import VortexAssistant from "../components/VortexAssistant";
+import EasterEggs from "../components/EasterEggs";
 import { useOSContext } from "../contexts/OSContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useReloadCloud } from "../kernel/react/KernelProvider";
@@ -53,6 +57,10 @@ const Vortex: React.FC = () => {
                 <Screensaver />
                 <CommandPalette />
                 <RunDialog />
+                <WelcomeCenter />
+                <TipOfTheDay />
+                <VortexAssistant />
+                <EasterEggs />
             </OSErrorBoundary>
 
             {/* Rendered outside the boundary so it still shows if the chrome subtree is dead. */}

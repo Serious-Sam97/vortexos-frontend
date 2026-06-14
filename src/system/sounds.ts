@@ -89,6 +89,31 @@ export function playStartup(): void {
     notes.forEach(([f, t], i) => note(ac, { freq: f, start: i * 0.18, dur: 1.8, type: t, gain: 0.15 }));
 }
 
+/**
+ * The signature VortexOS boot chord — a cinematic rising arpeggio that blooms
+ * into a shimmering major chord with a high sparkle on top. Played once when the
+ * logo screen appears during boot. Original, synthesized, no asset.
+ */
+export function playBootChord(): void {
+    const ac = audio();
+    if (!ac) return;
+    // Rising arpeggio (C–E–G–C) leading the ear upward...
+    const arp: Array<[number, OscillatorType]> = [
+        [261.63, "triangle"],
+        [329.63, "triangle"],
+        [392.0, "triangle"],
+        [523.25, "sine"],
+    ];
+    arp.forEach(([f, t], i) => note(ac, { freq: f, start: i * 0.13, dur: 1.9, type: t, gain: 0.14 }));
+    // ...then the full chord blooms underneath as a warm pad,
+    [261.63, 329.63, 392.0, 523.25].forEach((f) =>
+        note(ac, { freq: f, start: 0.55, dur: 2.4, type: "sine", gain: 0.07 }),
+    );
+    // ...with a bright sparkle on top to land it.
+    note(ac, { freq: 1046.5, start: 0.7, dur: 1.6, type: "sine", gain: 0.06 });
+    note(ac, { freq: 1567.98, start: 0.78, dur: 1.4, type: "sine", gain: 0.04 });
+}
+
 /** Short bell — used for dialogs / errors. */
 export function playDing(): void {
     const ac = audio();

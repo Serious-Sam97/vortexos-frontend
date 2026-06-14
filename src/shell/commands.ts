@@ -1,5 +1,6 @@
 import { LibOS } from "../kernel/libos";
 import { join, normalize, basename } from "../kernel/fs/path";
+import { openCredits, markEgg } from "../system/easter";
 
 export interface CommandContext {
     argv: string[]; // [name, ...args]
@@ -55,6 +56,36 @@ const uname: Command = async ({ argv, out }) => {
 
 const dateCmd: Command = async ({ out }) => {
     out(new Date().toString() + "\n");
+    return 0;
+};
+
+const VORTEX_BANNER = String.raw`
+         .-""""-.
+       .'        '.        V O R T E X   O S
+      /   .--.     \       ----------------------------
+     |   /    \     |      Version 2.0 · Experimental Edition
+     |   \    /     |      a creation by Serious Sam
+      \   '--'  o  /
+       '.        .'        "No emulator. No clone."
+         '-....-'           a real microkernel, in a browser.
+`;
+
+const vortexCmd: Command = async ({ out }) => {
+    markEgg("vortex");
+    out(VORTEX_BANNER + "\n");
+    out("Try 'credits' to roll the credits. The Konami code does something too...\n");
+    return 0;
+};
+
+const creditsCmd: Command = async ({ out }) => {
+    markEgg("credits");
+    openCredits();
+    out("Rolling the credits... \u{1F300}\n");
+    return 0;
+};
+
+const xyzzy: Command = async ({ out }) => {
+    out("Nothing happens.\n");
     return 0;
 };
 
@@ -377,4 +408,7 @@ export const COMMANDS: Record<string, Command> = {
     head,
     tail,
     help,
+    vortex: vortexCmd,
+    credits: creditsCmd,
+    xyzzy,
 };

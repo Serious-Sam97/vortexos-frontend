@@ -1,10 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Checkbox, Frame } from "react95";
 import { AppShell, AppBody, MenuBar, Menu, MenuItem, Toolbar, ToolButton, ToolSep, StatusBar, StatusPanel } from "../chrome/AppChrome";
 import Monitor from "../ControlPanel/Monitor";
 import { getVolume, isMuted, playChord, setMuted, setVolume } from "../../system/sounds";
 import { getWinpopupMode, setWinpopupMode } from "../../system/notifications";
 import { formatBytes, useStorageEstimate } from "../../system/storage";
+import { openCredits, markEgg, useEggs, ALL_EGGS } from "../../system/easter";
+import { getBootCount, uptimeMs, formatUptime } from "../../system/identity";
+import { VortexLogo } from "../VortexLogo";
+import { BUILTIN_APPS } from "../../kernel/bin";
 
 const SoundApplet: React.FC = () => {
     const [vol, setVol] = useState(Math.round(getVolume() * 100));
@@ -77,7 +81,31 @@ const DateTimeApplet: React.FC = () => {
 
 const SystemApplet: React.FC = () => {
     const storage = useStorageEstimate();
+    const eggs = useEggs();
+    // A ref (not state) so rapid clicks accumulate without stale-closure misses.
+    const logoClicks = useRef(0);
+    const tapLogo = () => {
+        logoClicks.current += 1;
+        if (logoClicks.current >= 5) {
+            logoClicks.current = 0;
+            markEgg("about");
+            openCredits();
+        }
+    };
     const nav = navigator as Navigator & { deviceMemory?: number };
+
+    // Live session uptime, ticking once a second.
+    const [, tick] = useState(0);
+    useEffect(() => {
+        const iv = setInterval(() => tick((n) => n + 1), 1000);
+        return () => clearInterval(iv);
+    }, []);
+
+    const stats: [string, string][] = [
+        ["Uptime", formatUptime(uptimeMs())],
+        ["Boots", String(getBootCount())],
+        ["Apps", String(BUILTIN_APPS.length)],
+    ];
     const specs: [string, string][] = [
         ["Processor", `${nav.hardwareConcurrency ?? "?"} virtual cores`],
         ["Memory", nav.deviceMemory ? `${nav.deviceMemory} GB RAM` : "—"],
@@ -86,17 +114,68 @@ const SystemApplet: React.FC = () => {
         ["Kernel", "VortexOS microkernel · syscall ABI"],
         ["Filesystem", "MemFS + OPFS · /dev /proc /bin /mnt"],
     ];
+    const allFound = eggs.length === ALL_EGGS.length;
+
     return (
-        <div style={{ padding: 18, lineHeight: 1.6 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 14, borderBottom: "1px solid #808080", paddingBottom: 12, marginBottom: 12 }}>
-                <img src="/w95.png" alt="" style={{ width: 48, height: 48 }} />
+        <div style={{ padding: 18, lineHeight: 1.55, overflow: "auto" }}>
+            {/* signature header — the animated portal + gradient wordmark */}
+            <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 14 }}>
+                <div onClick={tapLogo} style={{ cursor: "pointer", userSelect: "none", flexShrink: 0 }} title="VortexOS">
+                    <VortexLogo size={62} vapor />
+                </div>
                 <div>
-                    <p style={{ fontSize: 22, fontWeight: "bold", margin: 0 }}>VortexOS</p>
+                    <p
+                        style={{
+                            fontSize: 28,
+                            fontWeight: 800,
+                            letterSpacing: 1,
+                            margin: 0,
+                            background: "linear-gradient(90deg, #d6177f, #7a2fd6, #0aa89a)",
+                            WebkitBackgroundClip: "text",
+                            backgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                        }}
+                    >
+                        VortexOS
+                    </p>
                     <p style={{ margin: 0, fontSize: 13 }}>Version 2.0 · Experimental Edition</p>
-                    <p style={{ margin: 0, fontSize: 12, color: "#000080", fontWeight: "bold" }}>a creation by Serious Sam</p>
+                    <p style={{ margin: "2px 0 0", fontSize: 13, color: "#a0117a", fontWeight: "bold" }}>
+                        a creation by Serious Sam
+                    </p>
                 </div>
             </div>
-            <table style={{ fontSize: 13, borderCollapse: "collapse" }}>
+
+            {/* live stat cards */}
+            <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+                {stats.map(([label, value]) => (
+                    <div
+                        key={label}
+                        style={{
+                            flex: 1,
+                            textAlign: "center",
+                            background: "#fff",
+                            border: "2px solid",
+                            borderColor: "#808080 #ffffff #ffffff #808080",
+                            padding: "7px 4px",
+                        }}
+                    >
+                        <div style={{ fontSize: 18, fontWeight: "bold", color: "#000080", fontVariantNumeric: "tabular-nums" }}>
+                            {value}
+                        </div>
+                        <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: 0.5 }}>{label}</div>
+                    </div>
+                ))}
+            </div>
+
+            {/* the build story / mythology */}
+            <p style={{ fontSize: 12.5, margin: "0 0 12px" }}>
+                I didn't theme a desktop — I <b>built an operating system</b>. Under the nostalgia is a real
+                microkernel with a syscall ABI, a virtual filesystem, a process scheduler, a command shell, a window
+                manager and multi-user networking. Every window, every app, every sound — hand-made, from scratch,
+                in a browser tab. No emulator. No clone. It just <i>looks</i> like 1995.
+            </p>
+
+            <table style={{ fontSize: 13, borderCollapse: "collapse", marginBottom: 6 }}>
                 <tbody>
                     {specs.map(([k, v]) => (
                         <tr key={k}>
@@ -106,10 +185,25 @@ const SystemApplet: React.FC = () => {
                     ))}
                 </tbody>
             </table>
-            <p style={{ fontSize: 11, color: "#555", marginTop: 14 }}>
-                Built from scratch — a real microkernel OS in the browser. No emulator, no clone:
-                it just <i>looks</i> like 1995.
-            </p>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12 }}>
+                <button
+                    onClick={openCredits}
+                    style={{
+                        padding: "5px 16px",
+                        fontSize: 13,
+                        background: "#c0c0c0",
+                        border: "2px solid",
+                        borderColor: "#ffffff #000000 #000000 #ffffff",
+                        cursor: "pointer",
+                    }}
+                >
+                    🎬 Roll the Credits
+                </button>
+                <span style={{ fontSize: 11, color: allFound ? "#008000" : "#888", fontWeight: allFound ? "bold" : "normal" }}>
+                    {allFound ? "🌀 " : ""}Easter eggs found: {eggs.length} / {ALL_EGGS.length}
+                </span>
+            </div>
         </div>
     );
 };
