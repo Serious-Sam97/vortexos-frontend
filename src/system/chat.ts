@@ -44,6 +44,7 @@ function open(token: string): void {
     socket = ws;
 
     ws.onmessage = (e) => {
+        if (socket !== ws) return; // ignore a socket that's been superseded (reconnect race)
         let m: { type?: string; users?: string[]; from?: string; body?: string; ts?: number };
         try {
             m = JSON.parse(e.data);
@@ -59,6 +60,7 @@ function open(token: string): void {
         }
     };
     ws.onclose = () => {
+        if (socket !== ws) return; // a newer socket already replaced this one — don't touch it
         socket = null;
         online = [];
         notify();

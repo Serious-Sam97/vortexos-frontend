@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSys } from "../../kernel/react/useSys";
 import { Shell } from "../../shell/Shell";
+import ContextMenu from "../ContextMenu";
 
 const BANNER = ["VortexOS [Version 2.0]", "Type 'help' for a list of commands.", ""];
 
@@ -19,6 +20,14 @@ const Terminal: React.FC = () => {
 
     const scrollRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const [menu, setMenu] = useState<{ x: number; y: number; sel: string } | null>(null);
+
+    useEffect(() => {
+        if (!menu) return;
+        const close = () => setMenu(null);
+        document.addEventListener("click", close);
+        return () => document.removeEventListener("click", close);
+    }, [menu]);
 
     useEffect(() => {
         scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight);
@@ -71,6 +80,10 @@ const Terminal: React.FC = () => {
         <div
             ref={scrollRef}
             onClick={() => inputRef.current?.focus()}
+            onContextMenu={(e) => {
+                e.preventDefault();
+                setMenu({ x: e.clientX, y: e.clientY, sel: window.getSelection()?.toString() ?? "" });
+            }}
             style={{
                 width: "100%",
                 height: "100%",
@@ -113,6 +126,48 @@ const Terminal: React.FC = () => {
                     }}
                 />
             </div>
+
+            {menu && (
+                <ContextMenu
+                    x={menu.x}
+                    y={menu.y}
+                    onClose={() => setMenu(null)}
+                    items={[
+                        {
+                            label: "Copy",
+                            shortcut: "Ctrl+C",
+                            disabled: !menu.sel,
+                            onClick: () => menu.sel && void navigator.clipboard?.writeText(menu.sel).catch(() => {}),
+                        },
+                        {
+                            label: "Paste",
+                            shortcut: "Ctrl+V",
+                            onClick: () =>
+                                void navigator.clipboard
+                                    ?.readText()
+                                    .then((t) => {
+                                        if (t) setInput((prev) => prev + t.replace(/\n/g, " "));
+                                        inputRef.current?.focus();
+                                    })
+                                    .catch(() => {}),
+                        },
+                        {
+                            label: "Select All",
+                            onClick: () => {
+                                const el = scrollRef.current;
+                                if (!el) return;
+                                const r = document.createRange();
+                                r.selectNodeContents(el);
+                                const s = window.getSelection();
+                                s?.removeAllRanges();
+                                s?.addRange(r);
+                            },
+                        },
+                        { separator: true },
+                        { label: "Clear", glyph: "⌦", onClick: () => setLines([]) },
+                    ]}
+                />
+            )}
         </div>
     );
 };

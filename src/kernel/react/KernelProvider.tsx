@@ -20,22 +20,14 @@ const viewportCenter = (): WindowState => ({
     y: (typeof window !== "undefined" ? window.innerHeight : 600) / 2,
 });
 
-const WELCOME =
-    "Welcome to VortexOS.\r\n\r\n" +
-    "This is a real file, stored on a real virtual filesystem.\r\n" +
-    "Edit it in Notes, browse the tree in Explorer, or read /proc and /bin.\r\n";
-
-/** Build the root filesystem on first boot. */
+/** Build the root filesystem on first boot. Per-user homes under /home are
+ *  created on sign-in (see ensureUserHome), so no generic /home/user is seeded. */
 function seedRoot(): MemFS {
     const fs = new MemFS();
     fs.mkdir("/home");
-    fs.mkdir("/home/user");
-    fs.mkdir("/home/user/Documents");
-    fs.mkdir("/home/user/Desktop");
     fs.mkdir("/tmp");
     fs.mkdir("/mnt");
     fs.mkdir("/Recycle Bin");
-    fs.write("/home/user/welcome.txt", new TextEncoder().encode(WELCOME));
     return fs;
 }
 

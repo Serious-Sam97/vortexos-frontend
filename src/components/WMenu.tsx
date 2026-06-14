@@ -12,6 +12,7 @@ import { openRun } from "../system/runDialog";
 import { BUILTIN_APPS } from "../kernel/bin";
 import SystemTray from "./SystemTray";
 import WindowPreview from "./WindowPreview";
+import ContextMenu from "./ContextMenu";
 import { Tooltip } from "./Tooltip";
 import { Process } from "../interfaces/Process";
 import { playClick } from "../system/sounds";
@@ -478,20 +479,21 @@ const WMenu: React.FC = () => {
             <SystemTray username={username} />
 
             {taskMenu && (
-                <MenuList
-                    style={{ position: "fixed", left: taskMenu.x, top: taskMenu.y - 112, width: 200, zIndex: 100000 }}
-                >
-                    <MenuListItem style={{ cursor: "pointer" }} onClick={cascade}>
-                        Cascade Windows
-                    </MenuListItem>
-                    <MenuListItem style={{ cursor: "pointer" }} onClick={tile}>
-                        Tile Windows
-                    </MenuListItem>
-                    <Separator />
-                    <MenuListItem style={{ cursor: "pointer" }} onClick={minimizeAll}>
-                        Minimize All Windows
-                    </MenuListItem>
-                </MenuList>
+                <ContextMenu
+                    x={taskMenu.x}
+                    y={taskMenu.y}
+                    onClose={() => setTaskMenu(null)}
+                    items={[
+                        { label: "Cascade Windows", onClick: cascade },
+                        { label: "Tile Windows", onClick: tile },
+                        { label: "Minimize All Windows", onClick: minimizeAll },
+                        { separator: true },
+                        { label: "Show the Desktop", onClick: showDesktop },
+                        { label: "Task Manager", icon: TaskManagerIcon, onClick: () => launchExec("task_manager") },
+                        { separator: true },
+                        { label: "Properties", onClick: () => launchExec("control_panel") },
+                    ]}
+                />
             )}
         </Bar>
     );

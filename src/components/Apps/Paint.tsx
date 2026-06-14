@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button, Frame } from "react95";
 import { useSys } from "../../kernel/react/useSys";
 import { useDialog } from "../Dialog/DialogProvider";
+import { homeDir } from "../../system/session";
 import { Toolbar, ToolButton, ToolSep } from "../chrome/AppChrome";
 
 const COLORS = ["#000000", "#808080", "#c0c0c0", "#ffffff", "#ff0000", "#ffa500", "#ffff00", "#008000", "#00ff00", "#0000ff", "#00ffff", "#800080", "#ff00ff", "#8b4513"];
@@ -167,8 +168,8 @@ const Paint: React.FC = () => {
         const dataUrl = canvasRef.current!.toDataURL("image/png");
         const bytes = Uint8Array.from(atob(dataUrl.split(",")[1]), (ch) => ch.charCodeAt(0));
         try {
-            await sys.writeFile(`/home/user/${name}`, bytes);
-            await alert({ title: "Paint", message: `Saved to /home/user/${name}`, type: "info" });
+            await sys.writeFile(`${homeDir()}/${name}`, bytes);
+            await alert({ title: "Paint", message: `Saved to ${homeDir()}/${name}`, type: "info" });
         } catch (e: any) {
             await alert({ title: "Paint", message: `Save failed: ${e.code ?? e.message}`, type: "error" });
         }

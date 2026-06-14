@@ -31,6 +31,11 @@ export function getToken(): string | null {
     return getSession()?.token ?? null;
 }
 
+/** The signed-in user's home directory, e.g. /home/neo (falls back to /home/user). */
+export function homeDir(): string {
+    return `/home/${getSession()?.username || "user"}`;
+}
+
 // ── session-expiry signal ────────────────────────────────────────────────
 // Networking code (axios interceptor, CloudFS) calls notifyUnauthorized() on a 401
 // from an authenticated endpoint; AuthProvider registers a handler that logs out.

@@ -4,11 +4,11 @@ import { useSys } from "../../kernel/react/useSys";
 import { LibOS } from "../../kernel/libos";
 import { dirname, join } from "../../kernel/fs/path";
 import { forgetTrash, originalPathOf } from "../../system/recycle";
+import { homeDir } from "../../system/session";
 import FolderIcon from "/explorer.png";
 import FileIcon from "/notes.png";
 
 const RECYCLE = "/Recycle Bin";
-const RESTORE_TO = "/home/user";
 
 interface Item {
     name: string;
@@ -51,9 +51,9 @@ const RecycleBin: React.FC = () => {
     const restore = async () => {
         if (!selected) return;
         // restore to where it came from; fall back to home if the parent is gone
-        let dest = originalPathOf(selected) ?? join(RESTORE_TO, selected);
+        let dest = originalPathOf(selected) ?? join(homeDir(), selected);
         const parentExists = await sys.stat(dirname(dest)).then(() => true).catch(() => false);
-        if (!parentExists) dest = join(RESTORE_TO, selected);
+        if (!parentExists) dest = join(homeDir(), selected);
         await sys.rename(join(RECYCLE, selected), dest).catch(() => {});
         forgetTrash(selected);
         await refresh();

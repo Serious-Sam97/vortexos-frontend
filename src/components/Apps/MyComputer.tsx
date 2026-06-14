@@ -2,22 +2,22 @@ import { Frame } from "react95";
 import { AppShell, AppBody, MenuBar, Menu, MenuItem } from "../chrome/AppChrome";
 import { useSys } from "../../kernel/react/useSys";
 import { formatBytes, useStorageEstimate } from "../../system/storage";
+import { homeDir } from "../../system/session";
 import MyComputerIcon from "/my-computer.png";
 import FolderIcon from "/explorer.png";
-
-const DRIVES = [
-    { name: "VortexOS (C:)", path: "/", icon: MyComputerIcon },
-    { name: "Home", path: "/home/user", icon: FolderIcon },
-    { name: "Cloud (/mnt/cloud)", path: "/mnt/cloud", icon: FolderIcon },
-    { name: "Public (/mnt/public)", path: "/mnt/public", icon: FolderIcon },
-    { name: "Programs (/bin)", path: "/bin", icon: FolderIcon },
-    { name: "Devices (/dev)", path: "/dev", icon: FolderIcon },
-    { name: "Processes (/proc)", path: "/proc", icon: FolderIcon },
-];
 
 const MyComputer: React.FC = () => {
     const sys = useSys();
     const storage = useStorageEstimate();
+    const DRIVES = [
+        { name: "VortexOS (C:)", path: "/", icon: MyComputerIcon },
+        { name: "Home", path: homeDir(), icon: FolderIcon },
+        { name: "Cloud (/mnt/cloud)", path: "/mnt/cloud", icon: FolderIcon },
+        { name: "Public (/mnt/public)", path: "/mnt/public", icon: FolderIcon },
+        { name: "Programs (/bin)", path: "/bin", icon: FolderIcon },
+        { name: "Devices (/dev)", path: "/dev", icon: FolderIcon },
+        { name: "Processes (/proc)", path: "/proc", icon: FolderIcon },
+    ];
     const pct = storage && storage.quota > 0 ? Math.min(100, (storage.usage / storage.quota) * 100) : 0;
 
     return (

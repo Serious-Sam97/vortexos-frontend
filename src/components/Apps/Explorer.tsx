@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { MenuList, MenuListItem, Separator, TextInput } from "react95";
+import { TextInput } from "react95";
 import { AppShell, AppBody, MenuBar, Menu, MenuItem, MenuSep, Toolbar, ToolButton, ToolSep, StatusBar, StatusPanel } from "../chrome/AppChrome";
+import ContextMenu from "../ContextMenu";
+import { iconForEntry } from "../../system/fileIcons";
 import { useSys } from "../../kernel/react/useSys";
 import { useOSContext } from "../../contexts/OSContext";
 import { useDialog } from "../Dialog/DialogProvider";
@@ -271,7 +272,7 @@ const Explorer: React.FC = () => {
                             }}
                         >
                             <img
-                                src={entry.type === "dir" ? FolderIcon : FileIcon}
+                                src={iconForEntry(entry.name, entry.type === "dir")}
                                 alt={entry.type}
                                 style={{
                                     height: 48,
@@ -317,50 +318,42 @@ const Explorer: React.FC = () => {
             </StatusBar>
 
             {menu &&
-                createPortal(
-                    menu.entry ? (
-                    <MenuList style={{ position: "fixed", left: menu.x, top: menu.y, width: 160, zIndex: 100000 }}>
-                        <MenuListItem style={{ cursor: "pointer" }} onClick={() => open(menu.entry!)}>
-                            Open
-                        </MenuListItem>
-                        <Separator />
-                        <MenuListItem style={{ cursor: "pointer" }} onClick={() => setClipboard({ op: "cut", path: join(cwd, menu.entry!.name) })}>
-                            Cut
-                        </MenuListItem>
-                        <MenuListItem style={{ cursor: "pointer" }} onClick={() => setClipboard({ op: "copy", path: join(cwd, menu.entry!.name) })}>
-                            Copy
-                        </MenuListItem>
-                        <Separator />
-                        <MenuListItem style={{ cursor: "pointer" }} onClick={() => remove(menu.entry!.name)}>
-                            Delete
-                        </MenuListItem>
-                        <MenuListItem style={{ cursor: "pointer" }} onClick={() => startRename(menu.entry!.name)}>
-                            Rename
-                        </MenuListItem>
-                        <Separator />
-                        <MenuListItem style={{ cursor: "pointer" }} onClick={() => showProperties(menu.entry!)}>
-                            Properties
-                        </MenuListItem>
-                    </MenuList>
+                (menu.entry ? (
+                    <ContextMenu
+                        x={menu.x}
+                        y={menu.y}
+                        onClose={() => setMenu(null)}
+                        items={[
+                            { label: "Open", glyph: "▸", onClick: () => open(menu.entry!) },
+                            { separator: true },
+                            { label: "Cut", shortcut: "Ctrl+X", onClick: () => setClipboard({ op: "cut", path: join(cwd, menu.entry!.name) }) },
+                            { label: "Copy", shortcut: "Ctrl+C", onClick: () => setClipboard({ op: "copy", path: join(cwd, menu.entry!.name) }) },
+                            { separator: true },
+                            { label: "Delete", glyph: "🗑", onClick: () => remove(menu.entry!.name) },
+                            { label: "Rename", shortcut: "F2", onClick: () => startRename(menu.entry!.name) },
+                            { separator: true },
+                            { label: "Properties", onClick: () => showProperties(menu.entry!) },
+                        ]}
+                    />
                 ) : (
-                    <MenuList style={{ position: "fixed", left: menu.x, top: menu.y, width: 175, zIndex: 100000 }}>
-                        <MenuListItem style={{ cursor: "pointer" }} onClick={newFolder}>
-                            New Folder
-                        </MenuListItem>
-                        <MenuListItem style={{ cursor: "pointer" }} onClick={newTextDocument}>
-                            New Text Document
-                        </MenuListItem>
-                        <Separator />
-                        <MenuListItem disabled={!clipboard} style={{ cursor: clipboard ? "pointer" : "default" }} onClick={paste}>
-                            Paste
-                        </MenuListItem>
-                        <MenuListItem style={{ cursor: "pointer" }} onClick={() => refresh(cwd)}>
-                            Refresh
-                        </MenuListItem>
-                    </MenuList>
-                    ),
-                    document.body,
-                )}
+                    <ContextMenu
+                        x={menu.x}
+                        y={menu.y}
+                        onClose={() => setMenu(null)}
+                        items={[
+                            {
+                                label: "New",
+                                submenu: [
+                                    { label: "Folder", icon: FolderIcon, onClick: newFolder },
+                                    { label: "Text Document", icon: FileIcon, onClick: newTextDocument },
+                                ],
+                            },
+                            { separator: true },
+                            { label: "Paste", shortcut: "Ctrl+V", disabled: !clipboard, onClick: paste },
+                            { label: "Refresh", glyph: "⟳", onClick: () => refresh(cwd) },
+                        ]}
+                    />
+                ))}
         </AppShell>
     );
 };

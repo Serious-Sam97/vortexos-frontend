@@ -4,6 +4,7 @@ import { useSys } from "../../kernel/react/useSys";
 import { LibOS } from "../../kernel/libos";
 import { join } from "../../kernel/fs/path";
 import { openPath } from "../../system/openPath";
+import { homeDir } from "../../system/session";
 import { AppShell, AppBody, StatusBar, StatusPanel } from "../chrome/AppChrome";
 
 interface Hit {
@@ -76,7 +77,7 @@ async function search(sys: LibOS, root: string, c: Criteria, now: number, hits: 
 
 const Find: React.FC = () => {
     const sys = useSys();
-    const [root, setRoot] = useState("/home/user");
+    const [root, setRoot] = useState(homeDir());
     const [name, setName] = useState("");
     const [content, setContent] = useState("");
     const [sinceIdx, setSinceIdx] = useState(0);

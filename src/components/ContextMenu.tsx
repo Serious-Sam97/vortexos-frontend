@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import styled from "styled-components";
 
 /**
  * An authentic Windows 98 right-click menu: raised panel, icon gutter, hover
- * highlight, separators, check/radio marks, and one level of fly-out submenus.
- * Portalled to document.body so it's never clipped by its anchor.
+ * highlight, separators, check/radio marks, shortcut hints, and one level of
+ * fly-out submenus (which flip to the left near the screen edge). Portalled to
+ * document.body so it's never clipped, and closes on Escape.
  */
 export interface CtxItem {
     separator?: boolean;
@@ -14,6 +15,7 @@ export interface CtxItem {
     glyph?: string; // text glyph alternative (e.g. an emoji)
     checked?: boolean; // shows a ✓ in the gutter
     bullet?: boolean; // shows a ● in the gutter (radio)
+    shortcut?: string; // right-aligned hint, e.g. "Ctrl+C"
     disabled?: boolean;
     onClick?: () => void;
     submenu?: CtxItem[];
@@ -44,6 +46,9 @@ const Row = styled.div<{ $disabled?: boolean }>`
         background: ${({ $disabled }) => ($disabled ? "transparent" : "#000080")};
         color: ${({ $disabled }) => ($disabled ? "#808080" : "#fff")};
     }
+    &:hover .ctx-shortcut {
+        color: #cfd6ff;
+    }
 `;
 
 const Gutter = styled.div`
@@ -53,6 +58,13 @@ const Gutter = styled.div`
     align-items: center;
     justify-content: center;
     font-size: 12px;
+`;
+
+const Shortcut = styled.span`
+    margin-left: auto;
+    padding-left: 22px;
+    font-size: 11px;
+    color: #555;
 `;
 
 const Sep = styled.div`
@@ -67,6 +79,8 @@ const Arrow = styled.span`
     padding-left: 14px;
     font-size: 10px;
 `;
+
+const SUBMENU_W = 176;
 
 const Menu: React.FC<{ items: CtxItem[]; x: number; y: number; onClose: () => void }> = ({ items, x, y, onClose }) => {
     const [openSub, setOpenSub] = useState<{ index: number; x: number; y: number } | null>(null);
@@ -87,7 +101,9 @@ const Menu: React.FC<{ items: CtxItem[]; x: number; y: number; onClose: () => vo
                         onMouseEnter={(e) => {
                             if (hasSub && !it.disabled) {
                                 const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                                setOpenSub({ index: i, x: r.right - 3, y: r.top - 3 });
+                                // Flip the fly-out to the left if it would run off the right edge.
+                                const toLeft = r.right + SUBMENU_W > window.innerWidth;
+                                setOpenSub({ index: i, x: toLeft ? r.left - SUBMENU_W + 3 : r.right - 3, y: r.top - 3 });
                             } else {
                                 setOpenSub(null);
                             }
@@ -100,6 +116,7 @@ const Menu: React.FC<{ items: CtxItem[]; x: number; y: number; onClose: () => vo
                     >
                         <Gutter>{it.checked ? "✓" : it.bullet ? "●" : it.glyph ? it.glyph : it.icon ? <img src={it.icon} alt="" style={{ width: 16, height: 16, objectFit: "contain" }} /> : ""}</Gutter>
                         <span>{it.label}</span>
+                        {it.shortcut && !hasSub && <Shortcut className="ctx-shortcut">{it.shortcut}</Shortcut>}
                         {hasSub && <Arrow>▶</Arrow>}
                         {hasSub && openSub?.index === i && (
                             <Menu items={it.submenu!} x={openSub.x} y={openSub.y} onClose={onClose} />
@@ -112,6 +129,14 @@ const Menu: React.FC<{ items: CtxItem[]; x: number; y: number; onClose: () => vo
 };
 
 const ContextMenu: React.FC<{ items: CtxItem[]; x: number; y: number; onClose: () => void }> = ({ items, x, y, onClose }) => {
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") onClose();
+        };
+        document.addEventListener("keydown", onKey);
+        return () => document.removeEventListener("keydown", onKey);
+    }, [onClose]);
+
     // Keep the menu on-screen.
     const vw = window.innerWidth;
     const vh = window.innerHeight;

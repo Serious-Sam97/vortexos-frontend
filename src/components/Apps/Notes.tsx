@@ -1,18 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSys } from "../../kernel/react/useSys";
 import { AppShell, AppBody, MenuBar, Menu, MenuItem, MenuSep, StatusBar, StatusPanel } from "../chrome/AppChrome";
-
-const HOME = "/home/user";
-const DEFAULT = "/home/user/welcome.txt";
+import { useEditMenu } from "../EditContextMenu";
+import { homeDir } from "../../system/session";
 
 /** A real plain-text editor: reads and writes files on the VFS through syscalls. */
 const Notes: React.FC = () => {
     const sys = useSys();
+    const HOME = homeDir();
+    const DEFAULT = `${HOME}/welcome.txt`;
     const [path, setPath] = useState(DEFAULT);
     const [note, setNote] = useState("");
     const [dirty, setDirty] = useState(false);
     const [files, setFiles] = useState<string[]>([]);
     const [status, setStatus] = useState("Ready");
+    const { openEditMenu, editMenu } = useEditMenu();
 
     const load = useCallback(
         async (p: string) => {
@@ -75,6 +77,7 @@ const Notes: React.FC = () => {
                 <textarea
                     value={note}
                     onChange={(e) => { setNote(e.target.value); setDirty(true); }}
+                    onContextMenu={openEditMenu}
                     spellCheck={false}
                     rows={20}
                     style={{
@@ -98,6 +101,7 @@ const Notes: React.FC = () => {
                 <StatusPanel $flex={1}>{path}{dirty ? " •" : ""}</StatusPanel>
                 <StatusPanel>{status}</StatusPanel>
             </StatusBar>
+            {editMenu}
         </AppShell>
     );
 };

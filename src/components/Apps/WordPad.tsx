@@ -2,8 +2,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Frame } from "react95";
 import { useSys } from "../../kernel/react/useSys";
 import { AppShell, AppBody, MenuBar, Menu, MenuItem, MenuSep, Toolbar, ToolButton, ToolSep, StatusBar, StatusPanel } from "../chrome/AppChrome";
+import { useEditMenu } from "../EditContextMenu";
+import { homeDir } from "../../system/session";
 
-const HOME = "/home/user";
 const RICH_EXT = /\.(html?|rtf|doc)$/i;
 const FONTS = ["MS Sans Serif", "Times New Roman", "Courier New", "Arial", "Georgia"];
 const SIZES = [1, 2, 3, 4, 5, 6, 7];
@@ -15,10 +16,12 @@ const SIZES = [1, 2, 3, 4, 5, 6, 7];
  */
 const WordPad: React.FC = () => {
     const sys = useSys();
+    const HOME = homeDir();
     const editor = useRef<HTMLDivElement>(null);
     const [path, setPath] = useState(`${HOME}/document.html`);
     const [status, setStatus] = useState("");
     const [files, setFiles] = useState<string[]>([]);
+    const { openEditMenu, editMenu } = useEditMenu();
 
     const exec = (cmd: string, value?: string) => {
         editor.current?.focus();
@@ -128,12 +131,13 @@ const WordPad: React.FC = () => {
             </Toolbar>
 
             <AppBody style={{ padding: 3 }}>
-                <Frame variant="well" style={{ flex: 1, height: "100%", padding: 0 }}>
+                <Frame variant="well" style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", padding: 0 }}>
                     <div
                         ref={editor}
                         contentEditable
                         suppressContentEditableWarning
-                        style={{ height: "100%", overflow: "auto", padding: 10, background: "#fff", outline: "none", fontFamily: "'Times New Roman', serif", fontSize: 16 }}
+                        onContextMenu={openEditMenu}
+                        style={{ flex: 1, minHeight: 300, overflow: "auto", padding: 10, background: "#fff", outline: "none", fontFamily: "'Times New Roman', serif", fontSize: 16 }}
                     />
                 </Frame>
             </AppBody>
@@ -142,6 +146,7 @@ const WordPad: React.FC = () => {
                 <StatusPanel $flex={1}>{path}</StatusPanel>
                 <StatusPanel>{status || "Ready"}</StatusPanel>
             </StatusBar>
+            {editMenu}
         </AppShell>
     );
 };

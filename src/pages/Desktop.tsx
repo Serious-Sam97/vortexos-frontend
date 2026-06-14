@@ -5,6 +5,9 @@ import { useFsVersion } from "../kernel/react/KernelProvider";
 import { useUninstalled } from "../system/programs";
 import { useSettings, setSetting, ICON_METRICS } from "../system/settings";
 import ContextMenu, { type CtxItem } from "../components/ContextMenu";
+import { iconForEntry } from "../system/fileIcons";
+import { ensureUserHome } from "../system/homeMigration";
+import { openPath } from "../system/openPath";
 import { useAuth } from "../contexts/AuthContext";
 import { useDialog } from "../components/Dialog/DialogProvider";
 import { recordTrash } from "../system/recycle";
@@ -121,8 +124,7 @@ const Desktop: React.FC = () => {
 
     const refreshFiles = useCallback(async () => {
         try {
-            await sys.mkdir(`/home/${user}`).catch(() => {}); // ensure the user's home exists
-            await sys.mkdir(DESKTOP_DIR).catch(() => {});
+            await ensureUserHome(sys, user); // create/migrate the user's home + Desktop
             const names = await sys.readdir(DESKTOP_DIR);
             const mapped = await Promise.all(
                 names.map(async (name): Promise<Item> => {
@@ -130,7 +132,7 @@ const Desktop: React.FC = () => {
                     return {
                         id: `file:${name}`,
                         name,
-                        icon: type === "dir" ? ExplorerIcon : NotesIcon,
+                        icon: iconForEntry(name, type === "dir"),
                         kind: type === "dir" ? "dir" : "file",
                         path: join(DESKTOP_DIR, name),
                     };
@@ -168,9 +170,7 @@ const Desktop: React.FC = () => {
 
     const openItem = (item: Item) => {
         if (item.kind === "app") addProcess({ componentName: item.componentName, name: item.name, icon: item.icon } as any);
-        else if (item.kind === "dir") sys.spawn("explorer", { argv: [item.path!] });
-        else if (/\.(png|jpe?g|gif|bmp|webp|svg|ico)$/i.test(item.name)) sys.spawn("imageviewer", { argv: [item.path!] });
-        else sys.spawn("notes", { argv: [item.path!] });
+        else if (item.path) void openPath(sys, item.path); // routes by type (folder/image/audio/rich-text/text)
     };
 
     // ── icon dragging (moves the whole selection) ────────────────────────
