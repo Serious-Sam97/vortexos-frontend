@@ -27,6 +27,9 @@ import NetworkIcon from "/network.svg";
 import WinpopupIcon from "/winpopup.svg";
 import CalculatorIcon from "/calculator.svg";
 import MinesweeperIcon from "/minesweeper.svg";
+import SolitaireIcon from "/solitaire.svg";
+import SnakeIcon from "/snake.svg";
+import FreeCellIcon from "/freecell.svg";
 import ClockIcon from "/clock.svg";
 import PaintIcon from "/paint_file-3.png";
 import FindIcon from "/find.svg";
@@ -113,6 +116,9 @@ const PROGRAMS = [
     { name: "Control Panel", icon: ControlPanelIcon, componentName: "control_panel" },
     { name: "Calculator", icon: CalculatorIcon, componentName: "calculator" },
     { name: "Minesweeper", icon: MinesweeperIcon, componentName: "minesweeper" },
+    { name: "Solitaire", icon: SolitaireIcon, componentName: "solitaire" },
+    { name: "Snake", icon: SnakeIcon, componentName: "snake" },
+    { name: "FreeCell", icon: FreeCellIcon, componentName: "freecell" },
     { name: "Clock", icon: ClockIcon, componentName: "clock" },
     { name: "Paint", icon: PaintIcon, componentName: "paint" },
 ];

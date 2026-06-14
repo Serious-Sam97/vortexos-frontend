@@ -26,6 +26,9 @@ import NightwavePlazaIcon from "/vapor.png";
 import TerminalIcon from "/terminal.svg";
 import CalculatorIcon from "/calculator.svg";
 import MinesweeperIcon from "/minesweeper.svg";
+import SolitaireIcon from "/solitaire.svg";
+import SnakeIcon from "/snake.svg";
+import FreeCellIcon from "/freecell.svg";
 import ClockIcon from "/clock.svg";
 import PaintIcon from "/paint_file-3.png";
 
@@ -62,6 +65,9 @@ const APP_SHORTCUTS: Item[] = [
     { id: "app:tomb", name: "Tomb Raider", icon: TombRaiderIcon, kind: "app", componentName: "tomb" },
     { id: "app:calculator", name: "Calculator", icon: CalculatorIcon, kind: "app", componentName: "calculator" },
     { id: "app:minesweeper", name: "Minesweeper", icon: MinesweeperIcon, kind: "app", componentName: "minesweeper" },
+    { id: "app:solitaire", name: "Solitaire", icon: SolitaireIcon, kind: "app", componentName: "solitaire" },
+    { id: "app:snake", name: "Snake", icon: SnakeIcon, kind: "app", componentName: "snake" },
+    { id: "app:freecell", name: "FreeCell", icon: FreeCellIcon, kind: "app", componentName: "freecell" },
     { id: "app:clock", name: "Clock", icon: ClockIcon, kind: "app", componentName: "clock" },
     { id: "app:paint", name: "Paint", icon: PaintIcon, kind: "app", componentName: "paint" },
 ];

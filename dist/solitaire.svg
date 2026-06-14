@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- green felt -->
+  <rect x="0" y="0" width="32" height="32" rx="3" fill="#1f7a3d"/>
+  <!-- back card -->
+  <rect x="6" y="8" width="13" height="18" rx="2" fill="#1064d0" stroke="#fff" stroke-width="1"/>
+  <!-- front card with heart -->
+  <rect x="13" y="6" width="13" height="18" rx="2" fill="#ffffff" stroke="#000" stroke-width="1"/>
+  <text x="15" y="13" font-size="6" font-family="serif" font-weight="bold" fill="#c00000">A</text>
+  <path d="M19.5 15.5c-1-1.2-3-0.6-3 1 0 1.4 3 3.3 3 3.3s3-1.9 3-3.3c0-1.6-2-2.2-3-1z" fill="#c00000"/>
+</svg>

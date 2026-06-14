@@ -22,6 +22,9 @@ const NightwavePlaza = lazy(() => import("../components/Apps/NightwavePlaza"));
 import Terminal from "../components/Apps/Terminal";
 import Calculator from "../components/Apps/Calculator";
 import Minesweeper from "../components/Apps/Minesweeper";
+import Solitaire from "../components/Apps/Solitaire";
+import Snake from "../components/Apps/Snake";
+import FreeCell from "../components/Apps/FreeCell";
 import Clock from "../components/Apps/Clock";
 import Paint from "../components/Apps/Paint";
 import Find from "../components/Apps/Find";
@@ -48,6 +51,9 @@ import NightwavePlazaIcon from "/vapor.png";
 import TerminalIcon from "/terminal.svg";
 import CalculatorIcon from "/calculator.svg";
 import MinesweeperIcon from "/minesweeper.svg";
+import SolitaireIcon from "/solitaire.svg";
+import SnakeIcon from "/snake.svg";
+import FreeCellIcon from "/freecell.svg";
 import ClockIcon from "/clock.svg";
 import PaintIcon from "/paint_file-3.png";
 import FindIcon from "/find.svg";
@@ -86,7 +92,10 @@ export const BUILTIN_APPS = [
         defineApp({ exec: "vaporwave", name: "Nightwave Plaza", icon: NightwavePlazaIcon, component: NightwavePlaza, permissions: ["net", "audio"] }),
         // Sandboxed apps — no system access.
         defineApp({ exec: "calculator", name: "Calculator", icon: CalculatorIcon, component: Calculator, permissions: [] }),
-        defineApp({ exec: "minesweeper", name: "Minesweeper", icon: MinesweeperIcon, component: Minesweeper, permissions: [] }),
+        defineApp({ exec: "minesweeper", name: "Minesweeper", icon: MinesweeperIcon, component: Minesweeper, permissions: ["net"] }),
+        defineApp({ exec: "solitaire", name: "Solitaire", icon: SolitaireIcon, component: Solitaire, permissions: ["net"] }),
+        defineApp({ exec: "snake", name: "Snake", icon: SnakeIcon, component: Snake, permissions: ["net"] }),
+        defineApp({ exec: "freecell", name: "FreeCell", icon: FreeCellIcon, component: FreeCell, permissions: ["net"] }),
         defineApp({ exec: "clock", name: "Clock", icon: ClockIcon, component: Clock, permissions: [] }),
         defineApp({ exec: "help", name: "Help", icon: HelpIcon, component: Help, permissions: [] }),
         defineApp({ exec: "control_panel", name: "Control Panel", icon: MyComputerIcon, component: ControlPanel, permissions: [] }),

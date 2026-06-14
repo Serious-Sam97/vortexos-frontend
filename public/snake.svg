@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <rect x="0" y="0" width="32" height="32" rx="3" fill="#0a1f0a"/>
+  <!-- snake body -->
+  <rect x="6" y="20" width="4" height="4" fill="#3ec70b"/>
+  <rect x="10" y="20" width="4" height="4" fill="#3ec70b"/>
+  <rect x="14" y="20" width="4" height="4" fill="#3ec70b"/>
+  <rect x="14" y="16" width="4" height="4" fill="#3ec70b"/>
+  <rect x="14" y="12" width="4" height="4" fill="#3ec70b"/>
+  <rect x="18" y="12" width="4" height="4" fill="#3ec70b"/>
+  <!-- head -->
+  <rect x="22" y="12" width="4" height="4" fill="#9cff57"/>
+  <!-- apple -->
+  <rect x="7" y="8" width="4" height="4" rx="1" fill="#ff3b3b"/>
+</svg>
