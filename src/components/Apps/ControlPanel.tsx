@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Checkbox, Frame } from "react95";
+import { Button, Checkbox, Frame } from "react95";
 import { AppShell, AppBody, MenuBar, Menu, MenuItem, Toolbar, ToolButton, ToolSep, StatusBar, StatusPanel } from "../chrome/AppChrome";
 import Monitor from "../ControlPanel/Monitor";
 import { getVolume, isMuted, playChord, setMuted, setVolume } from "../../system/sounds";
@@ -9,6 +9,9 @@ import { openCredits, markEgg, useEggs, ALL_EGGS } from "../../system/easter";
 import { getBootCount, uptimeMs, formatUptime } from "../../system/identity";
 import { VortexLogo } from "../VortexLogo";
 import { BUILTIN_APPS } from "../../kernel/bin";
+import { useSettings, setSetting, type IconSize } from "../../system/settings";
+import { useOSContext } from "../../contexts/OSContext";
+import { useAuth } from "../../contexts/AuthContext";
 
 const SoundApplet: React.FC = () => {
     const [vol, setVol] = useState(Math.round(getVolume() * 100));
@@ -64,17 +67,277 @@ const SoundApplet: React.FC = () => {
 
 const DateTimeApplet: React.FC = () => {
     const [now, setNow] = useState(new Date());
+    const { dateFormat, clock24h } = useSettings();
     useEffect(() => {
         const id = setInterval(() => setNow(new Date()), 1000);
         return () => clearInterval(id);
     }, []);
+    const dateStr =
+        dateFormat === "long"
+            ? now.toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" })
+            : now.toLocaleDateString();
+    const timeStr = now.toLocaleTimeString(undefined, { hour12: !clock24h });
     return (
         <div style={{ padding: 16 }}>
-            <p style={{ fontWeight: "bold", marginBottom: 10 }}>Date/Time</p>
-            <Frame variant="well" style={{ padding: 10, fontSize: 18, fontFamily: "monospace" }}>
-                {now.toLocaleString()}
+            <p style={{ fontWeight: "bold", marginBottom: 10 }}>Date &amp; Time</p>
+            <Frame variant="well" style={{ padding: 10, fontSize: 16 }}>
+                <div style={{ fontWeight: "bold" }}>{dateStr}</div>
+                <div style={{ fontFamily: "monospace", fontSize: 20, marginTop: 4 }}>{timeStr}</div>
             </Frame>
-            <p style={{ marginTop: 10, fontSize: 12 }}>VortexOS follows your computer's clock.</p>
+            <p style={{ marginTop: 10, fontSize: 12 }}>
+                VortexOS follows your computer's clock. Change the date format and week start in{" "}
+                <b>Regional Settings</b>.
+            </p>
+        </div>
+    );
+};
+
+/* --------------------------------------------------------------- Regional */
+const RegionalApplet: React.FC = () => {
+    const s = useSettings();
+    const sample = new Date();
+    const preview =
+        s.dateFormat === "long"
+            ? sample.toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" })
+            : sample.toLocaleDateString();
+    return (
+        <div style={{ padding: 16 }}>
+            <p style={{ fontWeight: "bold", marginBottom: 10 }}>Date</p>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <label style={{ fontWeight: "bold" }} htmlFor="date-format">Date format:</label>
+                <select
+                    id="date-format"
+                    value={s.dateFormat}
+                    onChange={(e) => setSetting("dateFormat", e.target.value as "short" | "long")}
+                    style={{ fontFamily: "inherit", padding: 2 }}
+                >
+                    <option value="short">Short (e.g. 6/14/2026)</option>
+                    <option value="long">Long (e.g. Sunday, June 14, 2026)</option>
+                </select>
+            </div>
+            <Frame variant="well" style={{ padding: "6px 10px", fontSize: 13, display: "inline-block" }}>{preview}</Frame>
+
+            <p style={{ fontWeight: "bold", margin: "18px 0 8px" }}>Calendar</p>
+            <Checkbox
+                checked={s.firstDayMonday}
+                onChange={() => setSetting("firstDayMonday", !s.firstDayMonday)}
+                label="Start the week on Monday"
+            />
+            <p style={{ fontSize: 12, color: "#444", marginTop: 10 }}>
+                Affects the calendar in the Clock app and the system-tray fly-out.
+            </p>
+        </div>
+    );
+};
+
+/* ------------------------------------------------------------------ Mouse */
+const POINTER_SCHEMES: { file: string; name: string }[] = [
+    { file: "arrow.cur", name: "Standard" },
+    { file: "Beam.cur", name: "Text Select" },
+    { file: "help_win95.cur", name: "Help" },
+    { file: "Grabbing.cur", name: "Grabbing" },
+    { file: "Cursor_3.cur", name: "Classic 1" },
+    { file: "Cursor_5.cur", name: "Classic 2" },
+    { file: "Cursor_7.cur", name: "Classic 3" },
+    { file: "Cursor_9.cur", name: "Classic 4" },
+    { file: "Cursor_11.cur", name: "Classic 5" },
+    { file: "Cursor_14.cur", name: "Classic 6" },
+];
+
+const MouseApplet: React.FC = () => {
+    const settings = useSettings();
+    return (
+        <div style={{ padding: 16 }}>
+            <p style={{ fontWeight: "bold", marginBottom: 10 }}>Pointer scheme</p>
+            <p style={{ fontSize: 12, color: "#444", marginBottom: 12 }}>Pick a pointer — it applies instantly and is remembered.</p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {POINTER_SCHEMES.map((p) => {
+                    const active = settings.pointerScheme === p.file;
+                    return (
+                        <div
+                            key={p.file}
+                            onClick={() => setSetting("pointerScheme", p.file)}
+                            style={{
+                                width: 92,
+                                cursor: `url(/win-cursor/${p.file}), auto`,
+                                textAlign: "center",
+                                padding: 8,
+                                background: active ? "#000080" : "#fff",
+                                color: active ? "#fff" : "#000",
+                                border: "2px solid",
+                                borderColor: "#808080 #ffffff #ffffff #808080",
+                            }}
+                            title={p.name}
+                        >
+                            <div
+                                style={{
+                                    height: 40,
+                                    background: `#c0c0c0 url(/win-cursor/${p.file}) center no-repeat`,
+                                    border: "1px solid #808080",
+                                    marginBottom: 6,
+                                }}
+                            />
+                            <div style={{ fontSize: 11 }}>{p.name}</div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+
+/* ----------------------------------------------------------- Taskbar & Clock */
+const TaskbarApplet: React.FC = () => {
+    const s = useSettings();
+    return (
+        <div style={{ padding: 16 }}>
+            <p style={{ fontWeight: "bold", marginBottom: 10 }}>Taskbar</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <Checkbox
+                    checked={s.showQuickLaunch}
+                    onChange={() => setSetting("showQuickLaunch", !s.showQuickLaunch)}
+                    label="Show the Quick Launch toolbar"
+                />
+                <Checkbox
+                    checked={s.autoHideTaskbar}
+                    onChange={() => setSetting("autoHideTaskbar", !s.autoHideTaskbar)}
+                    label="Auto-hide the taskbar"
+                />
+            </div>
+
+            <p style={{ fontWeight: "bold", margin: "18px 0 10px" }}>Clock</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <Checkbox checked={s.showClock} onChange={() => setSetting("showClock", !s.showClock)} label="Show the clock" />
+                <Checkbox
+                    checked={s.clock24h}
+                    onChange={() => setSetting("clock24h", !s.clock24h)}
+                    label="Use 24-hour time"
+                    disabled={!s.showClock}
+                />
+                <Checkbox
+                    checked={s.clockSeconds}
+                    onChange={() => setSetting("clockSeconds", !s.clockSeconds)}
+                    label="Show seconds"
+                    disabled={!s.showClock}
+                />
+            </div>
+            <p style={{ fontSize: 12, color: "#444", marginTop: 14 }}>
+                Taskbar and clock changes apply immediately.
+            </p>
+        </div>
+    );
+};
+
+/* --------------------------------------------------------------- Desktop */
+const DesktopApplet: React.FC = () => {
+    const s = useSettings();
+    return (
+        <div style={{ padding: 16 }}>
+            <p style={{ fontWeight: "bold", marginBottom: 10 }}>Desktop icons</p>
+            <Checkbox
+                checked={s.showDesktopIcons}
+                onChange={() => setSetting("showDesktopIcons", !s.showDesktopIcons)}
+                label="Show icons on the desktop"
+            />
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14 }}>
+                <label style={{ fontWeight: "bold" }} htmlFor="icon-size">Icon size:</label>
+                <select
+                    id="icon-size"
+                    value={s.desktopIconSize}
+                    disabled={!s.showDesktopIcons}
+                    onChange={(e) => setSetting("desktopIconSize", e.target.value as IconSize)}
+                    style={{ fontFamily: "inherit", padding: 2 }}
+                >
+                    <option value="small">Small</option>
+                    <option value="normal">Normal</option>
+                    <option value="large">Large</option>
+                </select>
+            </div>
+
+            <p style={{ fontWeight: "bold", margin: "18px 0 8px" }}>Open items</p>
+            <Checkbox
+                checked={s.singleClickOpen}
+                onChange={() => setSetting("singleClickOpen", !s.singleClickOpen)}
+                label="Single-click to open an icon (instead of double-click)"
+            />
+            <p style={{ fontSize: 12, color: "#444", marginTop: 14 }}>
+                Changes apply to the desktop instantly.
+            </p>
+        </div>
+    );
+};
+
+/* ----------------------------------------------------------- Accessibility */
+const AccessibilityApplet: React.FC = () => {
+    const s = useSettings();
+    const { setTheme } = useOSContext();
+    return (
+        <div style={{ padding: 16 }}>
+            <p style={{ fontWeight: "bold", marginBottom: 10 }}>Display</p>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                <label style={{ fontWeight: "bold" }} htmlFor="acc-scale">Interface size:</label>
+                <select
+                    id="acc-scale"
+                    value={s.uiScale}
+                    onChange={(e) => setSetting("uiScale", Number(e.target.value))}
+                    style={{ fontFamily: "inherit", padding: 2 }}
+                >
+                    {[90, 100, 110, 125, 150].map((v) => (
+                        <option key={v} value={v}>{v}%</option>
+                    ))}
+                </select>
+                <span style={{ fontSize: 12, color: "#444" }}>Scales the whole desktop.</span>
+            </div>
+            <p style={{ fontWeight: "bold", margin: "4px 0 8px" }}>Motion</p>
+            <Checkbox
+                checked={s.reduceMotion}
+                onChange={() => setSetting("reduceMotion", !s.reduceMotion)}
+                label="Reduce motion (minimise animations & transitions)"
+            />
+            <p style={{ fontWeight: "bold", margin: "18px 0 8px" }}>Contrast</p>
+            <Button onClick={() => setTheme("highContrast")}>Switch to High Contrast theme</Button>
+            <p style={{ fontSize: 12, color: "#444", marginTop: 8 }}>
+                You can change the theme back any time in Display ▸ Appearance.
+            </p>
+        </div>
+    );
+};
+
+/* --------------------------------------------------------------- Accounts */
+const AccountsApplet: React.FC = () => {
+    const { username, logout } = useAuth();
+    const boots = getBootCount();
+    return (
+        <div style={{ padding: 18 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
+                <div
+                    style={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: "50%",
+                        flexShrink: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 28,
+                        fontWeight: "bold",
+                        color: "#fff",
+                        background: "linear-gradient(135deg, #ff2d95, #00e5d0)",
+                        textTransform: "uppercase",
+                    }}
+                >
+                    {(username || "?").charAt(0)}
+                </div>
+                <div>
+                    <p style={{ fontSize: 20, fontWeight: "bold", margin: 0 }}>{username || "Guest"}</p>
+                    <p style={{ margin: "2px 0 0", fontSize: 12, color: "#008000" }}>● Signed in</p>
+                    <p style={{ margin: "2px 0 0", fontSize: 12, color: "#555" }}>{boots} session{boots === 1 ? "" : "s"} on this machine</p>
+                </div>
+            </div>
+            <p style={{ fontSize: 12.5, marginBottom: 14 }}>
+                Your files, desktop, shared folders and high scores are all private to this account. Sign out to switch users.
+            </p>
+            <Button onClick={logout}>Log Off {username}…</Button>
         </div>
     );
 };
@@ -210,8 +473,14 @@ const SystemApplet: React.FC = () => {
 
 const APPLETS = [
     { name: "Display", icon: "/monitor.png", component: Monitor },
+    { name: "Desktop", icon: "/desktop.svg", component: DesktopApplet },
+    { name: "Mouse", icon: "/mouse.svg", component: MouseApplet },
     { name: "Sounds", icon: "/sound.svg", component: SoundApplet },
+    { name: "Taskbar & Clock", icon: "/taskbar.svg", component: TaskbarApplet },
+    { name: "Accessibility", icon: "/accessibility.svg", component: AccessibilityApplet },
     { name: "Date/Time", icon: "/clock.svg", component: DateTimeApplet },
+    { name: "Regional", icon: "/regional.svg", component: RegionalApplet },
+    { name: "Accounts", icon: "/users.svg", component: AccountsApplet },
     { name: "About Vortex", icon: "/w95.png", component: SystemApplet },
 ];
 

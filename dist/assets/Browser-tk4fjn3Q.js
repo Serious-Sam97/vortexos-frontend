@@ -1,4 +1,4 @@
-import{r as h,j as s,i as g,B as l,T as b,k}from"./index-B1fBhUSk.js";const o="vortex:home",w="http://localhost:8082";function j(e){return`${w}/proxy?url=${encodeURIComponent(e)}&token=${encodeURIComponent(k()??"")}`}const S=`
+import{r as h,j as s,i as g,B as l,T as b,k}from"./index-m0j3o3hj.js";const o="vortex:home",w="http://localhost:8082";function j(e){return`${w}/proxy?url=${encodeURIComponent(e)}&token=${encodeURIComponent(k()??"")}`}const S=`
 <html><head><style>
   body{font-family:'MS Sans Serif',Tahoma,sans-serif;background:#008080;color:#fff;text-align:center;padding:40px}
   h1{font-size:40px;margin:0}

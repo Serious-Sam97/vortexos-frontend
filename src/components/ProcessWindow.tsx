@@ -8,6 +8,7 @@ import { PidProvider } from "../kernel/react/pid";
 import { playMaximize, playMinimize } from "../system/sounds";
 import { DrWatson } from "./DrWatson";
 import { win98TitleBar } from "../system/win98";
+import { useSettings } from "../system/settings";
 
 interface ProcessWindowProp {
     process: Process;
@@ -57,6 +58,7 @@ function computeSnap(cx: number, cy: number): Rect | null {
 const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
     const { changePriority, closeProcess, handleProceessLocationChange } = useProcessContext();
     const { changeCursor, minimized, minimize } = useOSContext();
+    const settings = useSettings();
 
     const [properties, setProperties] = useState({
         x: process.location?.x ?? 0,
@@ -120,15 +122,28 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
 
     const handleMouseMove = (event: MouseEvent) => {
         if (!dragStart.current) return;
-        // Near a screen edge → preview the snap tile; otherwise the normal drag ghost.
-        const snap = computeSnap(event.clientX, event.clientY);
+        // Near a screen edge → preview the snap tile (when snapping is enabled);
+        // otherwise either move the window live or show the classic wireframe ghost.
+        const snap = settings.windowSnap ? computeSnap(event.clientX, event.clientY) : null;
         snapTarget.current = snap;
         if (snap) {
             setGhost(snap);
+            return;
+        }
+        const dx = event.clientX - dragStart.current.mouseX;
+        const dy = event.clientY - dragStart.current.mouseY;
+        const w = dragStart.current.w;
+        const h = dragStart.current.h;
+        if (settings.liveDrag && process.uuid) {
+            // Move the actual window in real time — keep the title bar on-screen.
+            let left = dragStart.current.left + dx;
+            let top = dragStart.current.top + dy;
+            left = Math.min(Math.max(left, 80 - w), window.innerWidth - 80);
+            top = Math.min(Math.max(top, 0), window.innerHeight - TASKBAR_HEIGHT - 28);
+            setProperties({ x: Math.round(left + w / 2), y: Math.round(top + h / 2) });
+            setGhost(null);
         } else {
-            const dx = event.clientX - dragStart.current.mouseX;
-            const dy = event.clientY - dragStart.current.mouseY;
-            setGhost({ x: dragStart.current.left + dx, y: dragStart.current.top + dy, w: dragStart.current.w, h: dragStart.current.h });
+            setGhost({ x: dragStart.current.left + dx, y: dragStart.current.top + dy, w, h });
         }
     };
 

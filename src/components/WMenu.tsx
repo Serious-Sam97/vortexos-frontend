@@ -7,6 +7,7 @@ import { useOSContext } from "../contexts/OSContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useUninstalled } from "../system/programs";
 import { useQuickLaunch, togglePin, unpin, isPinned } from "../system/quicklaunch";
+import { useSettings } from "../system/settings";
 import { openRun } from "../system/runDialog";
 import { BUILTIN_APPS } from "../kernel/bin";
 import SystemTray from "./SystemTray";
@@ -37,7 +38,7 @@ import HelpIcon from "/help.svg";
 
 const TASKBAR_HEIGHT = 40;
 
-const Bar = styled.div`
+const Bar = styled.div<{ $hidden?: boolean }>`
     position: fixed;
     left: 0;
     bottom: 0;
@@ -51,6 +52,8 @@ const Bar = styled.div`
     background: #c0c0c0;
     border-top: 1px solid #ffffff;
     z-index: 99999;
+    transition: transform 0.18s ease;
+    transform: translateY(${({ $hidden }) => ($hidden ? `${TASKBAR_HEIGHT - 3}px` : "0")});
 `;
 
 const TaskButton = styled.button<{ $pressed: boolean }>`
@@ -133,6 +136,7 @@ const WMenu: React.FC = () => {
     const uninstalled = useUninstalled();
     const user = username || "user";
     const pinned = useQuickLaunch(user);
+    const settings = useSettings();
     const showDeskRef = useRef<string[]>([]);
 
     // Show Desktop: minimize everything; click again restores what it hid.
@@ -167,6 +171,7 @@ const WMenu: React.FC = () => {
     const navigate = useNavigate();
 
     const [taskMenu, setTaskMenu] = useState<{ x: number; y: number } | null>(null);
+    const [revealed, setRevealed] = useState(false);
 
     useEffect(() => {
         if (!taskMenu) return;
@@ -243,8 +248,14 @@ const WMenu: React.FC = () => {
         }
     };
 
+    const taskbarHidden =
+        settings.autoHideTaskbar && !revealed && !open && !programsOpen && !settingsOpen && !taskMenu;
+
     return (
         <Bar
+            $hidden={taskbarHidden}
+            onMouseEnter={() => setRevealed(true)}
+            onMouseLeave={() => setRevealed(false)}
             onClick={(e) => e.stopPropagation()}
             onContextMenu={(e) => {
                 e.preventDefault();
@@ -410,6 +421,7 @@ const WMenu: React.FC = () => {
             </div>
 
             {/* Quick Launch — Show Desktop + pinned apps */}
+            {settings.showQuickLaunch && (
             <div style={{ display: "flex", alignItems: "center", gap: 2, paddingLeft: 4, borderLeft: "1px solid #808080", borderRight: "1px solid #808080", marginLeft: 2, marginRight: 2 }}>
                 <Tooltip text="Show Desktop">
                     <ShowDesktopButton onClick={showDesktop} aria-label="Show Desktop">
@@ -443,6 +455,7 @@ const WMenu: React.FC = () => {
                         );
                     })}
             </div>
+            )}
 
             {/* running windows */}
             <div style={{ display: "flex", flex: 1, gap: 3, overflow: "hidden", marginLeft: 2 }}>

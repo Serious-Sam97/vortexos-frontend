@@ -1,1 +1,0 @@
-import{r as t,j as l}from"./index-B1fBhUSk.js";function f(s){const e=t.useRef(null),[r,u]=t.useState(null);return t.useEffect(()=>{if(!e.current)return;const n=e.current,o=Dos(n);return u(o),()=>{o.stop(),n&&(n.innerHTML="")}},[]),t.useEffect(()=>{r!==null&&r.run(s.bundleUrl)},[r,s.bundleUrl]),l.jsx("div",{ref:e,style:{width:"100%",height:"100%"}})}export{f as D};

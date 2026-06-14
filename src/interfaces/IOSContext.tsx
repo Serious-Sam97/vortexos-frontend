@@ -5,6 +5,7 @@ export interface IOSContext {
     changeCursor: (cursor: string) => void,
     wallpaper: IWallpaper,
     changeWallpaper: (value: IWallpaper) => void,
+    reloadWallpaper: () => void,
     minimized: string[],
     minimize: (pid: string) => void,
     restore: (pid: string) => void,

@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
-import { MenuList, MenuListItem, Separator } from "react95";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useProcessContext } from "../contexts/ProcessContext";
 import { useSys } from "../kernel/react/useSys";
 import { useFsVersion } from "../kernel/react/KernelProvider";
 import { useUninstalled } from "../system/programs";
+import { useSettings, setSetting, ICON_METRICS } from "../system/settings";
+import ContextMenu, { type CtxItem } from "../components/ContextMenu";
 import { useAuth } from "../contexts/AuthContext";
 import { useDialog } from "../components/Dialog/DialogProvider";
 import { recordTrash } from "../system/recycle";
@@ -94,6 +95,8 @@ const Desktop: React.FC = () => {
     const { username } = useAuth();
     const fsVersion = useFsVersion();
     const uninstalled = useUninstalled();
+    const settings = useSettings();
+    const metric = ICON_METRICS[settings.desktopIconSize];
 
     // Each user gets their own Desktop folder and icon arrangement.
     const user = username || "user";
@@ -204,9 +207,18 @@ const Desktop: React.FC = () => {
         });
     };
 
-    const onDragUp = () => {
+    const onDragUp = (e: MouseEvent) => {
         document.removeEventListener("mousemove", onDragMove);
         document.removeEventListener("mouseup", onDragUp);
+        const d = drag.current;
+        // Single-click-to-open: a click that didn't move opens the icon.
+        if (d && settings.singleClickOpen && d.ids.length === 1) {
+            const moved = Math.abs(e.clientX - d.startMouse.x) > 4 || Math.abs(e.clientY - d.startMouse.y) > 4;
+            if (!moved) {
+                const it = items.find((i) => i.id === d.ids[0]);
+                if (it) openItem(it);
+            }
+        }
         drag.current = null; // positions are persisted by the effect on `positions`
     };
 
@@ -279,6 +291,25 @@ const Desktop: React.FC = () => {
     };
     const arrangeIcons = () => setPositions({});
 
+    const sortIcons = (by: "name" | "type") => {
+        const rank = (it: Item) => (it.kind === "app" ? 0 : it.kind === "dir" ? 1 : 2);
+        const sorted = [...items].sort((a, b) => {
+            if (by === "type") {
+                const d = rank(a) - rank(b);
+                if (d !== 0) return d;
+            }
+            return a.name.localeCompare(b.name);
+        });
+        const next: Positions = {};
+        sorted.forEach((it, i) => {
+            next[it.id] = { x: 12 + Math.floor(i / perCol) * CELL_W, y: 12 + (i % perCol) * CELL_H };
+        });
+        setPositions(next);
+    };
+
+    const openControlPanel = () =>
+        addProcess({ componentName: "control_panel", name: "Control Panel", icon: "/controlpanel.png" } as never);
+
     // Delete key removes selected desktop file(s) to the Recycle Bin.
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
@@ -306,20 +337,21 @@ const Desktop: React.FC = () => {
             onContextMenu={(e) => openMenu(e, null)}
             style={{ position: "relative", width: "100%", height: `calc(100vh - ${TASKBAR_HEIGHT}px)`, overflow: "hidden" }}
         >
-            {items.map((item, i) => {
+            {settings.showDesktopIcons &&
+                items.map((item, i) => {
                 const pos = positionOf(item.id, i);
                 const isSel = selected.has(item.id);
                 return (
                     <div
                         key={item.id}
                         onMouseDown={(e) => onIconMouseDown(e, item, i)}
-                        onDoubleClick={() => openItem(item)}
+                        onDoubleClick={settings.singleClickOpen ? undefined : () => openItem(item)}
                         onContextMenu={(e) => openMenu(e, item)}
                         style={{
                             position: "absolute",
                             left: pos.x,
                             top: pos.y,
-                            width: 76,
+                            width: metric.cell,
                             display: "flex",
                             flexDirection: "column",
                             alignItems: "center",
@@ -328,16 +360,16 @@ const Desktop: React.FC = () => {
                             border: isSel ? "1px dotted #ffffff" : "1px solid transparent",
                         }}
                     >
-                        <img src={item.icon} alt={item.name} style={{ height: 42, width: 42, objectFit: "contain" }} draggable={false} />
+                        <img src={item.icon} alt={item.name} style={{ height: metric.icon, width: metric.icon, objectFit: "contain" }} draggable={false} />
                         <p
                             style={{
                                 marginTop: 2,
                                 padding: "0 3px",
                                 textAlign: "center",
-                                fontSize: 12,
+                                fontSize: metric.font,
                                 color: "#fff",
                                 textShadow: isSel ? "none" : "1px 1px 0 rgba(0,0,0,0.6)",
-                                backgroundColor: isSel ? "#000080" : "transparent",
+                                backgroundColor: isSel ? settings.accentColor : "transparent",
                                 wordBreak: "break-word",
                             }}
                         >
@@ -355,8 +387,8 @@ const Desktop: React.FC = () => {
                         top: marquee.y,
                         width: marquee.w,
                         height: marquee.h,
-                        border: "1px dotted #fff",
-                        background: "rgba(255,255,255,0.15)",
+                        border: `1px dotted ${settings.accentColor}`,
+                        background: `${settings.accentColor}22`,
                         pointerEvents: "none",
                         zIndex: 5,
                     }}
@@ -365,44 +397,67 @@ const Desktop: React.FC = () => {
 
             {menu &&
                 (menu.item ? (
-                    <MenuList onMouseDown={(e: ReactMouseEvent) => e.stopPropagation()} style={{ position: "fixed", left: menu.x, top: menu.y, width: 150, zIndex: 100000 }}>
-                        <MenuListItem style={{ cursor: "pointer" }} onClick={() => openItem(menu.item!)}>
-                            Open
-                        </MenuListItem>
-                        {menu.item.kind !== "app" && (
-                            <>
-                                <Separator />
-                                <MenuListItem style={{ cursor: "pointer" }} onClick={() => deleteFile(menu.item!)}>
-                                    Delete
-                                </MenuListItem>
-                            </>
-                        )}
-                    </MenuList>
+                    <ContextMenu
+                        x={menu.x}
+                        y={menu.y}
+                        onClose={() => setMenu(null)}
+                        items={[
+                            { label: "Open", glyph: "▸", onClick: () => openItem(menu.item!) },
+                            ...(menu.item.kind !== "app"
+                                ? ([
+                                      { separator: true },
+                                      { label: "Delete", glyph: "🗑", onClick: () => deleteFile(menu.item!) },
+                                  ] as CtxItem[])
+                                : []),
+                            { separator: true },
+                            {
+                                label: "Properties",
+                                onClick: () =>
+                                    alert({
+                                        title: `${menu.item!.name} Properties`,
+                                        message: `Name: ${menu.item!.name}\nType: ${menu.item!.kind === "app" ? "Application" : menu.item!.kind === "dir" ? "Folder" : "File"}${menu.item!.path ? `\nLocation: ${menu.item!.path}` : ""}`,
+                                        type: "info",
+                                    }),
+                            },
+                        ]}
+                    />
                 ) : (
-                    <MenuList onMouseDown={(e: ReactMouseEvent) => e.stopPropagation()} style={{ position: "fixed", left: menu.x, top: menu.y, width: 180, zIndex: 100000 }}>
-                        <MenuListItem style={{ cursor: "pointer" }} onClick={newFolder}>
-                            New Folder
-                        </MenuListItem>
-                        <MenuListItem style={{ cursor: "pointer" }} onClick={newTextDocument}>
-                            New Text Document
-                        </MenuListItem>
-                        <Separator />
-                        <MenuListItem style={{ cursor: "pointer" }} onClick={arrangeIcons}>
-                            Arrange Icons
-                        </MenuListItem>
-                        <MenuListItem style={{ cursor: "pointer" }} onClick={refreshFiles}>
-                            Refresh
-                        </MenuListItem>
-                        <Separator />
-                        <MenuListItem
-                            style={{ cursor: "pointer" }}
-                            onClick={() =>
-                                alert({ title: "Display Properties", message: "VortexOS 2.0\nExperimental Windows 95 simulation.", type: "info" })
-                            }
-                        >
-                            Properties
-                        </MenuListItem>
-                    </MenuList>
+                    <ContextMenu
+                        x={menu.x}
+                        y={menu.y}
+                        onClose={() => setMenu(null)}
+                        items={[
+                            {
+                                label: "View",
+                                submenu: [
+                                    { label: "Large Icons", bullet: settings.desktopIconSize === "large", onClick: () => setSetting("desktopIconSize", "large") },
+                                    { label: "Normal Icons", bullet: settings.desktopIconSize === "normal", onClick: () => setSetting("desktopIconSize", "normal") },
+                                    { label: "Small Icons", bullet: settings.desktopIconSize === "small", onClick: () => setSetting("desktopIconSize", "small") },
+                                    { separator: true },
+                                    { label: "Show Desktop Icons", checked: settings.showDesktopIcons, onClick: () => setSetting("showDesktopIcons", !settings.showDesktopIcons) },
+                                ],
+                            },
+                            {
+                                label: "Sort Icons",
+                                submenu: [
+                                    { label: "by Name", onClick: () => sortIcons("name") },
+                                    { label: "by Type", onClick: () => sortIcons("type") },
+                                ],
+                            },
+                            { label: "Line up Icons", onClick: arrangeIcons },
+                            { label: "Refresh", glyph: "⟳", onClick: refreshFiles },
+                            { separator: true },
+                            {
+                                label: "New",
+                                submenu: [
+                                    { label: "Folder", icon: ExplorerIcon, onClick: newFolder },
+                                    { label: "Text Document", icon: NotesIcon, onClick: newTextDocument },
+                                ],
+                            },
+                            { separator: true },
+                            { label: "Properties", onClick: openControlPanel },
+                        ]}
+                    />
                 ))}
         </div>
     );

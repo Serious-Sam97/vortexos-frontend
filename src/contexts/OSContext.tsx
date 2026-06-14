@@ -1,7 +1,8 @@
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useRef, useState } from "react";
 import { ReactNode } from "react";
 import { FileClipboard, IOSContext } from "../interfaces/IOSContext";
 import { IWallpaper } from "../interfaces/IWallpaper";
+import { getSession } from "../system/session";
 
 const OSContext = createContext<IOSContext>({} as IOSContext);
 
@@ -45,34 +46,29 @@ export function OSContextProvider({children}: {children: ReactNode}) {
         busyTimer.current = setTimeout(() => setBusy(false), ms);
     };
 
-    const [ wallpaper, setWallpaper ] = useState({
-        image: '',
-        type: 1,
-    });
-
-    const userWallpaper = localStorage.getItem('wallpaper');
-    useEffect(() => {
-        setWallpaper(
-            userWallpaper !== null 
-                ? JSON.parse(userWallpaper)
-                : {
-                    image: '',
-                    type: 1,
-                }
-        )
-    }, [userWallpaper]);
+    // Wallpaper is per-user — keyed by the signed-in username (falls back to the
+    // legacy global 'wallpaper' key for anyone who set one before this change).
+    const wallpaperKey = () => `vortex.wallpaper.${getSession()?.username || 'user'}`;
+    const readWallpaper = (): IWallpaper => {
+        const raw = localStorage.getItem(wallpaperKey()) ?? localStorage.getItem('wallpaper');
+        if (raw === null) return { image: '', type: 1 };
+        try { return JSON.parse(raw); } catch { return { image: '', type: 1 }; }
+    };
+    const [ wallpaper, setWallpaper ] = useState<IWallpaper>(readWallpaper);
 
     const changeWallpaper = (value: IWallpaper) => {
-        localStorage.setItem('wallpaper', JSON.stringify(value));
+        localStorage.setItem(wallpaperKey(), JSON.stringify(value));
         setWallpaper(value);
     }
+    // Called after sign-in / user switch so the new user's wallpaper loads.
+    const reloadWallpaper = () => setWallpaper(readWallpaper());
 
     const changeCursor = (cursorType: string) => {
         setCursor(`url(/win-cursor/${cursorType}), auto`);
     }
 
     return (
-        <OSContext.Provider value={{cursor, changeCursor, wallpaper, changeWallpaper, minimized, minimize, restore, crt, toggleCrt, clipboard, setClipboard, theme, setTheme, busy, flashBusy, sssStyle, toggleSssStyle}}>
+        <OSContext.Provider value={{cursor, changeCursor, wallpaper, changeWallpaper, reloadWallpaper, minimized, minimize, restore, crt, toggleCrt, clipboard, setClipboard, theme, setTheme, busy, flashBusy, sssStyle, toggleSssStyle}}>
             {children}
         </OSContext.Provider>
     )

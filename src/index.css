@@ -115,3 +115,13 @@ select {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Accessibility: when reduce-motion is on, neutralise animations & transitions globally. */
+html[data-reduce-motion] *,
+html[data-reduce-motion] *::before,
+html[data-reduce-motion] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}

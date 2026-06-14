@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Frame } from "react95";
+import { useSettings } from "../../system/settings";
 
 const Clock: React.FC = () => {
     const [now, setNow] = useState(new Date());
+    const { firstDayMonday } = useSettings();
 
     useEffect(() => {
         const id = setInterval(() => setNow(new Date()), 1000);
@@ -24,9 +26,11 @@ const Clock: React.FC = () => {
     // calendar for the current month
     const year = now.getFullYear();
     const month = now.getMonth();
-    const firstDay = new Date(year, month, 1).getDay();
+    const rawFirstDay = new Date(year, month, 1).getDay();
+    const firstDay = firstDayMonday ? (rawFirstDay + 6) % 7 : rawFirstDay;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const monthName = now.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+    const dow = firstDayMonday ? ["M", "T", "W", "T", "F", "S", "S"] : ["S", "M", "T", "W", "T", "F", "S"];
     const cells: (number | null)[] = [...Array(firstDay).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
 
     return (
@@ -53,7 +57,7 @@ const Clock: React.FC = () => {
                 <table style={{ borderCollapse: "collapse", fontSize: 12 }}>
                     <thead>
                         <tr>
-                            {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+                            {dow.map((d, i) => (
                                 <th key={i} style={{ width: 22, padding: 2, color: "#000080" }}>{d}</th>
                             ))}
                         </tr>

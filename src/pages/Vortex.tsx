@@ -16,20 +16,26 @@ import WelcomeCenter from "../components/WelcomeCenter";
 import TipOfTheDay from "../components/TipOfTheDay";
 import VortexAssistant from "../components/VortexAssistant";
 import EasterEggs from "../components/EasterEggs";
+import SettingsApplier from "../components/SettingsApplier";
 import { useOSContext } from "../contexts/OSContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useReloadCloud } from "../kernel/react/KernelProvider";
 import { connectChat, disconnectChat } from "../system/chat";
 
 const Vortex: React.FC = () => {
-    const { cursor, crt, busy } = useOSContext();
+    const { cursor, crt, busy, reloadWallpaper } = useOSContext();
     const { isAuthenticated } = useAuth();
     const reloadCloud = useReloadCloud();
 
-    // Load (or switch to) the signed-in user's cloud drive once authenticated.
+    // Load (or switch to) the signed-in user's cloud drive + wallpaper once authenticated.
     useEffect(() => {
-        if (isAuthenticated) void reloadCloud();
-    }, [isAuthenticated, reloadCloud]);
+        if (isAuthenticated) {
+            void reloadCloud();
+            reloadWallpaper();
+        }
+        // Runs on sign-in/user-switch; the callbacks aren't memoised so they're left out.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isAuthenticated]);
 
     // Connect to the Net Send / presence WebSocket while signed in.
     useEffect(() => {
@@ -61,6 +67,7 @@ const Vortex: React.FC = () => {
                 <TipOfTheDay />
                 <VortexAssistant />
                 <EasterEggs />
+                <SettingsApplier />
             </OSErrorBoundary>
 
             {/* Rendered outside the boundary so it still shows if the chrome subtree is dead. */}

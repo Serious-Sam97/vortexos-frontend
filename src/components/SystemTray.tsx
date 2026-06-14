@@ -5,6 +5,7 @@ import { Slider, Checkbox } from "react95";
 import { getVolume, setVolume, isMuted, setMuted, subscribeSound, playClick } from "../system/sounds";
 import { getOnline, isChatConnected, subscribeChat } from "../system/chat";
 import { subscribeNotifications, getNotificationHistory, clearHistory, Toast } from "../system/notifications";
+import { useSettings } from "../system/settings";
 
 const TASKBAR_HEIGHT = 40;
 
@@ -84,31 +85,38 @@ function NetworkIcon({ connected }: { connected: boolean }) {
     );
 }
 
-function useNow(): Date {
+function useNow(intervalMs: number): Date {
     const [now, setNow] = useState(() => new Date());
     useEffect(() => {
-        const id = setInterval(() => setNow(new Date()), 10000);
+        const id = setInterval(() => setNow(new Date()), intervalMs);
         return () => clearInterval(id);
-    }, []);
+    }, [intervalMs]);
     return now;
 }
 
-function formatTime(now: Date): string {
-    let h = now.getHours();
-    const ampm = h >= 12 ? "PM" : "AM";
-    h = h % 12 || 12;
+function formatTime(now: Date, opts: { clock24h: boolean; clockSeconds: boolean }): string {
     const m = String(now.getMinutes()).padStart(2, "0");
-    return `${h}:${m} ${ampm}`;
+    const s = String(now.getSeconds()).padStart(2, "0");
+    if (opts.clock24h) {
+        const hh = String(now.getHours()).padStart(2, "0");
+        return opts.clockSeconds ? `${hh}:${m}:${s}` : `${hh}:${m}`;
+    }
+    const ampm = now.getHours() >= 12 ? "PM" : "AM";
+    const h = now.getHours() % 12 || 12;
+    return opts.clockSeconds ? `${h}:${m}:${s} ${ampm}` : `${h}:${m} ${ampm}`;
 }
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-const DOW = ["S", "M", "T", "W", "T", "F", "S"];
+const DOW_SUN = ["S", "M", "T", "W", "T", "F", "S"];
+const DOW_MON = ["M", "T", "W", "T", "F", "S", "S"];
 
-function Calendar({ today }: { today: Date }) {
+function Calendar({ today, firstDayMonday }: { today: Date; firstDayMonday: boolean }) {
     const year = today.getFullYear();
     const month = today.getMonth();
-    const first = new Date(year, month, 1).getDay();
+    const rawFirst = new Date(year, month, 1).getDay(); // 0 = Sunday
+    const first = firstDayMonday ? (rawFirst + 6) % 7 : rawFirst;
     const days = new Date(year, month + 1, 0).getDate();
+    const DOW = firstDayMonday ? DOW_MON : DOW_SUN;
     const cells: (number | null)[] = [];
     for (let i = 0; i < first; i++) cells.push(null);
     for (let d = 1; d <= days; d++) cells.push(d);
@@ -182,7 +190,8 @@ function NotificationCenter({ items }: { items: Toast[] }) {
 }
 
 const SystemTray: React.FC<{ username?: string | null }> = ({ username }) => {
-    const now = useNow();
+    const settings = useSettings();
+    const now = useNow(settings.clockSeconds ? 1000 : 10000);
     const [open, setOpen] = useState<Open>(null);
     const trayRef = useRef<HTMLDivElement>(null);
 
@@ -240,9 +249,11 @@ const SystemTray: React.FC<{ username?: string | null }> = ({ username }) => {
                     <BellIcon />
                 </IconButton>
                 {username && <span style={{ opacity: 0.85 }}>{username}</span>}
-                <span style={{ cursor: "pointer" }} onClick={() => toggle("clock")}>
-                    {formatTime(now)}
-                </span>
+                {settings.showClock && (
+                    <span style={{ cursor: "pointer" }} onClick={() => toggle("clock")}>
+                        {formatTime(now, settings)}
+                    </span>
+                )}
             </Tray>
 
             {open === "volume" &&
@@ -270,7 +281,7 @@ const SystemTray: React.FC<{ username?: string | null }> = ({ username }) => {
             {open === "clock" &&
                 createPortal(
                     <Popup style={{ right: 8, bottom: TASKBAR_HEIGHT + 6 }} onMouseDown={(e) => e.stopPropagation()}>
-                        <Calendar today={now} />
+                        <Calendar today={now} firstDayMonday={settings.firstDayMonday} />
                     </Popup>,
                     document.body,
                 )}
