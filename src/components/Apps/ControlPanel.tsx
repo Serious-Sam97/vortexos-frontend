@@ -10,8 +10,11 @@ import { getBootCount, uptimeMs, formatUptime } from "../../system/identity";
 import { VortexLogo } from "../VortexLogo";
 import { BUILTIN_APPS } from "../../kernel/bin";
 import { useSettings, setSetting, type IconSize } from "../../system/settings";
+import { setOskVisible } from "../../system/osk";
+import { useCanInstall, promptInstall, isStandalone } from "../../system/pwa";
 import { useOSContext } from "../../contexts/OSContext";
 import { useAuth } from "../../contexts/AuthContext";
+import { TimeMachinePicker } from "./TimeMachine";
 
 const SoundApplet: React.FC = () => {
     const [vol, setVol] = useState(Math.round(getVolume() * 100));
@@ -299,7 +302,50 @@ const AccessibilityApplet: React.FC = () => {
             <p style={{ fontSize: 12, color: "#444", marginTop: 8 }}>
                 You can change the theme back any time in Display ▸ Appearance.
             </p>
+
+            <ReachSection />
         </div>
+    );
+};
+
+/* ----------------------------------------------- Reach (touch & mobile) */
+const ReachSection: React.FC = () => {
+    const s = useSettings();
+    const canInstall = useCanInstall();
+    const standalone = isStandalone();
+    return (
+        <>
+            <p style={{ fontWeight: "bold", margin: "20px 0 8px", borderTop: "1px solid #808080", paddingTop: 14 }}>Reach (touch &amp; mobile)</p>
+            <Checkbox
+                checked={s.tabletMode}
+                onChange={() => setSetting("tabletMode", !s.tabletMode)}
+                label="Tablet Mode — full-screen windows & touch taskbar on this device"
+            />
+            <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "12px 0" }}>
+                <label style={{ fontWeight: "bold" }} htmlFor="acc-osk">On-Screen Keyboard:</label>
+                <select
+                    id="acc-osk"
+                    value={s.osk}
+                    onChange={(e) => setSetting("osk", e.target.value as "auto" | "on" | "off")}
+                    style={{ fontFamily: "inherit", padding: 2 }}
+                >
+                    <option value="auto">Automatic (touch only)</option>
+                    <option value="on">Always show</option>
+                    <option value="off">Never</option>
+                </select>
+                {s.osk !== "off" && <Button onClick={() => setOskVisible(true)}>Show now</Button>}
+            </div>
+            <p style={{ fontWeight: "bold", margin: "16px 0 8px" }}>Install</p>
+            {standalone ? (
+                <p style={{ fontSize: 12, color: "#444" }}>✓ VortexOS is installed and running as an app.</p>
+            ) : canInstall ? (
+                <Button onClick={() => void promptInstall()}>Install VortexOS as an app…</Button>
+            ) : (
+                <p style={{ fontSize: 12, color: "#444" }}>
+                    Use your browser's <b>Install</b> / <b>Add to Home Screen</b> option to install VortexOS for full-screen, offline use.
+                </p>
+            )}
+        </>
     );
 };
 
@@ -471,7 +517,11 @@ const SystemApplet: React.FC = () => {
     );
 };
 
+/** The Time Machine applet — the shared era picker (also a standalone app). */
+const TimeMachineApplet: React.FC = () => <TimeMachinePicker />;
+
 const APPLETS = [
+    { name: "Time Machine", icon: "/timemachine.svg", component: TimeMachineApplet },
     { name: "Display", icon: "/monitor.png", component: Monitor },
     { name: "Desktop", icon: "/desktop.svg", component: DesktopApplet },
     { name: "Mouse", icon: "/mouse.svg", component: MouseApplet },

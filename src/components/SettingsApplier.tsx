@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useSettings } from "../system/settings";
+import { useMobileShell } from "../system/viewport";
 import { useOSContext } from "../contexts/OSContext";
 
 /**
@@ -11,6 +12,14 @@ import { useOSContext } from "../contexts/OSContext";
 const SettingsApplier: React.FC = () => {
     const { uiScale, reduceMotion, pointerScheme } = useSettings();
     const { changeCursor } = useOSContext();
+    const mobile = useMobileShell();
+
+    // Reflect the touch shell onto <html> so global CSS can touch-size app chrome
+    // (menu bars, toolbars) without threading a prop through every app.
+    useEffect(() => {
+        if (mobile) document.documentElement.setAttribute("data-shell", "mobile");
+        else document.documentElement.removeAttribute("data-shell");
+    }, [mobile]);
 
     useEffect(() => {
         if (uiScale === 100) document.documentElement.style.removeProperty("zoom");

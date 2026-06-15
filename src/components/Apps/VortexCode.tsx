@@ -3,9 +3,20 @@ import styled from "styled-components";
 import { useSys } from "../../kernel/react/useSys";
 import { AppShell, MenuBar, Menu, MenuItem, MenuSep, Toolbar, ToolButton, ToolSep, StatusBar, StatusPanel } from "../chrome/AppChrome";
 import { basename, join } from "../../kernel/fs/path";
-import { homeDir } from "../../system/session";
+import { homeDir, getSession } from "../../system/session";
 import { highlight, langOf, type Lang } from "../../system/highlight";
 import { Shell } from "../../shell/Shell";
+import { useDialog } from "../Dialog/DialogProvider";
+import { notify } from "../../system/notifications";
+import { publishApp } from "../../system/storeApi";
+import { parsePackage, type AppPackage } from "../../system/appPackage";
+
+/** A generic app icon (data URL) used when publishing from the editor. */
+const DEFAULT_APP_ICON =
+    "data:image/svg+xml;utf8," +
+    encodeURIComponent(
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="%231e7bd6"/><stop offset="1" stop-color="%236a1b9a"/></linearGradient></defs><rect x="5" y="5" width="38" height="38" rx="8" fill="url(%23g)"/><text x="24" y="33" font-size="22" text-anchor="middle" fill="white" font-family="monospace" font-weight="bold">&lt;/&gt;</text></svg>`,
+    );
 
 /** A real code editor: VFS file tree, syntax-highlighted multi-tab editing, save, and Run. */
 
@@ -169,6 +180,7 @@ const NEW_FILE: Tab = { path: "", name: "untitled.txt", content: "", lang: "text
 const VortexCode: React.FC = () => {
     const sys = useSys();
     const root = homeDir();
+    const { prompt, confirm, alert } = useDialog();
 
     const [tabs, setTabs] = useState<Tab[]>([NEW_FILE]);
     const [active, setActive] = useState(0);
@@ -281,6 +293,49 @@ const VortexCode: React.FC = () => {
         }
     };
 
+    // Package the current file as a .vxapp and publish it to the cloud App Store.
+    const publish = async () => {
+        const t = tabsRef.current[active] ?? tab;
+        const content = t.content;
+        if (!content.trim()) {
+            await alert({ title: "Publish", message: "Nothing to publish — the file is empty.", type: "warning" });
+            return;
+        }
+        const base = (t.name || "app").replace(/\.[^.]*$/, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "app";
+        const user = getSession()?.username || "user";
+        const id = (await prompt({ title: "Publish to App Store", message: "App id (unique, reverse-DNS):", default: `com.${user}.${base}` }))?.trim();
+        if (!id) return;
+        const name = (await prompt({ title: "Publish (2/4)", message: "App name:", default: t.name.replace(/\.[^.]*$/, "") || "My App" }))?.trim();
+        if (!name) return;
+        const version = (await prompt({ title: "Publish (3/4)", message: "Version:", default: "1.0.0" }))?.trim();
+        if (!version) return;
+        const description = (await prompt({ title: "Publish (4/4)", message: "Short description:", default: "" })) ?? "";
+        const wantsFs = await confirm({ title: "Permissions", message: "Should this app read & write its own files (the 'fs' capability)?" });
+
+        const pkg: AppPackage = {
+            manifest: {
+                id,
+                name,
+                version,
+                description,
+                author: user,
+                icon: DEFAULT_APP_ICON,
+                permissions: wantsFs ? ["fs"] : [],
+                entry: "index.html",
+            },
+            files: { "index.html": content },
+        };
+        try {
+            parsePackage(pkg);
+            await publishApp(pkg);
+            notify({ title: "App Store", body: `Published ${name} v${version}`, type: "info", icon: DEFAULT_APP_ICON });
+            setStatus(`Published ${id}`);
+            await alert({ title: "Published! 🚀", message: `"${name}" is now in the Vortex App Store. Open the App Store to install it on any account.` });
+        } catch (e: any) {
+            await alert({ title: "Publish failed", message: String(e?.response?.status === 403 ? "That app id is already owned by another user." : e?.message ?? e), type: "error" });
+        }
+    };
+
     const syncScroll = () => {
         const ta = taRef.current;
         if (!ta) return;
@@ -362,6 +417,7 @@ const VortexCode: React.FC = () => {
                 </Menu>
                 <Menu label="Run">
                     <MenuItem onMouseDown={(e) => { e.preventDefault(); run(); }}>Run Script<span>F5</span></MenuItem>
+                    <MenuItem onMouseDown={(e) => { e.preventDefault(); publish(); }}>Publish to App Store…</MenuItem>
                     <MenuItem onMouseDown={(e) => { e.preventDefault(); setOutput(null); }}>Hide Output</MenuItem>
                 </Menu>
                 <Menu label="Help"><MenuItem $disabled>VortexCode — VortexOS</MenuItem></Menu>
@@ -370,6 +426,7 @@ const VortexCode: React.FC = () => {
             <Toolbar>
                 <ToolButton onClick={() => save()}>💾 Save</ToolButton>
                 <ToolButton onClick={() => run()}>▶ Run</ToolButton>
+                <ToolButton onClick={() => publish()} title="Package this file as a .vxapp and publish it to the App Store">🚀 Publish</ToolButton>
                 <ToolSep />
                 <ToolButton onClick={() => setFindOpen((f) => !f)}>🔍 Find</ToolButton>
                 <ToolSep />

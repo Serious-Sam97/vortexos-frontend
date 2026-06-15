@@ -3,6 +3,7 @@ import { pushRecentDoc } from "./recents";
 
 const IMAGE_EXT = /\.(png|jpe?g|gif|bmp|webp|svg|ico)$/i;
 const AUDIO_EXT = /\.(mp3|wav|ogg|m4a|flac)$/i;
+const VIDEO_EXT = /\.(mp4|m4v|webm|ogv|mov|mkv)$/i;
 const RICH_EXT = /\.(html?|rtf|doc)$/i;
 const CODE_EXT = /\.(js|jsx|ts|tsx|mjs|cjs|css|scss|less|json|md|markdown|sh|bash|py|xml)$/i;
 
@@ -23,6 +24,7 @@ export async function openPath(sys: LibOS, path: string): Promise<boolean> {
         return true;
     }
     if (IMAGE_EXT.test(path)) sys.spawn("imageviewer", { argv: [path] });
+    else if (VIDEO_EXT.test(path)) sys.spawn("video", { argv: [path] });
     else if (AUDIO_EXT.test(path)) sys.spawn("mediaplayer", { argv: [path] });
     else if (/\.csv$/i.test(path)) sys.spawn("vortexcalc", { argv: [path] });
     else if (/\.pdf$/i.test(path)) sys.spawn("docviewer", { argv: [path] });

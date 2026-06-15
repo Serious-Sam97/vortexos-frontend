@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <radialGradient id="ob-ball" cx="42%" cy="30%" r="80%">
+      <stop offset="0" stop-color="#7fb3e6"/>
+      <stop offset="0.35" stop-color="#2f64a8"/>
+      <stop offset="0.75" stop-color="#123a6e"/>
+      <stop offset="1" stop-color="#06152e"/>
+    </radialGradient>
+    <linearGradient id="ob-gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.92"/>
+      <stop offset="0.55" stop-color="#dcefff" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="ob-rim" cx="50%" cy="50%" r="50%">
+      <stop offset="0.85" stop-color="#a8d4ff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#bfe0ff" stop-opacity="0.7"/>
+    </radialGradient>
+    <linearGradient id="ob-r" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#ff8a5a"/><stop offset="1" stop-color="#d8392a"/></linearGradient>
+    <linearGradient id="ob-g" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#a6e25a"/><stop offset="1" stop-color="#549c1c"/></linearGradient>
+    <linearGradient id="ob-b" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#6cc6f5"/><stop offset="1" stop-color="#1577c6"/></linearGradient>
+    <linearGradient id="ob-y" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#ffe071"/><stop offset="1" stop-color="#f0a200"/></linearGradient>
+  </defs>
+
+  <circle cx="50" cy="50" r="47" fill="url(#ob-ball)" stroke="#05122a" stroke-width="2.5"/>
+
+  <!-- the four-pane flag, perspective, centred -->
+  <g transform="translate(28 29) scale(0.92)">
+    <path d="M3,6 L22.5,8.3 L22.5,21.6 L3,21.6 Z" fill="url(#ob-r)"/>
+    <path d="M25.5,8.7 L45,11 L45,21.6 L25.5,21.6 Z" fill="url(#ob-g)"/>
+    <path d="M3,24.4 L22.5,24.4 L22.5,37.7 L3,40 Z" fill="url(#ob-b)"/>
+    <path d="M25.5,24.4 L45,24.4 L45,35 L25.5,37.3 Z" fill="url(#ob-y)"/>
+  </g>
+
+  <!-- glossy top highlight + outer rim light -->
+  <ellipse cx="50" cy="25" rx="35" ry="19" fill="url(#ob-gloss)"/>
+  <circle cx="50" cy="50" r="47" fill="url(#ob-rim)"/>
+</svg>

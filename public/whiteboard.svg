@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <rect x="2.5" y="3.5" width="27" height="20" rx="1.5" fill="#fff" stroke="#000" stroke-width="1.2"/>
+  <path d="M6 17 C9 9, 12 9, 14 15 S19 21, 22 12" fill="none" stroke="#ff2d95" stroke-width="2" stroke-linecap="round"/>
+  <path d="M7 20 C12 18, 18 18, 25 19" fill="none" stroke="#2d7dff" stroke-width="2" stroke-linecap="round"/>
+  <!-- marker on the tray -->
+  <rect x="6" y="25.5" width="20" height="2.6" rx="1.2" fill="#808080"/>
+  <rect x="18" y="24" width="9" height="3.2" rx="1" fill="#00b050" stroke="#000" stroke-width="0.6" transform="rotate(-6 22 25)"/>
+</svg>

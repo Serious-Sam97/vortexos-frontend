@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 46" width="48" height="46">
+  <defs>
+    <linearGradient id="wf-r" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#ff8a5a"/><stop offset="0.5" stop-color="#f2502f"/><stop offset="1" stop-color="#d2351f"/></linearGradient>
+    <linearGradient id="wf-g" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#a6e25a"/><stop offset="0.5" stop-color="#7cc02e"/><stop offset="1" stop-color="#549c1c"/></linearGradient>
+    <linearGradient id="wf-b" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#6cc6f5"/><stop offset="0.5" stop-color="#33a4ea"/><stop offset="1" stop-color="#1577c6"/></linearGradient>
+    <linearGradient id="wf-y" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#ffe071"/><stop offset="0.5" stop-color="#ffc41e"/><stop offset="1" stop-color="#f0a200"/></linearGradient>
+    <linearGradient id="wf-sheen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0.05"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></linearGradient>
+  </defs>
+
+  <!-- Four panes on a flag flying to the right (perspective: left edge taller). -->
+  <!-- red (top-left) -->
+  <path d="M3,6 L22.5,8.3 L22.5,21.6 L3,21.6 Z" fill="url(#wf-r)"/>
+  <!-- green (top-right) -->
+  <path d="M25.5,8.7 L45,11 L45,21.6 L25.5,21.6 Z" fill="url(#wf-g)"/>
+  <!-- blue (bottom-left) -->
+  <path d="M3,24.4 L22.5,24.4 L22.5,37.7 L3,40 Z" fill="url(#wf-b)"/>
+  <!-- yellow (bottom-right) -->
+  <path d="M25.5,24.4 L45,24.4 L45,35 L25.5,37.3 Z" fill="url(#wf-y)"/>
+
+  <!-- a soft sheen over the top row for gloss -->
+  <path d="M3,6 L45,11 L45,15 L3,12 Z" fill="url(#wf-sheen)"/>
+</svg>

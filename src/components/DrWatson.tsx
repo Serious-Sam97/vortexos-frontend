@@ -52,7 +52,7 @@ export class DrWatson extends React.Component<Props, State> {
                 >
                     <div
                         style={{
-                            background: "linear-gradient(90deg, #000080, #1084d0)",
+                            background: "var(--vx-title-active, linear-gradient(90deg, #000080, #1084d0))",
                             color: "#fff",
                             fontWeight: "bold",
                             padding: "2px 4px",

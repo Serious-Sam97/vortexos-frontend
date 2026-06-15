@@ -86,6 +86,10 @@ const Sidebar = styled.div`
     justify-content: center;
     gap: 14px;
     padding: 14px;
+    /* Reclaim the space for content on narrow phones. */
+    @media (max-width: 480px) {
+        display: none;
+    }
 `;
 
 const SideText = styled.div`

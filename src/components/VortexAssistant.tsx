@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import styled, { keyframes } from "styled-components";
 import { useProcessTable } from "../kernel/react/KernelProvider";
 import { useProcessContext } from "../contexts/ProcessContext";
+import { useMobileShell } from "../system/viewport";
 import { subscribeCrashLog, getCrashLog } from "../system/crashlog";
 import {
     useAssistantEnabled,
@@ -52,10 +53,10 @@ const pop = keyframes`
     100% { transform: scale(1); }
 `;
 
-const Layer = styled.div`
+const Layer = styled.div<{ $mobile?: boolean }>`
     position: fixed;
-    right: 20px;
-    bottom: 50px;
+    right: ${({ $mobile }) => ($mobile ? "12px" : "20px")};
+    bottom: ${({ $mobile }) => ($mobile ? "62px" : "50px")};
     z-index: 58000;
     display: flex;
     flex-direction: column;
@@ -134,11 +135,11 @@ const LinkBtn = styled.button`
     }
 `;
 
-const SpriteWrap = styled.div`
+const SpriteWrap = styled.div<{ $size: number }>`
     pointer-events: auto;
     position: relative;
-    width: 84px;
-    height: 84px;
+    width: ${({ $size }) => $size}px;
+    height: ${({ $size }) => $size}px;
     cursor: pointer;
     animation: ${bob} 3.4s ease-in-out infinite;
     &:hover .vx-hide {
@@ -196,6 +197,8 @@ const VortexAssistant: React.FC = () => {
     const enabled = useAssistantEnabled();
     const table = useProcessTable();
     const { addProcess } = useProcessContext();
+    const mobile = useMobileShell();
+    const spriteSize = mobile ? 58 : 84; // a smaller, less-intrusive mascot on phones
 
     const [speech, setSpeech] = useState<AssistantSpeech | null>(null);
     const [popN, setPopN] = useState(0);
@@ -294,7 +297,7 @@ const VortexAssistant: React.FC = () => {
     if (!enabled) return null;
 
     return (
-        <Layer>
+        <Layer $mobile={mobile}>
             {speech && (
                 <Bubble role="status">
                     <BubbleName>Vortex</BubbleName>
@@ -316,6 +319,7 @@ const VortexAssistant: React.FC = () => {
             )}
 
             <SpriteWrap
+                $size={spriteSize}
                 title="Vortex — click for a tip"
                 onClick={() => speak({ text: randomTip() })}
             >
@@ -331,7 +335,7 @@ const VortexAssistant: React.FC = () => {
                 </HideDot>
                 <Glow />
                 <Popper key={popN} $pop={popN}>
-                    <svg viewBox="0 0 100 100" width={84} height={84} style={{ display: "block" }}>
+                    <svg viewBox="0 0 100 100" width={spriteSize} height={spriteSize} style={{ display: "block" }}>
                         <defs>
                             <radialGradient id="vx-body" cx="42%" cy="36%" r="70%">
                                 <stop offset="0%" stopColor="#ff8fd4" />

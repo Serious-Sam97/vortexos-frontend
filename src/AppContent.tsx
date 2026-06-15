@@ -20,8 +20,9 @@ const AppContent: React.FC = () => {
                     backgroundColor: '#1a0033',
                 };
             }
+            // Stock look: the active era's desktop background (Windows 98 default: teal).
             return {
-                background: '#008080'
+                background: 'var(--vx-desktop, #008080)'
             };
         }
 

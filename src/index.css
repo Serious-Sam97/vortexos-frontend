@@ -1,12 +1,32 @@
 /* VortexOS — Windows 95 base styles */
 :root {
-  font-family: 'ms_sans_serif', 'MS Sans Serif', Tahoma, sans-serif;
+  font-family: var(--vx-font, 'ms_sans_serif', 'MS Sans Serif', Tahoma, sans-serif);
   font-size: 16px;
   color: #000;
   /* crisp, pixel-era rendering */
   -webkit-font-smoothing: none;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeSpeed;
+
+  /* ── Time Machine era tokens (defaults = Windows 98) ──────────────────────
+     The active era's EraApplier overrides these on document.documentElement at
+     runtime; the default era just clears the overrides so these values apply.
+     Keeping the 98 values here means zero flash before the applier mounts. */
+  --vx-title-active: linear-gradient(90deg, #000080 0%, #1084d0 100%);
+  --vx-title-inactive: linear-gradient(90deg, #808080 0%, #b5b5b5 100%);
+  --vx-title-text: #ffffff;
+  --vx-title-text-inactive: #dfdfdf;
+  --vx-title-radius: 0;
+  --vx-accent: #000080;
+  --vx-accent-text: #ffffff;
+  --vx-face: #c0c0c0;
+  --vx-face-text: #000000;
+  --vx-light: #ffffff;
+  --vx-shadow: #808080;
+  --vx-taskbar: #c0c0c0;
+  --vx-start-banner: linear-gradient(180deg, #00007a 0%, #000033 100%);
+  --vx-desktop: #008080;
+  --vx-font: 'ms_sans_serif', 'MS Sans Serif', Tahoma, sans-serif;
 }
 
 html,
@@ -20,7 +40,7 @@ body,
 }
 
 body {
-  background-color: #008080; /* classic teal desktop */
+  background-color: var(--vx-desktop); /* era desktop (98 default: teal) */
   cursor: default;
   user-select: none;
 }
@@ -114,6 +134,230 @@ select {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Time Machine — per-era window control buttons (min/max/close).
+   Default (Win 95/NT4/98/2000) = the classic gray bevel from the styled component.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Windows XP (Luna) — rounded, glossy blue min/max, red close */
+html[data-era="winxp"] .vx-ctrl {
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 3px;
+  background: linear-gradient(180deg, #5b9bf0 0%, #2f6fd0 100%);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+html[data-era="winxp"] .vx-ctrl:active { background: #1f5ab0; }
+html[data-era="winxp"] .vx-ctrl-close { background: linear-gradient(180deg, #f5895f 0%, #d6391f 100%); }
+html[data-era="winxp"] .vx-ctrl-close:hover { background: linear-gradient(180deg, #ff9a6f 0%, #e5482b 100%); }
+
+/* Windows Vista / 7 (Aero) — glass buttons, red close */
+html[data-era="vista"] .vx-ctrl,
+html[data-era="win7"] .vx-ctrl {
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+html[data-era="win7"] .vx-ctrl { color: #16314f; }
+html[data-era="vista"] .vx-ctrl { color: #eaf2ff; background: rgba(255, 255, 255, 0.16); }
+html[data-era="vista"] .vx-ctrl:active,
+html[data-era="win7"] .vx-ctrl:active { background: rgba(255, 255, 255, 0.5); }
+html[data-era="vista"] .vx-ctrl-close,
+html[data-era="win7"] .vx-ctrl-close {
+  background: linear-gradient(180deg, rgba(235, 95, 75, 0.92) 0%, rgba(200, 40, 30, 0.95) 100%);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.6);
+}
+html[data-era="vista"] .vx-ctrl-close:hover,
+html[data-era="win7"] .vx-ctrl-close:hover { background: linear-gradient(180deg, #ff7a60 0%, #e2402a 100%); }
+
+/* Vortex future — neon glass, magenta close */
+html[data-era="vortex"] .vx-ctrl {
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  color: #fff;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+html[data-era="vortex"] .vx-ctrl:active { background: rgba(255, 255, 255, 0.3); }
+html[data-era="vortex"] .vx-ctrl-close { background: linear-gradient(180deg, #ff2d95 0%, #b3186b 100%); border-color: rgba(255, 255, 255, 0.6); }
+html[data-era="vortex"] .vx-ctrl-close:hover { background: linear-gradient(180deg, #ff5cae 0%, #c81f7a 100%); }
+
+/* MS-DOS — flat, no bevel */
+html[data-era="dos"] .vx-ctrl {
+  border: 1px solid #000;
+  border-radius: 0;
+  background: #aaaaaa;
+  color: #000;
+}
+html[data-era="dos"] .vx-ctrl:active { background: #888; }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Time Machine — per-era taskbar task buttons. Default = classic gray bevel.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Windows XP — glossy blue task buttons */
+html[data-era="winxp"] .vx-taskbtn {
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  background: linear-gradient(180deg, #3f87ee 0%, #2864cf 100%);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+html[data-era="winxp"] .vx-taskbtn[data-active] {
+  background: linear-gradient(180deg, #1c4fa6 0%, #2a63c4 100%);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+/* Aero (Vista/7) + Vortex — glass task buttons */
+html[data-era="vista"] .vx-taskbtn,
+html[data-era="win7"] .vx-taskbtn,
+html[data-era="vortex"] .vx-taskbtn {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--vx-taskbar-text, #fff);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+html[data-era="vista"] .vx-taskbtn[data-active],
+html[data-era="win7"] .vx-taskbtn[data-active],
+html[data-era="vortex"] .vx-taskbtn[data-active] {
+  background: rgba(255, 255, 255, 0.34);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+/* MS-DOS — flat dark task buttons */
+html[data-era="dos"] .vx-taskbtn {
+  border: 1px solid #555;
+  border-radius: 0;
+  background: #1c1c1c;
+  color: #cfcfcf;
+}
+html[data-era="dos"] .vx-taskbtn[data-active] { background: #333; border-color: #888; }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Time Machine — per-era scrollbars. Default = the Win98 chunky bars above.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Windows XP (Luna) — blue rounded scrollbars */
+html[data-era="winxp"] ::-webkit-scrollbar-track { background: #d6e2f2; background-image: none; }
+html[data-era="winxp"] ::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #7aa6ec 0%, #3f74d0 100%);
+  border: 1px solid #2a5cb0;
+  border-radius: 7px;
+}
+html[data-era="winxp"] ::-webkit-scrollbar-button {
+  background: linear-gradient(180deg, #8fb3ee 0%, #3f74d0 100%);
+  border: 1px solid #2a5cb0;
+  border-radius: 3px;
+}
+html[data-era="winxp"] ::-webkit-scrollbar-corner { background: #d6e2f2; }
+
+/* Vista / Windows 7 (Aero) — light, thin, rounded */
+html[data-era="vista"] ::-webkit-scrollbar-track,
+html[data-era="win7"] ::-webkit-scrollbar-track { background: #eef2f8; background-image: none; }
+html[data-era="vista"] ::-webkit-scrollbar-thumb,
+html[data-era="win7"] ::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #d2dded 0%, #9fb6d2 100%);
+  border: 1px solid #8aa0bc;
+  border-radius: 8px;
+}
+html[data-era="vista"] ::-webkit-scrollbar-button,
+html[data-era="win7"] ::-webkit-scrollbar-button {
+  background: #dde6f1;
+  border: 1px solid #b0c0d4;
+  border-radius: 3px;
+}
+html[data-era="vista"] ::-webkit-scrollbar-corner,
+html[data-era="win7"] ::-webkit-scrollbar-corner { background: #eef2f8; }
+
+/* Vortex future — neon scrollbars */
+html[data-era="vortex"] ::-webkit-scrollbar-track { background: #190a30; background-image: none; }
+html[data-era="vortex"] ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #ff2d95 0%, #6a1b9a 100%);
+  border: 1px solid #00e5d0;
+  border-radius: 8px;
+}
+html[data-era="vortex"] ::-webkit-scrollbar-button {
+  background: #2a1040;
+  border: 1px solid #6a1b9a;
+  border-radius: 3px;
+}
+html[data-era="vortex"] ::-webkit-scrollbar-corner { background: #190a30; }
+
+/* MS-DOS — blocky monochrome */
+html[data-era="dos"] ::-webkit-scrollbar-track { background: #000; background-image: none; border-left: 1px solid #555; }
+html[data-era="dos"] ::-webkit-scrollbar-thumb { background: #8a8a8a; border: 1px solid #cfcfcf; border-radius: 0; }
+html[data-era="dos"] ::-webkit-scrollbar-button { background: #555; border: 1px solid #8a8a8a; border-radius: 0; }
+html[data-era="dos"] ::-webkit-scrollbar-corner { background: #000; }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Time Machine — per-era Quick Launch / Show Desktop strip buttons.
+   Default = the gray bevel from the styled components.
+   ─────────────────────────────────────────────────────────────────────────── */
+html[data-era="winxp"] .vx-quickbtn,
+html[data-era="vista"] .vx-quickbtn,
+html[data-era="win7"] .vx-quickbtn,
+html[data-era="vortex"] .vx-quickbtn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+html[data-era="winxp"] .vx-quickbtn:hover,
+html[data-era="vista"] .vx-quickbtn:hover,
+html[data-era="win7"] .vx-quickbtn:hover,
+html[data-era="vortex"] .vx-quickbtn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+html[data-era="dos"] .vx-quickbtn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0;
+}
+html[data-era="dos"] .vx-quickbtn:hover { background: #1c1c1c; border-color: #555; }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Time Machine — per-era window FRAME (the react95 Window body border).
+   The frame colour shows in the 4px padding around the (opaque) app content;
+   default = the classic gray 3D bevel. We override border + box-shadow per era.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Windows XP (Luna) — thin blue frame */
+html[data-era="winxp"] .window {
+  background: #1c52ad;
+  border-color: #0e3f93;
+  box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* Vista / Windows 7 (Aero) — light frame with a soft glass-edge glow */
+html[data-era="vista"] .window,
+html[data-era="win7"] .window {
+  background: #e7eef8;
+  border-color: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(120, 170, 230, 0.55);
+}
+
+/* Vortex future — neon frame with a magenta/cyan glow */
+html[data-era="vortex"] .window {
+  background: #240a3e;
+  border-color: rgba(255, 45, 149, 0.55);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), 0 0 16px rgba(255, 45, 149, 0.3), 0 0 0 1px rgba(0, 229, 208, 0.4);
+}
+
+/* MS-DOS — flat dark frame, hard offset shadow */
+html[data-era="dos"] .window {
+  background: #2a2a2a;
+  border: 1px solid #8a8a8a;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.6);
 }
 
 /* Accessibility: when reduce-motion is on, neutralise animations & transitions globally. */

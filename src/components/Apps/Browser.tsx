@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button, TextInput, Toolbar } from "react95";
 import { getToken } from "../../system/session";
+import { useMobileShell } from "../../system/viewport";
 
 const HOME = "vortex:home";
 const API = import.meta.env.VITE_API_URL ?? "";
@@ -31,6 +32,7 @@ function normalize(url: string): string {
 }
 
 const Browser: React.FC = () => {
+    const mobile = useMobileShell();
     const [history, setHistory] = useState<string[]>([HOME]);
     const [index, setIndex] = useState(0);
     const [address, setAddress] = useState("");
@@ -60,7 +62,7 @@ const Browser: React.FC = () => {
     const home = () => go(HOME);
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", height: "100%", minWidth: 560, minHeight: 360 }}>
+        <div style={{ display: "flex", flexDirection: "column", height: "100%", minWidth: mobile ? 0 : 560, minHeight: mobile ? 0 : 360 }}>
             <Toolbar style={{ gap: 4 }}>
                 <Button size="sm" onClick={back} disabled={index === 0}>
                     ◀ Back

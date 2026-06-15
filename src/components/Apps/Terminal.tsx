@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSys } from "../../kernel/react/useSys";
 import { Shell } from "../../shell/Shell";
 import { getSession, homeDir } from "../../system/session";
+import { useMobileShell } from "../../system/viewport";
 import ContextMenu from "../ContextMenu";
 
 const BANNER = ["VortexOS [Version 2.0]", "Type 'help' for a list of commands.", ""];
@@ -9,6 +10,7 @@ const BANNER = ["VortexOS [Version 2.0]", "Type 'help' for a list of commands.",
 /** A real terminal: a TTY rendering a /bin/sh session driven by syscalls. */
 const Terminal: React.FC = () => {
     const sys = useSys();
+    const mobile = useMobileShell();
     const shellRef = useRef<Shell | null>(null);
     if (!shellRef.current) {
         // Start in the signed-in user's home, not the legacy /home/user.
@@ -92,8 +94,8 @@ const Terminal: React.FC = () => {
             style={{
                 width: "100%",
                 height: "100%",
-                minWidth: 600,
-                minHeight: 360,
+                minWidth: mobile ? 0 : 600,
+                minHeight: mobile ? 0 : 360,
                 boxSizing: "border-box",
                 overflowY: "auto",
                 background: "#000",

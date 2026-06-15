@@ -53,4 +53,5 @@ export const SAVERS = [
     { key: "starfield", name: "Starfield Simulation" },
     { key: "mystify", name: "Mystify Your Mind" },
     { key: "pipes", name: "3D Pipes" },
+    { key: "spectrum", name: "Sound Spectrum (VortexViz)" },
 ];

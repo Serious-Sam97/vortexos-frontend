@@ -4,6 +4,8 @@ import WMenu from "../components/WMenu";
 import WindowManager from "../components/WindowManager";
 import LoginScreen from "../components/Login/LoginScreen";
 import ChatNotifier from "../components/ChatNotifier";
+import MailNotifier from "../components/MailNotifier";
+import ReminderService from "../components/ReminderService";
 import ToastHost from "../components/ToastHost";
 import BSOD from "../components/BSOD";
 import OSErrorBoundary from "../components/OSErrorBoundary";
@@ -17,21 +19,31 @@ import TipOfTheDay from "../components/TipOfTheDay";
 import VortexAssistant from "../components/VortexAssistant";
 import EasterEggs from "../components/EasterEggs";
 import SettingsApplier from "../components/SettingsApplier";
+import EraApplier from "../components/EraApplier";
+import TimeWarp from "../components/TimeWarp";
+import OnScreenKeyboard from "../components/OnScreenKeyboard";
+import AriaLive from "../components/AriaLive";
+import PresenceReporter from "../components/PresenceReporter";
 import { useOSContext } from "../contexts/OSContext";
 import { useAuth } from "../contexts/AuthContext";
-import { useReloadCloud } from "../kernel/react/KernelProvider";
+import { useReloadCloud, useKernel } from "../kernel/react/KernelProvider";
 import { connectChat, disconnectChat } from "../system/chat";
+import { reloadEra } from "../system/eras";
+import { syncUserApps } from "../system/userApps";
 
 const Vortex: React.FC = () => {
     const { cursor, crt, busy, reloadWallpaper } = useOSContext();
     const { isAuthenticated } = useAuth();
     const reloadCloud = useReloadCloud();
+    const kernel = useKernel();
 
     // Load (or switch to) the signed-in user's cloud drive + wallpaper once authenticated.
     useEffect(() => {
         if (isAuthenticated) {
             void reloadCloud();
             reloadWallpaper();
+            reloadEra(); // load this user's chosen era
+            syncUserApps(kernel.registry); // register this user's installed apps
         }
         // Runs on sign-in/user-switch; the callbacks aren't memoised so they're left out.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -57,6 +69,8 @@ const Vortex: React.FC = () => {
                 <WindowManager />
                 <WMenu />
                 <ChatNotifier />
+                <MailNotifier />
+                <ReminderService />
                 <ToastHost />
                 <AltTabSwitcher />
                 <SystemFeedback />
@@ -68,6 +82,11 @@ const Vortex: React.FC = () => {
                 <VortexAssistant />
                 <EasterEggs />
                 <SettingsApplier />
+                <EraApplier />
+                <TimeWarp />
+                <OnScreenKeyboard />
+                <AriaLive />
+                <PresenceReporter />
             </OSErrorBoundary>
 
             {/* Rendered outside the boundary so it still shows if the chrome subtree is dead. */}

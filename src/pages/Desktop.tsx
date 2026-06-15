@@ -4,6 +4,9 @@ import { useSys } from "../kernel/react/useSys";
 import { useFsVersion } from "../kernel/react/KernelProvider";
 import { useUninstalled } from "../system/programs";
 import { useSettings, setSetting, ICON_METRICS } from "../system/settings";
+import { useEra } from "../system/eras";
+import { useUserApps } from "../system/userApps";
+import { useMobileShell, taskbarHeight } from "../system/viewport";
 import ContextMenu, { type CtxItem } from "../components/ContextMenu";
 import { iconForEntry } from "../system/fileIcons";
 import { ensureUserHome } from "../system/homeMigration";
@@ -17,6 +20,22 @@ import TrashIcon from "/trash.svg";
 import MyComputerIcon from "/my-computer.png";
 import NetworkIcon from "/network.svg";
 import WinpopupIcon from "/winpopup.svg";
+import LoungeIcon from "/lounge.svg";
+import CoWriteIcon from "/cowrite.svg";
+import BbsIcon from "/bbs.svg";
+import WhiteboardIcon from "/whiteboard.svg";
+import VortexAmpIcon from "/vortexamp.svg";
+import VortexVizIcon from "/vortexviz.svg";
+import SynthIcon from "/synth.svg";
+import ShaderIcon from "/shader.svg";
+import VideoIcon from "/video.svg";
+import TimeMachineIcon from "/timemachine.svg";
+import AppStoreIcon from "/appstore.svg";
+import VortexMailIcon from "/vortexmail.svg";
+import CalendarAppIcon from "/calendar.svg";
+import ContactsAppIcon from "/contacts.svg";
+import TasksAppIcon from "/tasks.svg";
+import OfficeIcon from "/office.svg";
 import DoomIcon from "/doom.png";
 import DoomIIIcon from "/doom2.png";
 import BackloggerIcon from "/playstation-logo.png";
@@ -60,7 +79,23 @@ const APP_SHORTCUTS: Item[] = [
     { id: "app:my_computer", name: "My Computer", icon: MyComputerIcon, kind: "app", componentName: "my_computer" },
     { id: "app:network", name: "Network Neighborhood", icon: NetworkIcon, kind: "app", componentName: "network" },
     { id: "app:messenger", name: "WinPopup", icon: WinpopupIcon, kind: "app", componentName: "messenger" },
+    { id: "app:lounge", name: "Vortex Lounge", icon: LoungeIcon, kind: "app", componentName: "lounge" },
+    { id: "app:cowrite", name: "Vortex CoWrite", icon: CoWriteIcon, kind: "app", componentName: "cowrite" },
+    { id: "app:bbs", name: "Vortex BBS", icon: BbsIcon, kind: "app", componentName: "bbs" },
+    { id: "app:whiteboard", name: "Vortex Whiteboard", icon: WhiteboardIcon, kind: "app", componentName: "whiteboard" },
+    { id: "app:vortexamp", name: "VortexAmp", icon: VortexAmpIcon, kind: "app", componentName: "vortexamp" },
+    { id: "app:vortexviz", name: "VortexViz", icon: VortexVizIcon, kind: "app", componentName: "vortexviz" },
+    { id: "app:synth", name: "Vortex Synth", icon: SynthIcon, kind: "app", componentName: "synth" },
+    { id: "app:shader", name: "Shader Playground", icon: ShaderIcon, kind: "app", componentName: "shader" },
+    { id: "app:video", name: "Vortex Video", icon: VideoIcon, kind: "app", componentName: "video" },
     { id: "app:vaporwave", name: "Nightwave Plaza", icon: NightwavePlazaIcon, kind: "app", componentName: "vaporwave" },
+    { id: "app:timemachine", name: "Time Machine", icon: TimeMachineIcon, kind: "app", componentName: "timemachine" },
+    { id: "app:appstore", name: "App Store", icon: AppStoreIcon, kind: "app", componentName: "appstore" },
+    { id: "app:office", name: "Vortex Office", icon: OfficeIcon, kind: "app", componentName: "office" },
+    { id: "app:vortexmail", name: "VortexMail", icon: VortexMailIcon, kind: "app", componentName: "vortexmail" },
+    { id: "app:calendar", name: "Calendar", icon: CalendarAppIcon, kind: "app", componentName: "calendar" },
+    { id: "app:contacts", name: "Contacts", icon: ContactsAppIcon, kind: "app", componentName: "contacts" },
+    { id: "app:tasks", name: "Tasks", icon: TasksAppIcon, kind: "app", componentName: "tasks" },
     { id: "app:task_manager", name: "Task Manager", icon: TaskManagerIcon, kind: "app", componentName: "task_manager" },
     { id: "app:explorer", name: "Explorer", icon: ExplorerIcon, kind: "app", componentName: "explorer" },
     { id: "app:terminal", name: "Terminal", icon: TerminalIcon, kind: "app", componentName: "terminal" },
@@ -105,6 +140,12 @@ const Desktop: React.FC = () => {
     const fsVersion = useFsVersion();
     const uninstalled = useUninstalled();
     const settings = useSettings();
+    const mobile = useMobileShell();
+    const era = useEra();
+    const userApps = useUserApps();
+    // Modern eras (XP/Aero/Vortex — rounded windows) get a translucent rounded icon
+    // selection; classic eras keep the hard navy label box + dotted outline.
+    const roundedSel = era.chrome.titleRadius !== "0";
     const metric = ICON_METRICS[settings.desktopIconSize];
 
     // Each user gets their own Desktop folder and icon arrangement.
@@ -122,7 +163,18 @@ const Desktop: React.FC = () => {
     const drag = useRef<{ ids: string[]; startMouse: { x: number; y: number }; start: Positions } | null>(null);
     const marqueeStart = useRef<{ x: number; y: number } | null>(null);
 
-    const items = [...APP_SHORTCUTS.filter((a) => !a.componentName || !uninstalled.has(a.componentName)), ...files];
+    const userAppItems: Item[] = userApps.map((a) => ({
+        id: `userapp:${a.manifest.id}`,
+        name: a.manifest.name,
+        icon: a.manifest.icon,
+        kind: "app" as Kind,
+        componentName: a.manifest.id,
+    }));
+    const items = [
+        ...APP_SHORTCUTS.filter((a) => !a.componentName || !uninstalled.has(a.componentName)),
+        ...userAppItems,
+        ...files,
+    ];
 
     const perCol = Math.max(1, Math.floor((window.innerHeight - TASKBAR_HEIGHT - 20) / CELL_H));
     const positionOf = (id: string, index: number) =>
@@ -180,7 +232,8 @@ const Desktop: React.FC = () => {
     };
 
     // ── icon dragging (moves the whole selection) ────────────────────────
-    const onIconMouseDown = (e: React.MouseEvent, item: Item, index: number) => {
+    // Pointer events so a finger/pen can rearrange icons too (desktop/tablet).
+    const onIconMouseDown = (e: React.PointerEvent, item: Item, index: number) => {
         if (e.button !== 0) return; // only left-drag; right-click is handled by onContextMenu
         e.stopPropagation();
         setMenu(null);
@@ -194,11 +247,11 @@ const Desktop: React.FC = () => {
             start[id] = positionOf(id, idx >= 0 ? idx : index);
         });
         drag.current = { ids: movingIds, startMouse: { x: e.clientX, y: e.clientY }, start };
-        document.addEventListener("mousemove", onDragMove);
-        document.addEventListener("mouseup", onDragUp);
+        document.addEventListener("pointermove", onDragMove);
+        document.addEventListener("pointerup", onDragUp);
     };
 
-    const onDragMove = (e: MouseEvent) => {
+    const onDragMove = (e: PointerEvent) => {
         const d = drag.current; // capture so the updater never dereferences a cleared ref
         if (!d) return;
         const dx = e.clientX - d.startMouse.x;
@@ -213,9 +266,9 @@ const Desktop: React.FC = () => {
         });
     };
 
-    const onDragUp = (e: MouseEvent) => {
-        document.removeEventListener("mousemove", onDragMove);
-        document.removeEventListener("mouseup", onDragUp);
+    const onDragUp = (e: PointerEvent) => {
+        document.removeEventListener("pointermove", onDragMove);
+        document.removeEventListener("pointerup", onDragUp);
         const d = drag.current;
         // Single-click-to-open: a click that didn't move opens the icon.
         if (d && settings.singleClickOpen && d.ids.length === 1) {
@@ -229,16 +282,16 @@ const Desktop: React.FC = () => {
     };
 
     // ── marquee selection on empty desktop ───────────────────────────────
-    const onRootMouseDown = (e: React.MouseEvent) => {
+    const onRootMouseDown = (e: React.PointerEvent) => {
         if (e.button !== 0) return;
         setSelected(new Set());
         setMenu(null);
         marqueeStart.current = { x: e.clientX, y: e.clientY };
-        document.addEventListener("mousemove", onMarqueeMove);
-        document.addEventListener("mouseup", onMarqueeUp);
+        document.addEventListener("pointermove", onMarqueeMove);
+        document.addEventListener("pointerup", onMarqueeUp);
     };
 
-    const onMarqueeMove = (e: MouseEvent) => {
+    const onMarqueeMove = (e: PointerEvent) => {
         if (!marqueeStart.current) return;
         const x = Math.min(e.clientX, marqueeStart.current.x);
         const y = Math.min(e.clientY, marqueeStart.current.y);
@@ -254,10 +307,37 @@ const Desktop: React.FC = () => {
     };
 
     const onMarqueeUp = () => {
-        document.removeEventListener("mousemove", onMarqueeMove);
-        document.removeEventListener("mouseup", onMarqueeUp);
+        document.removeEventListener("pointermove", onMarqueeMove);
+        document.removeEventListener("pointerup", onMarqueeUp);
         marqueeStart.current = null;
         setMarquee(null);
+    };
+
+    // ── long-press → context menu (touch has no right-click) ──────────────
+    const lpTimer = useRef<number | null>(null);
+    const lpFired = useRef(false);
+    const lpStart = useRef<{ x: number; y: number } | null>(null);
+    const clearLP = () => {
+        if (lpTimer.current) {
+            clearTimeout(lpTimer.current);
+            lpTimer.current = null;
+        }
+    };
+    const startLongPress = (e: React.PointerEvent, item: Item | null) => {
+        if (e.pointerType === "mouse") return; // mouse uses a real right-click / contextmenu
+        lpFired.current = false;
+        lpStart.current = { x: e.clientX, y: e.clientY };
+        const x = e.clientX;
+        const y = e.clientY;
+        lpTimer.current = window.setTimeout(() => {
+            lpFired.current = true;
+            if (item) setSelected(new Set([item.id]));
+            setMenu({ x, y, item });
+        }, 500);
+    };
+    const moveLongPress = (e: React.PointerEvent) => {
+        if (!lpStart.current) return;
+        if (Math.abs(e.clientX - lpStart.current.x) > 10 || Math.abs(e.clientY - lpStart.current.y) > 10) clearLP();
     };
 
     // ── file operations from the desktop ─────────────────────────────────
@@ -339,9 +419,34 @@ const Desktop: React.FC = () => {
     return (
         <div
             ref={rootRef}
-            onMouseDown={onRootMouseDown}
+            role="region"
+            aria-label="Desktop"
+            onPointerDown={
+                mobile
+                    ? (e) => {
+                          if (e.target === e.currentTarget) startLongPress(e, null);
+                      }
+                    : onRootMouseDown
+            }
+            onPointerMove={mobile ? moveLongPress : undefined}
+            onPointerUp={mobile ? clearLP : undefined}
             onContextMenu={(e) => openMenu(e, null)}
-            style={{ position: "relative", width: "100%", height: `calc(100vh - ${TASKBAR_HEIGHT}px)`, overflow: "hidden" }}
+            style={
+                mobile
+                    ? {
+                          position: "relative",
+                          width: "100%",
+                          height: `calc(100vh - ${taskbarHeight(true)}px)`,
+                          overflowY: "auto",
+                          display: "flex",
+                          flexWrap: "wrap",
+                          alignContent: "flex-start",
+                          gap: 6,
+                          padding: 10,
+                          boxSizing: "border-box",
+                      }
+                    : { position: "relative", width: "100%", height: `calc(100vh - ${TASKBAR_HEIGHT}px)`, overflow: "hidden" }
+            }
         >
             {settings.showDesktopIcons &&
                 items.map((item, i) => {
@@ -350,20 +455,55 @@ const Desktop: React.FC = () => {
                 return (
                     <div
                         key={item.id}
-                        onMouseDown={(e) => onIconMouseDown(e, item, i)}
-                        onDoubleClick={settings.singleClickOpen ? undefined : () => openItem(item)}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={item.name}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                openItem(item);
+                            }
+                        }}
+                        onPointerDown={mobile ? (e) => startLongPress(e, item) : (e) => onIconMouseDown(e, item, i)}
+                        onPointerMove={mobile ? moveLongPress : undefined}
+                        onPointerUp={mobile ? clearLP : undefined}
+                        onClick={
+                            mobile
+                                ? () => {
+                                      if (lpFired.current) {
+                                          lpFired.current = false;
+                                          return; // a long-press opened the menu — don't also open the item
+                                      }
+                                      openItem(item);
+                                  }
+                                : undefined
+                        }
+                        onDoubleClick={mobile || settings.singleClickOpen ? undefined : () => openItem(item)}
                         onContextMenu={(e) => openMenu(e, item)}
                         style={{
-                            position: "absolute",
-                            left: pos.x,
-                            top: pos.y,
+                            position: mobile ? "static" : "absolute",
+                            left: mobile ? undefined : pos.x,
+                            top: mobile ? undefined : pos.y,
                             width: metric.cell,
                             display: "flex",
                             flexDirection: "column",
                             alignItems: "center",
                             padding: 3,
                             cursor: "pointer",
-                            border: isSel ? "1px dotted #ffffff" : "1px solid transparent",
+                            touchAction: "manipulation",
+                            // Native-feeling long-press: no iOS text-selection/callout while pressing.
+                            WebkitTouchCallout: mobile ? "none" : undefined,
+                            WebkitUserSelect: mobile ? "none" : undefined,
+                            userSelect: mobile ? "none" : undefined,
+                            ...(isSel
+                                ? roundedSel
+                                    ? {
+                                          border: `1px solid ${settings.accentColor}aa`,
+                                          borderRadius: 5,
+                                          background: `${settings.accentColor}33`,
+                                      }
+                                    : { border: "1px dotted #ffffff" }
+                                : { border: "1px solid transparent" }),
                         }}
                     >
                         <img src={item.icon} alt={item.name} style={{ height: metric.icon, width: metric.icon, objectFit: "contain" }} draggable={false} />
@@ -374,8 +514,8 @@ const Desktop: React.FC = () => {
                                 textAlign: "center",
                                 fontSize: metric.font,
                                 color: "#fff",
-                                textShadow: isSel ? "none" : "1px 1px 0 rgba(0,0,0,0.6)",
-                                backgroundColor: isSel ? settings.accentColor : "transparent",
+                                textShadow: isSel && !roundedSel ? "none" : "1px 1px 0 rgba(0,0,0,0.6)",
+                                backgroundColor: isSel && !roundedSel ? settings.accentColor : "transparent",
                                 wordBreak: "break-word",
                             }}
                         >

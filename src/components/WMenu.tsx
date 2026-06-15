@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import { Button, MenuList, MenuListItem, Separator } from "react95";
+import { MenuList, MenuListItem, Separator } from "react95";
 import styled from "styled-components";
 import { useProcessContext } from "../contexts/ProcessContext";
 import { useOSContext } from "../contexts/OSContext";
@@ -8,6 +8,8 @@ import { useAuth } from "../contexts/AuthContext";
 import { useUninstalled } from "../system/programs";
 import { useQuickLaunch, togglePin, unpin, isPinned } from "../system/quicklaunch";
 import { useSettings } from "../system/settings";
+import { useMobileShell, taskbarHeight } from "../system/viewport";
+import { useEra } from "../system/eras";
 import { openRun } from "../system/runDialog";
 import { BUILTIN_APPS } from "../kernel/bin";
 import SystemTray from "./SystemTray";
@@ -18,6 +20,7 @@ import { Process } from "../interfaces/Process";
 import { playClick } from "../system/sounds";
 
 import w95 from "/w95.png";
+import winFlag from "/win-flag.svg";
 import TaskManagerIcon from "/task_manager.png";
 import ControlPanelIcon from "/controlpanel.png";
 import TerminalIcon from "/terminal.svg";
@@ -30,6 +33,15 @@ import MarkdownIcon from "/markdown.svg";
 import BackloggerIcon from "/playstation-logo.png";
 import NetworkIcon from "/network.svg";
 import WinpopupIcon from "/winpopup.svg";
+import LoungeIcon from "/lounge.svg";
+import CoWriteIcon from "/cowrite.svg";
+import BbsIcon from "/bbs.svg";
+import WhiteboardIcon from "/whiteboard.svg";
+import VortexAmpIcon from "/vortexamp.svg";
+import VortexVizIcon from "/vortexviz.svg";
+import SynthIcon from "/synth.svg";
+import ShaderIcon from "/shader.svg";
+import VideoIcon from "/video.svg";
 import CalculatorIcon from "/calculator.svg";
 import MinesweeperIcon from "/minesweeper.svg";
 import SolitaireIcon from "/solitaire.svg";
@@ -39,34 +51,46 @@ import ClockIcon from "/clock.svg";
 import PaintIcon from "/paint_file-3.png";
 import FindIcon from "/find.svg";
 import HelpIcon from "/help.svg";
+import TimeMachineIcon from "/timemachine.svg";
+import AppStoreIcon from "/appstore.svg";
+import VortexMailIcon from "/vortexmail.svg";
+import CalendarAppIcon from "/calendar.svg";
+import ContactsAppIcon from "/contacts.svg";
+import TasksAppIcon from "/tasks.svg";
+import OfficeIcon from "/office.svg";
 
 const TASKBAR_HEIGHT = 40;
 
-const Bar = styled.div<{ $hidden?: boolean }>`
+const Bar = styled.div<{ $hidden?: boolean; $h: number }>`
     position: fixed;
     left: 0;
     bottom: 0;
     width: 100%;
-    height: ${TASKBAR_HEIGHT}px;
+    height: ${({ $h }) => $h}px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     box-sizing: border-box;
     display: flex;
     align-items: center;
     gap: 4px;
     padding: 3px 4px;
-    background: #c0c0c0;
-    border-top: 1px solid #ffffff;
+    background: var(--vx-taskbar, #c0c0c0);
+    border-top: 1px solid var(--vx-light, #ffffff);
+    /* Aero glass — blurs the desktop through the taskbar (no-op on classic eras). */
+    backdrop-filter: var(--vx-taskbar-blur, none);
+    -webkit-backdrop-filter: var(--vx-taskbar-blur, none);
     z-index: 99999;
     transition: transform 0.18s ease;
-    transform: translateY(${({ $hidden }) => ($hidden ? `${TASKBAR_HEIGHT - 3}px` : "0")});
+    transform: translateY(${({ $hidden, $h }) => ($hidden ? `${$h - 3}px` : "0")});
 `;
 
-const TaskButton = styled.button<{ $pressed: boolean }>`
-    flex: 0 1 160px;
-    min-width: 90px;
-    max-width: 160px;
-    height: 30px;
+const TaskButton = styled.button<{ $pressed: boolean; $mobile?: boolean }>`
+    flex: ${({ $mobile }) => ($mobile ? "0 0 auto" : "0 1 160px")};
+    min-width: ${({ $mobile }) => ($mobile ? "42px" : "90px")};
+    max-width: ${({ $mobile }) => ($mobile ? "42px" : "160px")};
+    height: ${({ $mobile }) => ($mobile ? "40px" : "30px")};
     display: flex;
     align-items: center;
+    justify-content: ${({ $mobile }) => ($mobile ? "center" : "flex-start")};
     gap: 5px;
     padding: 0 6px;
     font-family: "ms_sans_serif", "MS Sans Serif", sans-serif;
@@ -111,6 +135,25 @@ const QuickIcon = styled.button`
     }
 `;
 
+// Custom Start button — the classic Win9x raised bevel by default, fully overridable
+// by inline style for XP (green lozenge) / Aero (orb). Replaces the react95 Button so
+// no gray square shows behind the round Aero orb.
+const StartButton = styled.button<{ $active?: boolean }>`
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-sizing: border-box;
+    font-family: "ms_sans_serif", "MS Sans Serif", sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    color: #000;
+    cursor: pointer;
+    padding: 0 7px;
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: ${({ $active }) => ($active ? "#808080 #ffffff #ffffff #808080" : "#ffffff #808080 #808080 #ffffff")};
+`;
+
 const PROGRAMS = [
     { name: "Terminal", icon: TerminalIcon, componentName: "terminal" },
     { name: "Explorer", icon: ExplorerIcon, componentName: "explorer" },
@@ -122,8 +165,24 @@ const PROGRAMS = [
     { name: "GameCache", icon: BackloggerIcon, componentName: "backlogger" },
     { name: "Network Neighborhood", icon: NetworkIcon, componentName: "network" },
     { name: "WinPopup", icon: WinpopupIcon, componentName: "messenger" },
+    { name: "Vortex Lounge", icon: LoungeIcon, componentName: "lounge" },
+    { name: "Vortex CoWrite", icon: CoWriteIcon, componentName: "cowrite" },
+    { name: "Vortex BBS", icon: BbsIcon, componentName: "bbs" },
+    { name: "Vortex Whiteboard", icon: WhiteboardIcon, componentName: "whiteboard" },
+    { name: "VortexAmp", icon: VortexAmpIcon, componentName: "vortexamp" },
+    { name: "VortexViz", icon: VortexVizIcon, componentName: "vortexviz" },
+    { name: "Vortex Synth", icon: SynthIcon, componentName: "synth" },
+    { name: "Shader Playground", icon: ShaderIcon, componentName: "shader" },
+    { name: "Vortex Video", icon: VideoIcon, componentName: "video" },
     { name: "Task Manager", icon: TaskManagerIcon, componentName: "task_manager" },
     { name: "Control Panel", icon: ControlPanelIcon, componentName: "control_panel" },
+    { name: "Time Machine", icon: TimeMachineIcon, componentName: "timemachine" },
+    { name: "App Store", icon: AppStoreIcon, componentName: "appstore" },
+    { name: "Vortex Office", icon: OfficeIcon, componentName: "office" },
+    { name: "VortexMail", icon: VortexMailIcon, componentName: "vortexmail" },
+    { name: "Calendar", icon: CalendarAppIcon, componentName: "calendar" },
+    { name: "Contacts", icon: ContactsAppIcon, componentName: "contacts" },
+    { name: "Tasks", icon: TasksAppIcon, componentName: "tasks" },
     { name: "Calculator", icon: CalculatorIcon, componentName: "calculator" },
     { name: "Minesweeper", icon: MinesweeperIcon, componentName: "minesweeper" },
     { name: "Solitaire", icon: SolitaireIcon, componentName: "solitaire" },
@@ -144,6 +203,26 @@ const WMenu: React.FC = () => {
     const user = username || "user";
     const pinned = useQuickLaunch(user);
     const settings = useSettings();
+    const mobile = useMobileShell();
+    const era = useEra();
+    const startBtn = era.chrome.startButton; // XP/Aero render a styled Start button
+    const startOrb = era.chrome.startButtonRadius === "50%"; // Aero round orb (icon-only)
+    const orbImg = startOrb ? era.chrome.startOrbImage : undefined; // Vista/7 glossy orb image
+    const isXp = era.id === "winxp";
+    // The Start button glyph: Vista/7 = the orb SVG · XP = the 4-colour flag · else the classic flag.
+    const startImg = orbImg ?? (isXp ? winFlag : w95);
+    // XP fills the taskbar (tall); Aero orb is large; classic stays compact.
+    const startH = startOrb ? (mobile ? 46 : 40) : isXp ? (mobile ? 44 : 34) : mobile ? 42 : 30;
+    const flagH = orbImg ? (mobile ? 44 : 38) : isXp ? 27 : startOrb ? 22 : 20;
+    // Start-menu banner reads "Vortex <era>" — "Vortex 98", "Vortex XP", "Vortex OS"…
+    const bannerLabel = era.id === "vortex" ? "OS" : era.short;
+    // Era-aware Start-menu panel: XP white, Aero/Vortex frosted glass, classic gray.
+    const menuTint: React.CSSProperties =
+        era.id === "winxp"
+            ? { background: "#fbfbfd" }
+            : era.id === "vista" || era.id === "win7" || era.id === "vortex"
+              ? { background: "rgba(244,246,252,0.94)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)" as never }
+              : {};
     const showDeskRef = useRef<string[]>([]);
 
     // Show Desktop: minimize everything; click again restores what it hid.
@@ -261,6 +340,9 @@ const WMenu: React.FC = () => {
     return (
         <Bar
             $hidden={taskbarHidden}
+            $h={taskbarHeight(mobile)}
+            role="toolbar"
+            aria-label="Taskbar"
             onMouseEnter={() => setRevealed(true)}
             onMouseLeave={() => setRevealed(false)}
             onClick={(e) => e.stopPropagation()}
@@ -272,31 +354,77 @@ const WMenu: React.FC = () => {
         >
             {/* Start button + menu */}
             <div style={{ position: "relative" }}>
-                <Button
+                <StartButton
+                    $active={open}
                     onClick={() => {
                         playClick();
                         setOpen((o) => !o);
                         setProgramsOpen(false);
                         setSettingsOpen(false);
                     }}
-                    active={open}
-                    style={{ fontWeight: "bold", height: 30, display: "flex", alignItems: "center", gap: 4 }}
+                    aria-label="Start"
+                    aria-expanded={open}
+                    aria-haspopup="menu"
+                    style={{
+                        height: startH,
+                        ...(isXp ? { fontSize: 15 } : {}),
+                        ...(startBtn
+                            ? startOrb
+                                ? orbImg
+                                    ? {
+                                          // Aero (Vista/7): the glossy orb SVG IS the button.
+                                          background: "transparent",
+                                          border: "none",
+                                          boxShadow: "none",
+                                          width: mobile ? 46 : 40,
+                                          padding: 0,
+                                          justifyContent: "center",
+                                      }
+                                    : {
+                                          // Vortex future: a neon CSS orb.
+                                          background: startBtn,
+                                          borderRadius: "50%",
+                                          border: "1px solid rgba(255,255,255,0.4)",
+                                          boxShadow: "0 0 9px rgba(255,45,149,0.6), inset 0 1px 2px rgba(255,255,255,0.6)",
+                                          width: mobile ? 44 : 38,
+                                          padding: 0,
+                                          justifyContent: "center",
+                                      }
+                                : {
+                                      // XP glossy green "start" lozenge.
+                                      background: startBtn,
+                                      color: "#fff",
+                                      borderRadius: era.chrome.startButtonRadius || "0 12px 12px 0",
+                                      border: "1px solid #2c6e0e",
+                                      fontStyle: "italic",
+                                      paddingLeft: 9,
+                                      paddingRight: 20,
+                                      gap: 6,
+                                      textShadow: "0 1px 1px rgba(0,0,0,0.5)",
+                                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -4px 5px rgba(0,0,0,0.14)",
+                                  }
+                            : {}),
+                    }}
                 >
-                    <img src={w95} alt="" style={{ height: 20 }} />
-                    Start
-                </Button>
+                    <img
+                        src={startImg}
+                        alt=""
+                        style={{ height: flagH, ...(orbImg ? { filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.55))" } : {}) }}
+                    />
+                    {!startOrb && (startBtn ? "start" : "Start")}
+                </StartButton>
 
                 {open && (
-                    <div style={{ position: "absolute", bottom: "calc(100% + 3px)", left: 0, display: "flex", boxShadow: "2px 2px 0 rgba(0,0,0,0.4)" }}>
+                    <div className={mobile ? "vortex-start-mobile" : undefined} style={{ position: "absolute", bottom: "calc(100% + 3px)", left: 0, display: "flex", boxShadow: "2px 2px 0 rgba(0,0,0,0.4)" }}>
                         {/* vertical Windows-95-style banner */}
                         <div
                             style={{
                                 width: 30,
                                 // Serious Sam Style → retrowave magenta→purple→cyan; otherwise the
-                                // classic Windows 98 navy banner.
+                                // active era's banner (Windows 98 default: navy).
                                 background: sssStyle
                                     ? "linear-gradient(180deg, #ff2d95 0%, #6a1b9a 55%, #00e5d0 100%)"
-                                    : "linear-gradient(180deg, #00007a 0%, #000033 100%)",
+                                    : "var(--vx-start-banner, linear-gradient(180deg, #00007a 0%, #000033 100%))",
                                 borderTop: "2px solid #dfdfdf",
                                 borderLeft: "2px solid #dfdfdf",
                                 display: "flex",
@@ -317,20 +445,27 @@ const WMenu: React.FC = () => {
                                 }}
                             >
                                 <span style={{ fontWeight: 400, letterSpacing: 1, textShadow: "0 0 4px rgba(0,0,0,0.5)" }}>Vortex</span>
-                                <span style={{ fontWeight: "bold", fontSize: 20, textShadow: "0 0 4px rgba(0,0,0,0.5)" }}>98</span>
+                                <span style={{ fontWeight: "bold", fontSize: bannerLabel.length > 2 ? 15 : 20, textShadow: "0 0 4px rgba(0,0,0,0.5)" }}>{bannerLabel}</span>
                             </div>
                         </div>
 
-                        <MenuList style={{ width: 200, position: "static" }}>
-                            <div style={{ position: "relative" }} onMouseEnter={() => setProgramsOpen(true)} onMouseLeave={() => setProgramsOpen(false)}>
-                                <MenuListItem style={{ cursor: "pointer", justifyContent: "space-between" }}>
+                        <MenuList style={{ width: mobile ? "min(260px, 80vw)" : 200, position: "static", ...menuTint }}>
+                            <div
+                                style={{ position: "relative" }}
+                                onMouseEnter={mobile ? undefined : () => setProgramsOpen(true)}
+                                onMouseLeave={mobile ? undefined : () => setProgramsOpen(false)}
+                            >
+                                <MenuListItem
+                                    style={{ cursor: "pointer", justifyContent: "space-between" }}
+                                    onClick={() => mobile && setProgramsOpen((o) => !o)}
+                                >
                                     <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                                         <img src={ExplorerIcon} style={{ width: 20 }} /> Programs
                                     </span>
                                     <span>▸</span>
                                 </MenuListItem>
                                 {programsOpen && (
-                                    <MenuList ref={fitSubmenu as never} style={{ position: "absolute", left: "100%", top: 0, width: 220 }}>
+                                    <MenuList ref={fitSubmenu as never} style={mobile ? { position: "static", width: "100%", marginTop: 2, ...menuTint } : { position: "absolute", left: "100%", top: 0, width: 220, ...menuTint }}>
                                         {PROGRAMS.filter((p) => !uninstalled.has(p.componentName)).map((p) => (
                                             <MenuListItem
                                                 key={p.componentName}
@@ -362,15 +497,22 @@ const WMenu: React.FC = () => {
                                     <img src={ExplorerIcon} style={{ width: 20 }} /> Documents
                                 </span>
                             </MenuListItem>
-                            <div style={{ position: "relative" }} onMouseEnter={() => setSettingsOpen(true)} onMouseLeave={() => setSettingsOpen(false)}>
-                                <MenuListItem style={{ cursor: "pointer", justifyContent: "space-between" }}>
+                            <div
+                                style={{ position: "relative" }}
+                                onMouseEnter={mobile ? undefined : () => setSettingsOpen(true)}
+                                onMouseLeave={mobile ? undefined : () => setSettingsOpen(false)}
+                            >
+                                <MenuListItem
+                                    style={{ cursor: "pointer", justifyContent: "space-between" }}
+                                    onClick={() => mobile && setSettingsOpen((o) => !o)}
+                                >
                                     <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                                         <img src={ControlPanelIcon} style={{ width: 20 }} /> Settings
                                     </span>
                                     <span>▸</span>
                                 </MenuListItem>
                                 {settingsOpen && (
-                                    <MenuList ref={fitSubmenu as never} style={{ position: "absolute", left: "100%", top: 0, width: 220 }}>
+                                    <MenuList ref={fitSubmenu as never} style={mobile ? { position: "static", width: "100%", marginTop: 2, ...menuTint } : { position: "absolute", left: "100%", top: 0, width: 220, ...menuTint }}>
                                         <MenuListItem
                                             style={{ cursor: "pointer" }}
                                             onClick={() => launch({ name: "Control Panel", icon: ControlPanelIcon, componentName: "control_panel" })}
@@ -427,11 +569,11 @@ const WMenu: React.FC = () => {
                 )}
             </div>
 
-            {/* Quick Launch — Show Desktop + pinned apps */}
-            {settings.showQuickLaunch && (
+            {/* Quick Launch — Show Desktop + pinned apps (hidden on the narrow touch shell) */}
+            {settings.showQuickLaunch && !mobile && (
             <div style={{ display: "flex", alignItems: "center", gap: 2, paddingLeft: 4, borderLeft: "1px solid #808080", borderRight: "1px solid #808080", marginLeft: 2, marginRight: 2 }}>
                 <Tooltip text="Show Desktop">
-                    <ShowDesktopButton onClick={showDesktop} aria-label="Show Desktop">
+                    <ShowDesktopButton className="vx-quickbtn" onClick={showDesktop} aria-label="Show Desktop">
                         {/* tiny desktop/pencil glyph */}
                         <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden>
                             <rect x="1.5" y="2" width="13" height="9" rx="0.5" fill="#000080" stroke="#000" strokeWidth="0.8" />
@@ -447,6 +589,7 @@ const WMenu: React.FC = () => {
                         return (
                             <Tooltip key={exec} text={app.name}>
                                 <QuickIcon
+                                    className="vx-quickbtn"
                                     onClick={() => launchExec(exec)}
                                     onContextMenu={(e) => {
                                         e.preventDefault();
@@ -464,17 +607,19 @@ const WMenu: React.FC = () => {
             </div>
             )}
 
-            {/* running windows */}
-            <div style={{ display: "flex", flex: 1, gap: 3, overflow: "hidden", marginLeft: 2 }}>
+            {/* running windows — on the touch shell this strip is the app switcher */}
+            <div style={{ display: "flex", flex: 1, gap: 3, overflowX: mobile ? "auto" : "hidden", overflowY: "hidden", marginLeft: 2 }}>
                 {processes.map((process: Process) => {
                     const pressed = process.priority === 0 && !minimized.includes(process.uuid ?? "");
                     return (
                         <WindowPreview key={process.uuid} process={process} minimized={minimized.includes(process.uuid ?? "")}>
-                            <TaskButton $pressed={pressed} onClick={() => onTaskClick(process)}>
-                                <img src={process.icon} style={{ width: 18, height: 18, flexShrink: 0 }} />
-                                <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                    {process.name}
-                                </span>
+                            <TaskButton $pressed={pressed} $mobile={mobile} className="vx-taskbtn" data-active={pressed ? "" : undefined} onClick={() => onTaskClick(process)} title={process.name} aria-label={process.name}>
+                                <img src={process.icon} style={{ width: mobile ? 22 : 18, height: mobile ? 22 : 18, flexShrink: 0 }} />
+                                {!mobile && (
+                                    <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                        {process.name}
+                                    </span>
+                                )}
                             </TaskButton>
                         </WindowPreview>
                     );

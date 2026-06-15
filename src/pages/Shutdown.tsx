@@ -4,6 +4,7 @@ import styled, { keyframes } from "styled-components";
 import { useOSContext } from "../contexts/OSContext";
 import { VortexLogo } from "../components/VortexLogo";
 import { playShutdown } from "../system/sounds";
+import { useEra } from "../system/eras";
 
 const fadeIn = keyframes`from { opacity: 0 } to { opacity: 1 }`;
 
@@ -18,11 +19,11 @@ const Full = styled.div`
     color: #fff;
 `;
 
-const Closing = styled(Full)<{ $vapor: boolean }>`
-    background: ${({ $vapor }) =>
+const Closing = styled(Full)<{ $vapor: boolean; $bg: string }>`
+    background: ${({ $vapor, $bg }) =>
         $vapor
             ? "radial-gradient(110% 80% at 50% 42%, #1d0540 0%, #0a0118 55%, #000 100%)"
-            : "#008080"};
+            : $bg};
     animation: ${fadeIn} 0.4s ease;
 `;
 
@@ -74,7 +75,8 @@ const RestartButton = styled.button`
 const Shutdown: React.FC = () => {
     const navigate = useNavigate();
     const { sssStyle } = useOSContext();
-    const vapor = sssStyle;
+    const era = useEra();
+    const vapor = era.boot.style === "vortex" && sssStyle;
     const [phase, setPhase] = useState<"closing" | "off">("closing");
 
     useEffect(() => {
@@ -85,9 +87,9 @@ const Shutdown: React.FC = () => {
 
     if (phase === "closing") {
         return (
-            <Closing $vapor={vapor}>
+            <Closing $vapor={vapor} $bg={era.chrome.desktop}>
                 <VortexLogo size={120} vapor={vapor} />
-                <Wordmark $vapor={vapor}>VortexOS</Wordmark>
+                <Wordmark $vapor={vapor}>{era.boot.wordmark}</Wordmark>
                 <p style={{ marginTop: 26, fontSize: 14, color: vapor ? "#cfcfe0" : "#fff" }}>
                     Please wait while VortexOS shuts down…
                 </p>

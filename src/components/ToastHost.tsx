@@ -41,7 +41,7 @@ const TitleBar = styled.div`
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: linear-gradient(90deg, #000080, #1084d0);
+    background: var(--vx-title-active, linear-gradient(90deg, #000080, #1084d0));
     color: #fff;
     font-weight: bold;
     padding: 2px 4px;
@@ -66,7 +66,11 @@ const ToastItem: React.FC<{ toast: Toast; onOpenApp: (exec: string, name: string
 
     return (
         <Balloon $type={toast.type}>
-            <TitleBar style={{ background: `linear-gradient(90deg, ${accent[toast.type] ?? "#000080"}, #1084d0)` }}>
+            <TitleBar
+                // info uses the era title bar (styled default); warning/error keep
+                // their semantic amber/red regardless of era.
+                style={toast.type === "info" ? undefined : { background: `linear-gradient(90deg, ${accent[toast.type]}, #1084d0)` }}
+            >
                 <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
                     <img src={toast.icon ?? InfoIcon} alt="" style={{ width: 14, height: 14 }} />
                     {toast.title}

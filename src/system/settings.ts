@@ -34,6 +34,9 @@ export interface Settings {
     // Regional
     dateFormat: "short" | "long";
     firstDayMonday: boolean; // start the week on Monday
+    // Reach / accessibility
+    osk: "auto" | "on" | "off"; // on-screen keyboard: auto (touch only), always, or never
+    tabletMode: boolean; // force the touch/mobile shell on any device
 }
 
 export const DEFAULTS: Settings = {
@@ -53,6 +56,8 @@ export const DEFAULTS: Settings = {
     autoHideTaskbar: false,
     dateFormat: "short",
     firstDayMonday: false,
+    osk: "auto",
+    tabletMode: false,
 };
 
 /** Desktop icon pixel metrics per size choice. */

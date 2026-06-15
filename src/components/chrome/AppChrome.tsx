@@ -26,7 +26,7 @@ export const AppBody = styled.div`
 `;
 
 // ── Menu bar ───────────────────────────────────────────────────────────────────────────
-const MenuBarRow = styled.div`
+const MenuBarRow = styled.div.attrs({ className: "vx-menubar" })`
     display: flex;
     align-items: stretch;
     height: 20px;
@@ -37,7 +37,7 @@ const MenuBarRow = styled.div`
     flex-shrink: 0;
 `;
 
-const MenuLabel = styled.button<{ $open: boolean }>`
+const MenuLabel = styled.button.attrs({ className: "vx-menulabel" })<{ $open: boolean }>`
     border: none;
     background: ${(p) => (p.$open ? "#000080" : "transparent")};
     color: ${(p) => (p.$open ? "#fff" : "#000")};
@@ -64,7 +64,7 @@ const Dropdown = styled.div`
     padding: 2px;
 `;
 
-const MenuItemRow = styled.div<{ $disabled?: boolean }>`
+const MenuItemRow = styled.div.attrs({ className: "vx-menuitem" })<{ $disabled?: boolean }>`
     display: flex;
     align-items: center;
     gap: 8px;
@@ -193,7 +193,7 @@ export const Toolbar = styled.div`
     }
 `;
 
-export const ToolButton = styled.button<{ $active?: boolean }>`
+export const ToolButton = styled.button.attrs({ className: "vx-toolbtn" })<{ $active?: boolean }>`
     min-width: 23px;
     height: 22px;
     padding: 0 5px;

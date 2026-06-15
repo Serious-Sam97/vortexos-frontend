@@ -6,6 +6,8 @@ import { getVolume, setVolume, isMuted, setMuted, subscribeSound, playClick } fr
 import { getOnline, isChatConnected, subscribeChat } from "../system/chat";
 import { subscribeNotifications, getNotificationHistory, clearHistory, Toast } from "../system/notifications";
 import { useSettings } from "../system/settings";
+import { toggleOsk, useOskVisible } from "../system/osk";
+import { useMobileShell } from "../system/viewport";
 
 const TASKBAR_HEIGHT = 40;
 
@@ -19,20 +21,22 @@ const Tray = styled.div`
     font-size: 12px;
     border: 2px solid;
     border-color: #808080 #ffffff #ffffff #808080;
+    /* Era-aware: readable on dark/glass taskbars (cascades to currentColor icons). */
+    color: var(--vx-taskbar-text, #000);
 `;
 
-const IconButton = styled.button`
+const IconButton = styled.button<{ $big?: boolean }>`
     border: none;
     background: transparent;
     padding: 0;
     margin: 0;
-    width: 18px;
-    height: 18px;
+    width: ${({ $big }) => ($big ? "30px" : "18px")};
+    height: ${({ $big }) => ($big ? "30px" : "18px")};
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: #000;
+    color: var(--vx-taskbar-text, #000);
 `;
 
 const Popup = styled.div`
@@ -59,6 +63,25 @@ function SpeakerIcon({ muted }: { muted: boolean }) {
                     <path d="M13.5 5a6 6 0 0 1 0 8" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
                 </>
             )}
+        </svg>
+    );
+}
+
+/** A small keyboard glyph for the on-screen-keyboard toggle. */
+function KeyboardIcon({ on }: { on: boolean }) {
+    return (
+        <svg viewBox="0 0 18 18" width="16" height="16" aria-hidden>
+            <rect x="1" y="4.5" width="16" height="9" rx="1" fill={on ? "#000080" : "none"} stroke="currentColor" strokeWidth="1" />
+            <g fill={on ? "#fff" : "currentColor"}>
+                <rect x="3" y="6.5" width="1.6" height="1.6" />
+                <rect x="6" y="6.5" width="1.6" height="1.6" />
+                <rect x="9" y="6.5" width="1.6" height="1.6" />
+                <rect x="12" y="6.5" width="1.6" height="1.6" />
+                <rect x="4.5" y="9" width="1.6" height="1.6" />
+                <rect x="7.5" y="9" width="1.6" height="1.6" />
+                <rect x="10.5" y="9" width="1.6" height="1.6" />
+                <rect x="5" y="11.3" width="8" height="1.4" />
+            </g>
         </svg>
     );
 }
@@ -191,6 +214,7 @@ function NotificationCenter({ items }: { items: Toast[] }) {
 
 const SystemTray: React.FC<{ username?: string | null }> = ({ username }) => {
     const settings = useSettings();
+    const mobile = useMobileShell();
     const now = useNow(settings.clockSeconds ? 1000 : 10000);
     const [open, setOpen] = useState<Open>(null);
     const trayRef = useRef<HTMLDivElement>(null);
@@ -208,6 +232,8 @@ const SystemTray: React.FC<{ username?: string | null }> = ({ username }) => {
     const notes = useSyncExternalStore(subscribeNotifications, () => String(getNotificationHistory().length));
     void notes;
     const history = getNotificationHistory();
+
+    const oskOn = useOskVisible();
 
     // Close any popup on an outside click or Escape.
     useEffect(() => {
@@ -233,6 +259,7 @@ const SystemTray: React.FC<{ username?: string | null }> = ({ username }) => {
         <>
             <Tray ref={trayRef} className="tray-clock">
                 <IconButton
+                    $big={mobile}
                     title={connected ? `Network: connected (${onlineCount} online)` : "Network: offline"}
                     onClick={() => {
                         playClick();
@@ -242,10 +269,23 @@ const SystemTray: React.FC<{ username?: string | null }> = ({ username }) => {
                 >
                     <NetworkIcon connected={connected} />
                 </IconButton>
-                <IconButton title={muted ? "Volume: muted" : `Volume: ${Math.round(volume * 100)}%`} onClick={() => toggle("volume")}>
+                {settings.osk !== "off" && (
+                    <IconButton
+                        $big={mobile}
+                        title={oskOn ? "Hide On-Screen Keyboard" : "Show On-Screen Keyboard"}
+                        aria-label="Toggle On-Screen Keyboard"
+                        onClick={() => {
+                            playClick();
+                            toggleOsk();
+                        }}
+                    >
+                        <KeyboardIcon on={oskOn} />
+                    </IconButton>
+                )}
+                <IconButton $big={mobile} title={muted ? "Volume: muted" : `Volume: ${Math.round(volume * 100)}%`} onClick={() => toggle("volume")}>
                     <SpeakerIcon muted={muted} />
                 </IconButton>
-                <IconButton title={`Notifications (${history.length})`} onClick={() => toggle("notifications")}>
+                <IconButton $big={mobile} title={`Notifications (${history.length})`} onClick={() => toggle("notifications")}>
                     <BellIcon />
                 </IconButton>
                 {username && <span style={{ opacity: 0.85 }}>{username}</span>}

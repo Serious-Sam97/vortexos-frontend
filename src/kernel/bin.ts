@@ -23,6 +23,13 @@ const VortexCode = lazy(() => import("../components/Apps/VortexCode"));
 const VortexCalc = lazy(() => import("../components/Apps/VortexCalc"));
 const MarkdownStudio = lazy(() => import("../components/Apps/MarkdownStudio"));
 const DocViewer = lazy(() => import("../components/Apps/DocViewer"));
+const TimeMachine = lazy(() => import("../components/Apps/TimeMachine"));
+const AppStore = lazy(() => import("../components/Apps/AppStore"));
+const VortexMail = lazy(() => import("../components/Apps/VortexMail"));
+const Calendar = lazy(() => import("../components/Apps/Calendar"));
+const Contacts = lazy(() => import("../components/Apps/Contacts"));
+const Tasks = lazy(() => import("../components/Apps/Tasks"));
+const Office = lazy(() => import("../components/Apps/Office"));
 import Terminal from "../components/Apps/Terminal";
 import Calculator from "../components/Apps/Calculator";
 import Minesweeper from "../components/Apps/Minesweeper";
@@ -35,6 +42,15 @@ import Find from "../components/Apps/Find";
 import Help from "../components/Apps/Help";
 import NetworkNeighborhood from "../components/Apps/NetworkNeighborhood";
 import Messenger from "../components/Apps/Messenger";
+import Lounge from "../components/Apps/Lounge";
+import CoWrite from "../components/Apps/CoWrite";
+import Bbs from "../components/Apps/Bbs";
+import Whiteboard from "../components/Apps/Whiteboard";
+import VortexAmp from "../components/Apps/VortexAmp";
+import VortexViz from "../components/Apps/VortexViz";
+import Synth from "../components/Apps/Synth";
+import ShaderPlayground from "../components/Apps/ShaderPlayground";
+import VideoPlayer from "../components/Apps/VideoPlayer";
 import ImageViewer from "../components/Apps/ImageViewer";
 import MediaPlayer from "../components/Apps/MediaPlayer";
 import AddRemovePrograms from "../components/Apps/AddRemovePrograms";
@@ -66,8 +82,24 @@ import ClockIcon from "/clock.svg";
 import PaintIcon from "/paint_file-3.png";
 import FindIcon from "/find.svg";
 import HelpIcon from "/help.svg";
+import TimeMachineIcon from "/timemachine.svg";
+import AppStoreIcon from "/appstore.svg";
+import VortexMailIcon from "/vortexmail.svg";
+import CalendarAppIcon from "/calendar.svg";
+import ContactsIcon from "/contacts.svg";
+import TasksIcon from "/tasks.svg";
+import OfficeIcon from "/office.svg";
 import NetworkIcon from "/network.svg";
 import WinpopupIcon from "/winpopup.svg";
+import LoungeIcon from "/lounge.svg";
+import CoWriteIcon from "/cowrite.svg";
+import BbsIcon from "/bbs.svg";
+import WhiteboardIcon from "/whiteboard.svg";
+import VortexAmpIcon from "/vortexamp.svg";
+import VortexVizIcon from "/vortexviz.svg";
+import SynthIcon from "/synth.svg";
+import ShaderIcon from "/shader.svg";
+import VideoIcon from "/video.svg";
 
 /** Core apps that can't be uninstalled via Add/Remove Programs. */
 export const CORE_APPS = new Set([
@@ -100,6 +132,15 @@ export const BUILTIN_APPS = [
         defineApp({ exec: "backlogger", name: "GameCache", icon: BackloggerIcon, component: Backlogger, permissions: ["net"] }),
         defineApp({ exec: "network", name: "Network Neighborhood", icon: NetworkIcon, component: NetworkNeighborhood, permissions: ["net"] }),
         defineApp({ exec: "messenger", name: "WinPopup", icon: WinpopupIcon, component: Messenger, permissions: ["net"] }),
+        defineApp({ exec: "lounge", name: "Vortex Lounge", icon: LoungeIcon, component: Lounge, permissions: ["net"] }),
+        defineApp({ exec: "cowrite", name: "Vortex CoWrite", icon: CoWriteIcon, component: CoWrite, permissions: ["net"] }),
+        defineApp({ exec: "bbs", name: "Vortex BBS", icon: BbsIcon, component: Bbs, permissions: ["net"] }),
+        defineApp({ exec: "whiteboard", name: "Vortex Whiteboard", icon: WhiteboardIcon, component: Whiteboard, permissions: ["net"] }),
+        defineApp({ exec: "vortexamp", name: "VortexAmp", icon: VortexAmpIcon, component: VortexAmp, permissions: ["fs"] }),
+        defineApp({ exec: "vortexviz", name: "VortexViz", icon: VortexVizIcon, component: VortexViz, permissions: [] }),
+        defineApp({ exec: "synth", name: "Vortex Synth", icon: SynthIcon, component: Synth, permissions: [] }),
+        defineApp({ exec: "shader", name: "Shader Playground", icon: ShaderIcon, component: ShaderPlayground, permissions: [] }),
+        defineApp({ exec: "video", name: "Vortex Video", icon: VideoIcon, component: VideoPlayer, permissions: ["fs"] }),
         defineApp({ exec: "browser", name: "Browser", icon: BrowserIcon, component: Browser, permissions: ["net"] }),
         defineApp({ exec: "vaporwave", name: "Nightwave Plaza", icon: NightwavePlazaIcon, component: NightwavePlaza, permissions: ["net", "audio"] }),
         // Sandboxed apps — no system access.
@@ -111,6 +152,13 @@ export const BUILTIN_APPS = [
         defineApp({ exec: "clock", name: "Clock", icon: ClockIcon, component: Clock, permissions: [] }),
         defineApp({ exec: "help", name: "Help", icon: HelpIcon, component: Help, permissions: [] }),
         defineApp({ exec: "control_panel", name: "Control Panel", icon: MyComputerIcon, component: ControlPanel, permissions: [] }),
+        defineApp({ exec: "timemachine", name: "Time Machine", icon: TimeMachineIcon, component: TimeMachine, permissions: [] }),
+        defineApp({ exec: "appstore", name: "App Store", icon: AppStoreIcon, component: AppStore, permissions: ["net"] }),
+        defineApp({ exec: "vortexmail", name: "VortexMail", icon: VortexMailIcon, component: VortexMail, permissions: ["net"] }),
+        defineApp({ exec: "calendar", name: "Calendar", icon: CalendarAppIcon, component: Calendar, permissions: ["net"] }),
+        defineApp({ exec: "contacts", name: "Contacts", icon: ContactsIcon, component: Contacts, permissions: ["net", "proc"] }),
+        defineApp({ exec: "tasks", name: "Tasks", icon: TasksIcon, component: Tasks, permissions: ["net"] }),
+        defineApp({ exec: "office", name: "Vortex Office", icon: OfficeIcon, component: Office, permissions: ["net", "proc"] }),
         defineApp({ exec: "add_remove", name: "Add/Remove Programs", icon: MyComputerIcon, component: AddRemovePrograms, permissions: [] }),
         defineApp({ exec: "doom", name: "Doom", icon: DoomIcon, component: Doom, permissions: [] }),
         defineApp({ exec: "doomII", name: "Doom II", icon: DoomIIIcon, component: DoomII, permissions: [] }),

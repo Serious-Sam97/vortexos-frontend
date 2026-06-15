@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { getSaverSettings, onPreviewSaver, useSaverSettings } from "../system/screensaver";
+import { renderViz } from "../system/visualizer";
 
 /**
  * The screensaver engine. After the configured idle time (no mouse/keyboard), a full-screen
@@ -82,6 +83,11 @@ const Screensaver: React.FC = () => {
 function makeAnimation(type: string, getW: () => number, getH: () => number): (ctx: CanvasRenderingContext2D) => void {
     if (type === "mystify") return mystify(getW, getH);
     if (type === "pipes") return pipes(getW, getH);
+    if (type === "spectrum") {
+        let frame = 0;
+        // Visualizes whatever's playing (VortexAmp); animates procedurally when silent.
+        return (ctx: CanvasRenderingContext2D) => renderViz(ctx, getW(), getH(), "bloom", ++frame);
+    }
     return starfield(getW, getH);
 }
 

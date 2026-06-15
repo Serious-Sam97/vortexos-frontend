@@ -84,7 +84,7 @@ const RunDialog: React.FC = () => {
             style={{ position: "fixed", inset: 0, zIndex: 1400000, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.15)" }}
             onMouseDown={closeRun}
         >
-            <Window style={{ width: 380 }} onMouseDown={(e) => e.stopPropagation()}>
+            <Window style={{ width: "min(380px, 92vw)" }} onMouseDown={(e) => e.stopPropagation()}>
                 <WindowHeader style={{ display: "flex", alignItems: "center", gap: 6, ...win98TitleBar(true) }}>
                     <img src={RunIcon} alt="" style={{ width: 16, height: 16 }} />
                     Run

@@ -1,7 +1,8 @@
 import React, { Suspense, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import styled from "styled-components";
 import { useProcessContext } from "../contexts/ProcessContext";
-import { Button, MenuList, MenuListItem, Separator, Window, WindowHeader } from "react95";
+import { MenuList, MenuListItem, Separator, Window, WindowHeader } from "react95";
 import { Process } from "../interfaces/Process";
 import { useOSContext } from "../contexts/OSContext";
 import { PidProvider } from "../kernel/react/pid";
@@ -9,6 +10,7 @@ import { playMaximize, playMinimize } from "../system/sounds";
 import { DrWatson } from "./DrWatson";
 import { win98TitleBar } from "../system/win98";
 import { useSettings } from "../system/settings";
+import { useMobileShell, useViewport, taskbarHeight } from "../system/viewport";
 
 interface ProcessWindowProp {
     process: Process;
@@ -59,6 +61,10 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
     const { changePriority, closeProcess, handleProceessLocationChange } = useProcessContext();
     const { changeCursor, minimized, minimize } = useOSContext();
     const settings = useSettings();
+    const mobile = useMobileShell();
+    // Touch chrome (bigger hit targets) on phones AND coarse-pointer tablets,
+    // even when those tablets keep floating windows. Never on a mouse desktop.
+    const touch = mobile || useViewport().coarse;
 
     const [properties, setProperties] = useState({
         x: process.location?.x ?? 0,
@@ -96,22 +102,23 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
     useEffect(() => {
         if (dragging) {
             changeCursor("Grabbing.cur");
-            document.addEventListener("mousemove", handleMouseMove);
-            document.addEventListener("mouseup", handleMouseUp);
+            document.addEventListener("pointermove", handleMouseMove);
+            document.addEventListener("pointerup", handleMouseUp);
         } else {
             changeCursor("arrow.cur");
-            document.removeEventListener("mousemove", handleMouseMove);
-            document.removeEventListener("mouseup", handleMouseUp);
+            document.removeEventListener("pointermove", handleMouseMove);
+            document.removeEventListener("pointerup", handleMouseUp);
         }
         return () => {
-            document.removeEventListener("mousemove", handleMouseMove);
-            document.removeEventListener("mouseup", handleMouseUp);
+            document.removeEventListener("pointermove", handleMouseMove);
+            document.removeEventListener("pointerup", handleMouseUp);
         };
     }, [dragging]);
 
     // ── classic wireframe drag: move only an outline, commit on release ──
-    const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
-        if (maximized) return;
+    // Pointer events unify mouse + touch + pen so the WM is drag-able by finger.
+    const handleMouseDown = (event: React.PointerEvent<HTMLDivElement>) => {
+        if (maximized || mobile) return; // mobile windows are full-screen; no dragging
         if (process.uuid) changePriority(process, 0);
         const rect = windowRef.current?.getBoundingClientRect();
         if (!rect) return;
@@ -120,7 +127,7 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
         setDragging(true);
     };
 
-    const handleMouseMove = (event: MouseEvent) => {
+    const handleMouseMove = (event: PointerEvent) => {
         if (!dragStart.current) return;
         // Near a screen edge → preview the snap tile (when snapping is enabled);
         // otherwise either move the window live or show the classic wireframe ghost.
@@ -147,7 +154,7 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
         }
     };
 
-    const handleMouseUp = (event: MouseEvent) => {
+    const handleMouseUp = (event: PointerEvent) => {
         setDragging(false);
         const d = dragStart.current;
         const snap = snapTarget.current;
@@ -194,11 +201,26 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
 
     const stop = (e: React.MouseEvent) => e.stopPropagation();
 
+    // ── mobile title-bar gesture: swipe the title down to minimize the window ──
+    const swipe = useRef<{ x: number; y: number } | null>(null);
+    const onTitlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+        handleMouseDown(e); // desktop/tablet drag; a no-op on the full-screen mobile shell
+        if (mobile) swipe.current = { x: e.clientX, y: e.clientY };
+    };
+    const onTitlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+        if (mobile && swipe.current) {
+            const dy = e.clientY - swipe.current.y;
+            const dx = Math.abs(e.clientX - swipe.current.x);
+            if (dy > 60 && dx < 80) doMinimize();
+        }
+        swipe.current = null;
+    };
+
     // ── window resizing (drag any edge or corner) ───────────────────────
     // dx/dy ∈ {-1,0,1}: which edges move. The opposite edge stays anchored.
     const MIN_W = 240;
     const MIN_H = 150;
-    const onResizeMove = (e: MouseEvent) => {
+    const onResizeMove = (e: PointerEvent) => {
         const s = resizeStart.current;
         if (!s) return;
         const ddx = e.clientX - s.mouseX;
@@ -222,29 +244,37 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
     };
     const onResizeUp = () => {
         resizeStart.current = null;
-        document.removeEventListener("mousemove", onResizeMove);
-        document.removeEventListener("mouseup", onResizeUp);
+        document.removeEventListener("pointermove", onResizeMove);
+        document.removeEventListener("pointerup", onResizeUp);
     };
-    const startResize = (dx: number, dy: number) => (e: React.MouseEvent) => {
+    const startResize = (dx: number, dy: number) => (e: React.PointerEvent) => {
         if (maximized) return;
         e.preventDefault();
         e.stopPropagation();
         const rect = windowRef.current?.getBoundingClientRect();
         if (!rect) return;
         resizeStart.current = { mouseX: e.clientX, mouseY: e.clientY, w: rect.width, h: rect.height, left: rect.left, top: rect.top, dx, dy };
-        document.addEventListener("mousemove", onResizeMove);
-        document.addEventListener("mouseup", onResizeUp);
+        document.addEventListener("pointermove", onResizeMove);
+        document.addEventListener("pointerup", onResizeUp);
     };
 
     const animation = maximized ? undefined : minimizing ? "winMinimize 150ms ease-in forwards" : "winOpen 140ms ease-out";
 
-    const windowStyle: React.CSSProperties = maximized
+    // On the touch shell every window is full-screen above the taskbar (the
+    // running-apps strip is the switcher); no free-floating, snap or resize.
+    const fullScreen = maximized || mobile;
+    // Era window-corner rounding (XP/Aero round the top; classic = 0). Full-screen /
+    // maximized windows stay square so they fill the screen edges flush.
+    const radius = fullScreen ? "0" : "var(--vx-title-radius, 0)";
+    // On the mobile shell, clear the notch (safe-area top) so the title bar is tappable.
+    const topInset = mobile ? "env(safe-area-inset-top, 0px)" : "0px";
+    const windowStyle: React.CSSProperties = fullScreen
         ? {
               position: "fixed",
-              top: 0,
+              top: topInset,
               left: 0,
               width: "100vw",
-              height: `calc(100vh - ${TASKBAR_HEIGHT}px)`,
+              height: `calc(100vh - ${taskbarHeight(mobile)}px - ${topInset})`,
               transform: "none",
               zIndex: isActive ? 9999 : process.priority + 1,
               userSelect: "none",
@@ -265,6 +295,7 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
               minHeight: 150,
               maxWidth: "100vw",
               maxHeight: `calc(100vh - ${TASKBAR_HEIGHT}px)`,
+              borderRadius: radius,
               ...(size ? { width: size.w, height: size.h } : {}),
           };
 
@@ -276,23 +307,31 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
                 key={process.uuid}
                 resizable={!maximized}
                 className="window"
+                role="dialog"
+                aria-label={process.name}
                 style={windowStyle}
             >
                 <WindowHeader
-                    onMouseDown={handleMouseDown}
+                    onPointerDown={onTitlePointerDown}
+                    onPointerUp={onTitlePointerUp}
                     onDoubleClick={toggleMaximize}
                     className="window-title"
                     style={{
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
+                        touchAction: "none",
+                        borderRadius: radius,
+                        // Aero glass (no-op on classic eras: the var is unset → "none").
+                        backdropFilter: "var(--vx-title-blur, none)",
+                        WebkitBackdropFilter: "var(--vx-title-blur, none)" as never,
                         ...win98TitleBar(isActive),
                     }}
                 >
                     <div style={{ display: "flex", alignItems: "center", overflow: "hidden", position: "relative" }}>
                         <img
                             src={process.icon}
-                            onMouseDown={(e) => e.stopPropagation()}
+                            onPointerDown={(e) => e.stopPropagation()}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setSysMenu((o) => !o);
@@ -330,19 +369,25 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
                         )}
                     </div>
 
-                    <div style={{ display: "flex", gap: 2 }} onMouseDown={stop} onClick={stop}>
+                    <div style={{ display: "flex", gap: 2 }} onPointerDown={stop} onClick={stop}>
                         <ControlButton
                             label="Minimize"
+                            big={touch}
                             onClick={doMinimize}
-                            glyph={<span style={{ display: "block", width: 8, height: 2, background: "#000", marginTop: 5 }} />}
+                            glyph={<span style={{ display: "block", width: 8, height: 2, background: "currentColor", marginTop: 5 }} />}
                         />
-                        <ControlButton
-                            label="Maximize"
-                            onClick={toggleMaximize}
-                            glyph={<span style={{ display: "block", width: 9, height: 8, border: "1px solid #000", borderTopWidth: 2 }} />}
-                        />
+                        {!mobile && (
+                            <ControlButton
+                                label="Maximize"
+                                big={touch}
+                                onClick={toggleMaximize}
+                                glyph={<span style={{ display: "block", width: 9, height: 8, border: "1px solid currentColor", borderTopWidth: 2 }} />}
+                            />
+                        )}
                         <ControlButton
                             label="Close"
+                            big={touch}
+                            close
                             onClick={() => process.uuid && closeProcess(process.uuid)}
                             glyph={<span style={{ fontWeight: "bold", fontSize: 11, lineHeight: "10px" }}>✕</span>}
                         />
@@ -355,7 +400,7 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
                             display: "flex",
                             flexDirection: "column",
                             width: "100%",
-                            ...(maximized || size ? { flex: 1, minHeight: 0, overflow: "auto" } : {}),
+                            ...(fullScreen || size ? { flex: 1, minHeight: 0, overflow: "auto" } : {}),
                         }}
                     >
                         <PidProvider pid={process.uuid ?? null}>
@@ -376,12 +421,12 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
                     ""
                 )}
 
-                {!maximized &&
+                {!fullScreen &&
                     RESIZE_HANDLES.map((hnd) => (
                         <div
                             key={hnd.key}
-                            onMouseDown={startResize(hnd.dx, hnd.dy)}
-                            style={{ position: "absolute", zIndex: 20, cursor: hnd.cursor, ...hnd.box }}
+                            onPointerDown={startResize(hnd.dx, hnd.dy)}
+                            style={{ position: "absolute", zIndex: 20, cursor: hnd.cursor, touchAction: "none", ...hnd.box }}
                         />
                     ))}
             </Window>
@@ -407,14 +452,46 @@ const ProcessWindow: React.FC<ProcessWindowProp> = ({ process }) => {
     );
 };
 
-const ControlButton: React.FC<{ glyph: React.ReactNode; onClick: () => void; label: string }> = ({ glyph, onClick, label }) => (
-    <Button
+/**
+ * Window control button. Classic Win9x gray-bevel look by default; each era
+ * restyles it via the `.vx-ctrl` / `.vx-ctrl-close` classes (see index.css —
+ * XP rounded blue + red close, Aero glass, Vortex neon, DOS flat). Glyphs use
+ * currentColor so they follow the per-era button colour.
+ */
+const Ctrl = styled.button<{ $big?: boolean }>`
+    width: ${({ $big }) => ($big ? 32 : 20)}px;
+    height: ${({ $big }) => ($big ? 26 : 18)}px;
+    min-width: 0;
+    padding: 0;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #000;
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #ffffff #808080 #808080 #ffffff;
+    &:active {
+        border-color: #808080 #ffffff #ffffff #808080;
+    }
+`;
+
+const ControlButton: React.FC<{
+    glyph: React.ReactNode;
+    onClick: () => void;
+    label: string;
+    big?: boolean;
+    close?: boolean;
+}> = ({ glyph, onClick, label, big, close }) => (
+    <Ctrl
         aria-label={label}
         onClick={onClick}
-        style={{ width: 20, height: 18, minWidth: 0, padding: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
+        $big={big}
+        className={close ? "vx-ctrl vx-ctrl-close" : "vx-ctrl vx-ctrl-minmax"}
     >
         {glyph}
-    </Button>
+    </Ctrl>
 );
 
 export default ProcessWindow;
